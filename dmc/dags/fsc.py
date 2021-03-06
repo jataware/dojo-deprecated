@@ -20,12 +20,6 @@ volume_mount = VolumeMount(name='results-volume',
                            sub_path=None,
                            read_only=False)
 
-volume_config= {
-    'persistentVolumeClaim':
-      {
-        'claimName': 'results-claim'
-      }
-    }
 
 volume = Volume(name='results-volume', persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name='results-claim'))
 
