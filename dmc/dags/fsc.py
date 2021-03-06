@@ -1,19 +1,24 @@
 from datetime import timedelta
 from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-from airflow.contrib.kubernetes.volume import Volume
-from airflow.contrib.kubernetes.volume_mount import VolumeMount
+
+from kubernetes.client import models as k8s
+from kubernetes.client.models import V1Volume as Volume
+from kubernetes.client.models import V1VolumeMount as VolumeMount
+
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
+from airflow.providers.amazon.aws.operators import s3_copy_object
+
 from airflow.utils.dates import days_ago
 
 ###########################
 ###### Set up volume ######
 ###########################
-volume_mount = VolumeMount('results-volume',
-                            mount_path='/outputs',
-                            sub_path=None,
-                            read_only=False)
+volume_mount = VolumeMount(name='results-volume',
+                           mount_path='/outputs',
+                           sub_path=None,
+                           read_only=False)
 
 volume_config= {
     'persistentVolumeClaim':
@@ -22,7 +27,7 @@ volume_config= {
       }
     }
 
-volume = Volume(name='results-volume', configs=volume_config)
+volume = Volume(name='results-volume', persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name='results-claim'))
 
 
 ############################
@@ -66,6 +71,7 @@ result_node = KubernetesPodOperator(
     get_logs=True,    
     dag=dag
 )
+
 
 fsc_node = KubernetesPodOperator(
     namespace='default',
