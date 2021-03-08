@@ -67,7 +67,7 @@ result_node = KubernetesPodOperator(
 )
 
 
-parameterized_task = BashOperator(
+echo_node = BashOperator(
     task_id='parameterized_task',
     bash_command="echo value: {{ dag_run.conf['param3'] }}",
     dag=dag,
@@ -89,4 +89,5 @@ fsc_node = KubernetesPodOperator(
     dag=dag
 )
 
+# echo_node.set_downstream(fsc_node)
 fsc_node.set_downstream(result_node)

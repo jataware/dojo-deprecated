@@ -166,7 +166,7 @@ secret: []
 # Extra secrets that will be managed by the chart
 # (You can use them with extraEnv or extraEnvFrom or some of the extraVolumes values).
 # The format is "key/value" where
-#    * key (can be templated) is the the name the secret that will be created
+#    * key (can be templated) is the name of the secret that will be created
 #    * value: an object with the standard 'data' or 'stringData' key (or both).
 #          The value associated with those keys must be a string (can be templated)
 extraSecrets: {}
@@ -185,7 +185,7 @@ extraSecrets: {}
 # Extra ConfigMaps that will be managed by the chart
 # (You can use them with extraEnv or extraEnvFrom or some of the extraVolumes values).
 # The format is "key/value" where
-#    * key (can be templated) is the the name the configmap that will be created
+#    * key (can be templated) is the name of the configmap that will be created
 #    * value: an object with the standard 'data' key.
 #          The value associated with this keys must be a string (can be templated)
 extraConfigMaps: {}
@@ -355,17 +355,8 @@ workers:
   # Annotations to add to worker kubernetes service account.
   serviceAccountAnnotations: {}
   # Mount additional volumes into worker.
-  #extraVolumes: []
-  #extraVolumeMounts: []
-
-  extraVolumeMounts: # this will get the volume and mount it to that path in the container
-    - name: dags
-      mountPath: /opt/airflow/dags  # location in the container it will put the directory mentioned below.
-
-  extraVolumes: # this will create the volume from the directory
-    - name: dags
-      hostPath:
-        path: "//Users/brandonrose/repos/WM/dojo/dmc/dags"  # For you this is something like /<absolute-path>/etl-series/dags  
+  extraVolumes: []
+  extraVolumeMounts: []
 
   # Select certain nodes for airflow worker pods.
   nodeSelector: {}
@@ -405,17 +396,8 @@ scheduler:
   serviceAccountAnnotations: {}
 
   # Mount additional volumes into scheduler.
-  #extraVolumes: []
-  #extraVolumeMounts: []
-
-  extraVolumeMounts: # this will get the volume and mount it to that path in the container
-    - name: dags
-      mountPath: /opt/airflow/dags  # location in the container it will put the directory mentioned below.
-
-  extraVolumes: # this will create the volume from the directory
-    - name: dags
-      hostPath:
-        path: "//Users/brandonrose/repos/WM/dojo/dmc/dags"  # For you this is something like /<absolute-path>/etl-series/dags  
+  extraVolumes: []
+  extraVolumeMounts: []
 
   # Select certain nodes for airflow scheduler pods.
   nodeSelector: {}
@@ -462,16 +444,8 @@ webserver:
     password: admin
 
   # Mount additional volumes into webserver.
-  # extraVolumes: []
-  # extraVolumeMounts: []
-  extraVolumeMounts: # this will get the volume and mount it to that path in the container
-    - name: dags
-      mountPath: /opt/airflow/dags  # location in the container it will put the directory mentioned below.
-
-  extraVolumes: # this will create the volume from the directory
-    - name: dags
-      hostPath:
-        path: "//Users/brandonrose/repos/WM/dojo/dmc/dags"  # For you this is something like /<absolute-path>/etl-series/dags  
+  extraVolumes: []
+  extraVolumeMounts: []
 
   # This will be mounted into the Airflow Webserver as a custom
   # webserver_config.py. You can bake a webserver_config.py in to your image
@@ -776,7 +750,7 @@ config:
     pod_template_file: '{{ include "airflow_pod_template_file" . }}/pod_template_file.yaml'
     worker_container_repository: '{{ .Values.images.airflow.repository | default .Values.defaultAirflowRepository }}'
     worker_container_tag: '{{ .Values.images.airflow.tag | default .Values.defaultAirflowTag }}'
-    delete_worker_pods: 'True'
+    delete_worker_pods: 'False'
     multi_namespace_mode: '{{ if .Values.multiNamespaceMode }}True{{ else }}False{{ end }}'
 # yamllint enable rule:line-length
 

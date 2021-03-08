@@ -49,16 +49,7 @@ Next, clone the Airflow repository with:
 git clone git@github.com:apache/airflow.git
 ```
 
-Navigate to the `chart` directory within the Airflow repo and replace `values.yaml` with the `dmc/configs/values.yaml` in this repository.
-
-You will need to replace every line that contains `path: "//Users/brandonrose/repos/WM/dojo/dmc/dags"` to an appropriate path to your `dags` directory within this repo:
-
-```
-path: "//Users/path/to/dojo/dmc/dags"
-```
-
-This mounts your dags locally to the various Airflow components. Now you are ready to run Airflow. Make sure you are in `airflow/chart` and run:
-
+Navigate to the `chart` directory within the Airflow repo and replace `values.yaml` with the `dmc/configs/values.yaml` in this repository. Make sure you are in `airflow/chart` and run:
 
 ```
 helm install airflow .
@@ -98,7 +89,7 @@ kubectl port-forward svc/airflow-webserver 8080:8080 --namespace default
 Now you should be able to navigate to the [Airflow Dashboard](http://127.0.0.1:8080/admin/). After entering your username and password you will see any DAG that is available in the `dags` directory listed.
 
 
-### Create Persistent Volume
+### Create Persistent Volume for Results
 Then create a persistent volume and claim:
 
 ```
@@ -112,6 +103,32 @@ kubectl patch pvc results-claim -p '{"metadata":{"finalizers": []}}' --type=merg
 kubectl delete pvc results-claim
 kubectl delete persistentvolume results-volume
 ```
+
+### Create and Mount Persistent Volume for Dags
+
+First, update the path on line 17 of `configs/dags-volume.yaml`. You will need to set this to point to the absolute path of your `dags` directory within this repo:
+
+```
+path: "//Users/path/to/dojo/dmc/dags"
+```
+
+Next, create the persistent volume and claim for DAGs:
+
+```
+kubectl apply -f configs/dags-volume.yaml
+```
+
+This creates a persistent volume called `dags-volume` and a claim called `dags-volume-claim`. These are mounted to all Airflow pods so that your DAGs are accessible. 
+
+From `airflow/chart`, run:
+
+```
+helm upgrade airflow . \
+  --set dags.persistence.enabled=true \
+  --set dags.persistence.existingClaim=dags-volume-claim
+  --set dags.gitSync.enabled=false
+```
+
 
 ### Triggering the DAG
 Since we have created a DAG called `fsc`, we can either trigger it in the [Airflow Dashboard](http://127.0.0.1:8080/admin/) or we can exec into the scheduler and trigger it there. First, find the name of your scheduler:
