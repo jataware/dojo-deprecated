@@ -61,7 +61,7 @@ This mounts your dags locally to the various Airflow components. Now you are rea
 
 
 ```
-helm install airflow . --namespace airflow
+helm install airflow .
 ```
 
 Next, create an Airflow user by exec'ing into the Airflow `webserver` container:
@@ -92,7 +92,7 @@ airflow users create \
 When prompted for a password, enter one. Then, run:
 
 ```
-kubectl port-forward svc/airflow-webserver 8080:8080 --namespace airflow
+kubectl port-forward svc/airflow-webserver 8080:8080 --namespace default
 ```
 
 Now you should be able to navigate to the [Airflow Dashboard](http://127.0.0.1:8080/admin/). After entering your username and password you will see any DAG that is available in the `dags` directory listed.
