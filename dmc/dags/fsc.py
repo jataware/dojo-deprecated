@@ -43,7 +43,7 @@ default_args = {
 dag = DAG(
     'fsc',
     default_args=default_args,
-    schedule_interval=timedelta(minutes=30),
+    schedule_interval=None,
     max_active_runs=1,
     concurrency=10
 )
@@ -66,6 +66,12 @@ result_node = KubernetesPodOperator(
     dag=dag
 )
 
+
+parameterized_task = BashOperator(
+    task_id='parameterized_task',
+    bash_command="echo value: {{ dag_run.conf['param3'] }}",
+    dag=dag,
+)
 
 fsc_node = KubernetesPodOperator(
     namespace='default',
