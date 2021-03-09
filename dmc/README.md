@@ -36,9 +36,7 @@ On mac:
 
 ```
 brew install helm
-kubectl create namespace airflow
 helm repo add stable https://charts.helm.sh/stable/
-helm dep update
 ```
 
 ### Run Airflow on Kubernetes
@@ -52,6 +50,7 @@ git clone git@github.com:apache/airflow.git
 Navigate to the `chart` directory within the Airflow repo and replace `values.yaml` with the `dmc/configs/values.yaml` in this repository. Make sure you are in `airflow/chart` and run:
 
 ```
+helm dep update
 helm install airflow .
 ```
 
@@ -158,3 +157,18 @@ You should see `fsc` listed, which you can trigger with:
 ```
 airflow dags trigger fsc
 ```
+
+### Deploying Airflow on Docker (Ubuntu)
+
+Generally speaking, follow the instructions [here](https://airflow.apache.org/docs/apache-airflow/stable/start/docker.html). Note that a custom `docker-compose.yaml` is supplied. 
+
+The custom `docker.py` file is in order to resolve the outstanding [issue identified here](https://github.com/apache/airflow/pull/13536).
+
+Note that an `outputs` directory is expected, so create that. You'll also need to run:
+
+```
+chmod +777 logs
+chmod +777 plugins
+```
+
+once those directories are created.
