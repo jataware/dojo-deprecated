@@ -7,6 +7,7 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.utils.dates import days_ago
 from airflow.configuration import conf
+from airflow.models import Variable
 
 ############################
 ####### Generate DAG #######
@@ -25,7 +26,7 @@ default_args = {
 }
 
 dag = DAG(
-    'fsc',
+    'model',
     default_args=default_args,
     schedule_interval=None,
     max_active_runs=1,
@@ -36,6 +37,29 @@ dag = DAG(
 ###### Create Tasks #######
 ###########################
 
+Variable.set("image", "")
+Variable.set("p1", "")
+
+def set_vars(**kwargs):
+    image = Variable.set("image", kwargs['dag_run'].conf.get('image'))
+    p1 = Variable.set("p1", "param1")
+    print(image, p1)
+    return
+
+def del_vars(**kwargs):
+    image = Variable.delete("image")
+    p1 = Variable.delete("p1")
+    return    
+
+var_node = PythonOperator(task_id='var_task', 
+                             python_callable=set_vars,
+                             provide_context=True,
+                             dag=dag)
+
+var_del_node = PythonOperator(task_id='var_del_task', 
+                             python_callable=del_vars,
+                             provide_context=True,
+                             dag=dag)
 
 def s3copy():
     s3 = S3Hook(aws_conn_id="s3_connection")
@@ -48,19 +72,21 @@ def s3copy():
     )
     return
 
-result_node = PythonOperator(task_id='python_task', 
+s3_node = PythonOperator(task_id='python_task', 
                              python_callable=s3copy,
                              dag=dag)
 
-fsc_node = DockerOperator(
-    image="jataware/fsc_model:0.1",
+image_name = Variable.get("image")
+
+model_node = DockerOperator(
+    image=image_name,
     volumes=["//var/run/docker.sock://var/run/docker.sock", "/home/ubuntu/dojo/dmc/outputs:/outputs"],
     docker_url="unix:///var/run/docker.sock",
     network_mode="bridge",
     # cmds=["python", "-c"],
-    command=["0", "1", "0.5"],
-    task_id='fsc-task',
+    command=["{{ dag_run.conf[var.value.p1] }}", "{{ dag_run.conf['param2'] }}", "{{ dag_run.conf['param3'] }}"],
+    task_id='model-task',
     dag=dag
 )
 
-fsc_node.set_downstream(result_node)
+var_node >> model_node >> s3_node >> var_del_node
