@@ -38,28 +38,33 @@ dag = DAG(
 ###### Create Tasks #######
 ###########################
 
-def s3copy():
+def s3copy(**kwargs):
     s3 = S3Hook(aws_conn_id="s3_connection")
-
-    result_node = s3.load_file(
-        filename='/outputs/Production_TimeSeries.csv',
-        key='Production_TimeSeries.csv',
-        replace=True,
-        bucket_name='jataware-world-modelers'
-    )
+    outputs = kwargs['dag_run'].conf.get('outputs')
+    results_path = f"/results/{kwargs['dag_run'].conf.get('run_id')}"
+    for f in outputs:
+        s3.load_file(
+            filename=f'{results_path}/{f}',
+            key=f"{kwargs['dag_run'].conf.get('run_id')}/{f}",
+            replace=True,
+            bucket_name='jataware-world-modelers'
+        )
     return
 
 s3_node = PythonOperator(task_id='s3push-task', 
                              python_callable=s3copy,
+                             provide_context=True,
                              dag=dag)
 
 model_node = DojoDockerOperator(
     task_id='model-task',    
     image="{{ dag_run.conf['image'] }}",
-    volumes=["//var/run/docker.sock://var/run/docker.sock", "/home/ubuntu/dojo/dmc/outputs:/outputs"],
+    container_name="run_{{ dag_run.conf['run_id'] }}",
+    volumes=["//var/run/docker.sock://var/run/docker.sock", "/home/ubuntu/dojo/dmc/results/{{ dag_run.conf['run_id'] }}:/outputs"],
     docker_url="unix:///var/run/docker.sock",
     network_mode="bridge",
     command=["{{ dag_run.conf['param1'] }}", "{{ dag_run.conf['param2'] }}", "{{ dag_run.conf['param3'] }}"],
+    auto_remove=True,
     dag=dag
 )
 

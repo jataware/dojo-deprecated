@@ -164,7 +164,7 @@ Generally speaking, follow the instructions [here](https://airflow.apache.org/do
 
 The custom `docker.py` file is in order to resolve the outstanding [issue identified here](https://github.com/apache/airflow/pull/13536).
 
-Note that an `outputs` directory is expected, so create that. You'll also need to run:
+Note that an `results` directory is expected, so create that. You'll also need to run:
 
 ```
 chmod +777 logs
@@ -172,3 +172,5 @@ chmod +777 plugins
 ```
 
 once those directories are created.
+
+The default username and password is set on line 122-122 of the `docker-compose.yaml` file.
