@@ -174,3 +174,17 @@ chmod +777 plugins
 once those directories are created.
 
 The default username and password is set on line 122-122 of the `docker-compose.yaml` file.
+
+Sample usage for `model.py` DAG to run the FSC model:
+
+```
+{
+   "image":"jataware/fsc_model:0.1",
+   "run_id": "abc1234",
+   "command": "1 2 0.6",
+   "outputs": ["Production_TimeSeries.csv", "Import_FinalTotalByCountry.csv"],
+   "output_directory": "/outputs"
+}
+```
+
+The `outputs` key should contain an array of output file names that ought to be pushed up to S3. These should be found in the `output_directory` within the container. The `run_id` would be specified by the manager API, as would the `command`. The `command` is `image` specific and should be captured by the Domain Model Interrogator.

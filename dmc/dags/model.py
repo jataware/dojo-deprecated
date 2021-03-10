@@ -34,9 +34,10 @@ dag = DAG(
     concurrency=10
 )
 
-###########################
-###### Create Tasks #######
-###########################
+
+#########################
+###### Functions ########
+#########################
 
 def s3copy(**kwargs):
     s3 = S3Hook(aws_conn_id="s3_connection")
@@ -51,6 +52,10 @@ def s3copy(**kwargs):
         )
     return
 
+###########################
+###### Create Tasks #######
+###########################
+
 s3_node = PythonOperator(task_id='s3push-task', 
                              python_callable=s3copy,
                              provide_context=True,
@@ -60,10 +65,10 @@ model_node = DojoDockerOperator(
     task_id='model-task',    
     image="{{ dag_run.conf['image'] }}",
     container_name="run_{{ dag_run.conf['run_id'] }}",
-    volumes=["//var/run/docker.sock://var/run/docker.sock", "/home/ubuntu/dojo/dmc/results/{{ dag_run.conf['run_id'] }}:/outputs"],
+    volumes=["//var/run/docker.sock://var/run/docker.sock", "/home/ubuntu/dojo/dmc/results/{{ dag_run.conf['run_id'] }}:{{ dag_run.conf['output_directory'] }}"],
     docker_url="unix:///var/run/docker.sock",
     network_mode="bridge",
-    command=["{{ dag_run.conf['param1'] }}", "{{ dag_run.conf['param2'] }}", "{{ dag_run.conf['param3'] }}"],
+    command="{{ dag_run.conf['command'] }}",
     auto_remove=True,
     dag=dag
 )
