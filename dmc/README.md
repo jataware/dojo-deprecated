@@ -188,3 +188,15 @@ Sample usage for `model.py` DAG to run the FSC model:
 ```
 
 The `outputs` key should contain an array of output file names that ought to be pushed up to S3. These should be found in the `output_directory` within the container. The `run_id` would be specified by the manager API, as would the `command`. The `command` is `image` specific and should be captured by the Domain Model Interrogator.
+
+
+### Airflow REST API
+
+This is enabled on line 52 of `docker-compose.yaml`. The API reference can be found [here](http://apache-airflow-docs.s3-website.eu-central-1.amazonaws.com/docs/apache-airflow/latest/stable-rest-api-ref.html#operation/get_config). You can run commands like:
+
+
+```
+curl 'localhost:8080/api/v1/dags' \
+-H 'Content-Type: application/json' \
+--user "jataware:wileyhippo" 
+```
