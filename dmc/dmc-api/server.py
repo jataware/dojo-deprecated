@@ -23,6 +23,6 @@ logging.basicConfig(level=logging.INFO)
 
 if __name__ == "__main__":
     if os.environ.get("UVICORN_RELOAD") is not None:
-        uvicorn.run(f"{__name__}:api", host="0.0.0.0", reload=True)
+        uvicorn.run(f"{__name__}:api", host="0.0.0.0", port=8000, reload=True)
     else:
-        uvicorn.run(api, host="0.0.0.0")
+        uvicorn.run(api, host="0.0.0.0", port=8000)

@@ -8,6 +8,23 @@ This is a FastAPI webapp that provides an interface to the Domain Model Controll
 
 ## Run the webapp
 
+
+To run this API, along with Elasticsearch and Kibana, run:
+
+
 ```
-uvicorn server:api --reload
+docker-compose up --build -d
+
 ```
+
+This will build the API container.
+
+## Running the webapp in development
+
+To run the API for development purposes use:
+
+```
+docker-compose -f docker-compose-dev.yaml up --build -d
+```
+
+This will turn on the API, Elasticsearch and Kibana, but the API will be in `reload` mode and any changes made to the local repository will be reflected in the container to facilitate development.

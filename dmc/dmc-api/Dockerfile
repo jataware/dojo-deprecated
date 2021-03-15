@@ -8,4 +8,5 @@ WORKDIR /dmc-api
 
 RUN pip install -r requirements.txt
 
-CMD ["uvicorn", "server:api", "--reload"]
+EXPOSE 80
+CMD ["uvicorn", "server:api", "--host", "0.0.0.0", "--port", "80"]
