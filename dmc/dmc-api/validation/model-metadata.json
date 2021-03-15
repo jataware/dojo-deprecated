@@ -1,0 +1,322 @@
+{
+   "$id":"http://worldmodelers.com/model-metadata.json",
+   "$schema":"http://json-schema.org/draft-07/schema",
+   "description":"World Modelers Model Metadata Schema",
+   "required":[
+      "name",
+      "description",
+      "maintainer",
+      "image",
+      "parameters",
+      "outputs",
+      "tags"
+   ],
+   "title":"Model Metadata Schema",
+   "type":"object",
+   "properties":{
+      "name":{
+         "$id":"#/properties/name",
+         "default":"",
+         "description":"The model name",
+         "examples":[
+            "DSSAT"
+         ],
+         "title":"Model Name",
+         "type":"string"
+      },
+      "description":{
+         "$id":"#/properties/description",
+         "default":"",
+         "description":"The description of the model.",
+         "examples":[
+            "The Decision Support System for Agrotechnology Transfer (DSSAT) comprises dynamic crop growth simulation model for over 40 crops. The model simulates growth development; and yield as a function of the soil-plant-atmosphere dynamics."
+         ],
+         "title":"Model Description",
+         "type":"string"
+      },
+      "maintainer":{
+         "$id":"#/properties/maintainer",
+         "description":"Information about the model maintainer.",
+         "title":"Model Maintainer",
+         "$ref":"#/definitions/maintainer",
+         "additionalProperties":true
+      },
+      "image":{
+         "$id":"#/properties/image",
+         "type":"string",
+         "title":"Container Image",
+         "description":"The name and tag of the model container image (on Dockerhub, etc.)",
+         "default":"",
+         "examples":[
+            "DSSAT:latest"
+         ]
+      },
+      "parameters":{
+         "$id":"#/properties/parameters",
+         "type":"array",
+         "title":"Model Parameters",
+         "description":"The parameters exposed for the model",
+         "items":{
+            "$ref":"#/definitions/parameter"
+         }
+      },
+      "outputs":{
+         "$id":"#/properties/outputs",
+         "type":"array",
+         "title":"Model Outputs",
+         "description":"An array of model outputs",
+         "items":{
+            "type":"array",
+            "items":{
+               "$ref":"#/definitions/output"
+            }
+         }
+      },
+      "tags":{
+         "$id":"#/properties/tags",
+         "type":"array",
+         "title":"Model Tags",
+         "description":"The tags associated with the model.",
+         "items":{
+            "type":"string",
+            "examples":[
+               "Agriculture"
+            ]
+         }
+      }
+   },
+   "additionalProperties":true,
+   "definitions":{
+      "parameter":{
+         "id":"#/definitions/parameter",
+         "type":"object",
+         "properties":{
+            "name":{
+               "$id":"#/definitions/parameters/name",
+               "type":"string",
+               "title":"Parameter Name",
+               "description":"The name of the parameter",
+               "default":"",
+               "examples":[
+                  "management_practice"
+               ]
+            },
+            "description":{
+               "$id":"#/definitions/parameters/description",
+               "type":"string",
+               "title":"Parameter Description",
+               "description":"The description of the parameter",
+               "default":"",
+               "examples":[
+                  "The management practice to model. rf_highN corresponds to a high nitrogen management  practice. irrig corresponds to a high nitrogen, irrigated management practice. rf_0N  corresponds to a subsistence management practice. rf_lowN corresponds to a low nitrogen  managemet practice."
+               ]
+            },
+            "type":{
+               "$id":"#/definitions/parameters/type",
+               "type":"string",
+               "title":"Parameter Type",
+               "description":"The type of parameter",
+               "enum":[
+                  "int",
+                  "float",
+                  "str",
+                  "datetime",
+                  "date",
+                  "time",
+                  "longlat",
+                  "binary",
+                  "boolean",
+                  "datacube"
+               ],
+               "examples":[
+                  "str"
+               ]
+            },
+            "default":{
+               "$id":"#/definitions/parameters/default",
+               "type":"string",
+               "title":"Default Parameter Value",
+               "description":"The default value of the parameter",
+               "examples":[
+                  "irrig"
+               ]
+            },
+            "tags":{
+               "$id":"#/definitions/parameters/tags",
+               "type":"array",
+               "title":"Parameter Tags",
+               "description":"An array of tags associated with the parameter",
+               "examples":[
+                  [
+                     "agriculture",
+                     "fertilizer"
+                  ]
+               ],
+               "items":{
+                  "$id":"#/definitions/parameters/tags/items",
+                  "type":"string"
+               }
+            }
+         },
+         "additionalProperties":true,
+         "if":{
+            "properties":{
+               "type":{
+                  "const":"str"
+               }
+            }
+         },
+         "then":{
+            "properties":{
+               "choices":{
+                  "$id":"#/definitions/parameters/choices",
+                  "type":"array",
+                  "title":"Parameter Choices",
+                  "description":"If the parameter is a string type, then enumerate the choices for that parameter",
+                  "examples":[
+                     [
+                        "irrig",
+                        "rf_highN"
+                     ]
+                  ]
+               }
+            }
+         }
+      },
+      "maintainer":{
+         "$id":"#/definitions/maintainer",
+         "type":"object",
+         "required":[
+            "name",
+            "email"
+         ],
+         "properties":{
+            "name":{
+               "$id":"#/definitions/maintainer/properties/name",
+               "default":"",
+               "description":"The full name of the model maintainer",
+               "examples":[
+                  "Cheryl Porter"
+               ],
+               "title":"Model Maintainer Name",
+               "type":"string"
+            },
+            "email":{
+               "$id":"#/definitions/maintainer/properties/email",
+               "default":"",
+               "description":"Email address of the model maintainer",
+               "examples":[
+                  "cporter@ufl.edu"
+               ],
+               "title":"Model Maintainer Email Address",
+               "type":"string"
+            },
+            "organization":{
+               "$id":"#/definitions/maintainer/properties/organization",
+               "default":"",
+               "description":"Maintainer Organization",
+               "examples":[
+                  "University of Florida"
+               ],
+               "title":"Model Maintainer Organization",
+               "type":"string"
+            },
+            "website":{
+               "$id":"#/definitions/maintainer/properties/website",
+               "default":"",
+               "description":"Model maintainer website",
+               "examples":[
+                  "http://www.ufl.edu/"
+               ],
+               "title":"Model Maintainer Website",
+               "type":"string"
+            }
+         },
+         "additionalProperties":true
+      }
+   },
+   "output":{
+      "$id":"#/definitions/output",
+      "type":"object",
+      "title":"Model Output",
+      "description":"A model output",
+      "required":[
+         "name",
+         "description",
+         "type"
+      ],
+      "properties":{
+         "name":{
+            "$id":"#/definition/output/name",
+            "type":"string",
+            "title":"Output Feature Name",
+            "description":"The name of the output feature",
+            "examples":[
+               "HWAH"
+            ]
+         },
+         "description":{
+            "$id":"#/definition/output/description",
+            "type":"string",
+            "title":"Output Feature Description",
+            "description":"The output feature description",
+            "default":"",
+            "examples":[
+               "Harvested weight at harvest (kg/ha)."
+            ]
+         },
+         "type":{
+            "$id":"#/definition/output/type",
+            "type":"string",
+            "title":"Output Feature Type",
+            "description":"The type of output feature",
+            "enum":[
+               "int",
+               "float",
+               "str",
+               "datetime",
+               "date",
+               "time",
+               "longlat",
+               "binary",
+               "boolean"
+            ],
+            "examples":[
+               "float"
+            ]
+         },
+         "units":{
+            "$id":"#/definition/output/units",
+            "type":"string",
+            "title":"Output Feature Units",
+            "description":"The units of the output feature",
+            "examples":[
+               "mm"
+            ]
+         },
+         "units_description":{
+            "$id":"#/definition/output/units_description",
+            "type":"string",
+            "title":"Units Description",
+            "description":"Description of the output feature units",
+            "examples":[
+               "rainfall in mm"
+            ]
+         },
+         "tags":{
+            "$id":"#/definition/output/tag",
+            "type":"array",
+            "title":"Output Tags",
+            "description":"An array of tags associated with an output",
+            "examples":[
+               [
+                  "agriculture",
+                  "yield"
+               ]
+            ],
+            "additionalItems":true
+         }
+      },
+      "additionalProperties":true
+   }
+}

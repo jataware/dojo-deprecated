@@ -17,3 +17,10 @@ Set the `-c/--cube` flag only if you want to validate cube metadata.
 
 - If validation is successful, the script saves the validated metadata file as `<path/to/metadata/file>_validated`. This may be reformatted (e.g. [reordered parameters according to dependency]).
 - If validation is unsuccessful, the errors are stored in `<path/to/metadata/file>_errors`.
+
+
+## Updates
+
+Validation using JSON Schema. For testing use [https://jsonschemalint.com/#!/version/draft-07/markup/json](https://jsonschemalint.com/#!/version/draft-07/markup/json).
+
+Test `model-metadata.json` against a [DSSAT metadata file](https://gitlab-ext.galois.com/world-modelers/galois-internal/model-sandbox/-/blob/master/dssat/pythia_example_1/metadata/DSSAT-model-metadata-management-practice.json)
