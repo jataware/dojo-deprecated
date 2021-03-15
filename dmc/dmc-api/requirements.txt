@@ -4,9 +4,9 @@ click==7.1.2
 colorama==0.4.4
 fastapi==0.63.0
 h11==0.12.0
+isort==5.7.0
 jsonschema==3.2.0
 keyring==22.3.0
-numpy==1.20.1
 pandas==1.2.3
 pyarrow==3.0.0
 pydantic==1.8.1
