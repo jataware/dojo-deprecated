@@ -189,6 +189,39 @@ Sample usage for `model.py` DAG to run the FSC model:
 
 The `outputs` key should contain an array of output file names that ought to be pushed up to S3. These should be found in the `output_directory` within the container. The `run_id` would be specified by the manager API, as would the `command`. The `command` is `image` specific and should be captured by the Domain Model Interrogator.
 
+### Example Model-to-S3 DAG
+
+The `maxhop` DAG:
+
+1. Runs the maxhop model
+
+2. Via mixmasta, transforms the model output to a geocoded .csv
+
+3. Uploads the csv file to S3:world-modelers-jataware
+
+To trigger the DAG, add the following configuration json:
+
+```
+{
+   "image":"marshhawk4/maxhop",
+   "run_id": "maxhop_2",
+   "command": "--country=Ethiopia --annualPrecipIncrease=.4 --meanTempIncrease=-.3 --format=GTiff",
+   "outputs": ["maxent_Ethiopia_precipChange=0.4tempChange=-0.3.tif"],
+   "output_directory": "/usr/local/src/myscripts/output",
+
+   "x_image":"jataware/mixmasta:0.2",
+   "x_command": "-xform geotiff -input_file maxent_Ethiopia_precipChange=0.4tempChange=-0.3.tif -output_file maxhop_geocode.csv -geo admin2 -feature_name probability -band=1 -x longitude -y latitude",
+   "x_input_directory": "/inputs",
+   "x_outputs": ["maxhop_geocode.csv"],
+   "x_output_directory": "/outputs"
+}
+``` 
+
+Where the `<input/output>_directory` references the directory **within the Docker container**. 
+
+### Multiple S3 File upload.
+
+See the DAG `fsc_t.py` for an example of uploading several csv files to the S3 bucket.
 
 ### Airflow REST API
 
