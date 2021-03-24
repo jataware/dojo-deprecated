@@ -1,14 +1,15 @@
 from datetime import timedelta
 from airflow import DAG
 from airflow.providers.docker.operators.docker import DockerOperator
-from operators.dojo_operators import DojoDockerOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.utils.dates import days_ago
 from airflow.configuration import conf
-from airflow.models import Variable
+
+import glob
+
 
 ############################
 ####### Generate DAG #######
@@ -27,50 +28,55 @@ default_args = {
 }
 
 dag = DAG(
-    'model',
+    'fsc_t',
     default_args=default_args,
     schedule_interval=None,
     max_active_runs=1,
     concurrency=10
 )
 
-
-#########################
-###### Functions ########
-#########################
-
-def s3copy(**kwargs):
-    s3 = S3Hook(aws_conn_id="s3_connection")
-    outputs = kwargs['dag_run'].conf.get('outputs')
-    results_path = f"/results/{kwargs['dag_run'].conf.get('run_id')}"
-    for f in outputs:
-        s3.load_file(
-            filename=f'{results_path}/{f}',
-            key=f"{kwargs['dag_run'].conf.get('run_id')}/{f}",
-            replace=True,
-            bucket_name='jataware-world-modelers'
-        )
-    return
-
 ###########################
 ###### Create Tasks #######
 ###########################
 
-s3_node = PythonOperator(task_id='s3push-task', 
+# result_node = DockerOperator(
+#     task_id="result-task",
+#     image='ubuntu:latest',
+#     volumes=["//var/run/docker.sock://var/run/docker.sock", "/home/ubuntu/dojo/dmc/outputs:/outputs"],
+#     command="ls outputs",
+#     wait_for_downstream=False,
+#     dag=dag
+# )
+
+def s3copy():
+    s3 = S3Hook(aws_conn_id="s3_connection")
+
+    dataFolder = "/outputs/*"
+    model = "fsc"
+    for allFn in glob.iglob(fr'{dataFolder}'):
+        fn = allFn.split("/")[-1]
+        print(f'all: {allFn} fn: {fn}')
+        result_node = s3.load_file(
+            filename=allFn,
+            key = f'{model}/{fn}',
+            replace = True,
+            bucket_name = 'jataware-world-modelers'
+        )
+    return
+
+result_node = PythonOperator(task_id='python_task', 
                              python_callable=s3copy,
-                             provide_context=True,
                              dag=dag)
 
-model_node = DojoDockerOperator(
-    task_id='model-task',    
-    image="{{ dag_run.conf['image'] }}",
-    container_name="run_{{ dag_run.conf['run_id'] }}",
-    volumes=["//var/run/docker.sock://var/run/docker.sock", "/home/ubuntu/dojo/dmc/results/{{ dag_run.conf['run_id'] }}:{{ dag_run.conf['output_directory'] }}"],
+fsc_node = DockerOperator(
+    image="jataware/fsc_model:0.1",
+    volumes=["//var/run/docker.sock://var/run/docker.sock", "/home/ubuntu/dojo/dmc/outputs:/outputs"],
     docker_url="unix:///var/run/docker.sock",
     network_mode="bridge",
-    command="{{ dag_run.conf['command'] }}",
-    auto_remove=True,
+    # cmds=["python", "-c"],
+    command=["0", "1", "0.5"],
+    task_id='fsc-task',
     dag=dag
 )
 
-model_node >> s3_node
+fsc_node.set_downstream(result_node)

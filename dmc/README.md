@@ -1,3 +1,96 @@
+### Run Airflow DAG
+
+- Launch Airflow:
+
+  Go to: `http://34.204.189.38:8080/home`
+  Contact a repo contributor for login credentials.
+
+- After logging in, choose your desired DAG (currently `model_xform`)
+- Trigger the DAG with the "play button"
+- Copy in your configuration json (see below)
+- Click `Trigger`
+- Click `Graph View` to monitor progress. For each node you can view the logs by double-clicking the node and then choosing `logs`
+
+### Example Model-to-S3 DAG
+
+The config json below will trigger the `model_xform.py` DAG to: 
+
+1. Run the maxhop model
+
+2. Via mixmasta, transform the maxhop geotiff output file to a geocoded .csv
+
+3. Upload the csv file to S3:world-modelers-jataware/{run_id}/ bucket
+
+To trigger the DAG, add the following configuration json:
+```
+{
+   "run_id": "maxhop_14",
+
+   "model_image":"marshhawk4/maxhop",
+   "model_command": "--country=Ethiopia --annualPrecipIncrease=.4 --meanTempIncrease=-.3 --format=GTiff",
+   "model_output_directory": "/usr/local/src/myscripts/output",
+
+   "xfrm_command": "-xform geotiff -input_file maxent_Ethiopia_precipChange=0.4tempChange=-0.3.tif
+                    -geo admin2 -x longitude -y latitude -output_file maxhop_transformed.csv
+                    -feature_name probability -band 1"
+}
+```
+For the model run: the `model_output_directory` references the directory **within the Docker container**. 
+For mixmasta: the DAG looks for the file to be transferred in the mounted `inputs` folder and will write the transformed csv to the mounted `outputs` folder.
+
+### Multiple S3 File upload.
+
+See the DAG `mulitpleFiles.py` for an example of uploading several csv files to the S3 bucket.
+
+
+### Back-up for K8s
+
+### Triggering the DAG
+Since we have created a DAG called `fsc`, we can either trigger it in the [Airflow Dashboard](http://127.0.0.1:8080/admin/) or we can exec into the scheduler and trigger it there. First, find the name of your scheduler:
+
+```
+docker ps | grep scheduler_airflow-scheduler |  awk '{print $1}'
+```
+
+This should return something like `367f129dd078` which is the ID of the scheduler container.
+
+Next, run:
+
+```
+docker exec -it 367f129dd078 /bin/bash
+```
+
+> Note: you must replace the above command with appropriate scheduler container ID
+
+You can then list available DAGs with:
+
+```
+airflow dags list
+```
+
+You should see `fsc` listed, which you can trigger with:
+
+```
+airflow dags trigger fsc
+```
+
+### Deploying Airflow on Docker (Ubuntu)
+
+Generally speaking, follow the instructions [here](https://airflow.apache.org/docs/apache-airflow/stable/start/docker.html). Note that a custom `docker-compose.yaml` is supplied. 
+
+The custom `docker.py` file is in order to resolve the outstanding [issue identified here](https://github.com/apache/airflow/pull/13536).
+
+Note that an `results` directory is expected, so create that. You'll also need to run:
+
+```
+chmod +777 logs
+chmod +777 plugins
+```
+
+once those directories are created.
+
+The default username and password is set on line 122-122 of the `docker-compose.yaml` file.
+
 # DMC
 
 The Domain Model Controller. 
@@ -127,68 +220,6 @@ helm upgrade airflow . \
   --set dags.persistence.existingClaim=dags-volume-claim
   --set dags.gitSync.enabled=false
 ```
-
-
-### Triggering the DAG
-Since we have created a DAG called `fsc`, we can either trigger it in the [Airflow Dashboard](http://127.0.0.1:8080/admin/) or we can exec into the scheduler and trigger it there. First, find the name of your scheduler:
-
-```
-docker ps | grep scheduler_airflow-scheduler |  awk '{print $1}'
-```
-
-This should return something like `367f129dd078` which is the ID of the scheduler container.
-
-Next, run:
-
-```
-docker exec -it 367f129dd078 /bin/bash
-```
-
-> Note: you must replace the above command with appropriate scheduler container ID
-
-You can then list available DAGs with:
-
-```
-airflow dags list
-```
-
-You should see `fsc` listed, which you can trigger with:
-
-```
-airflow dags trigger fsc
-```
-
-### Deploying Airflow on Docker (Ubuntu)
-
-Generally speaking, follow the instructions [here](https://airflow.apache.org/docs/apache-airflow/stable/start/docker.html). Note that a custom `docker-compose.yaml` is supplied. 
-
-The custom `docker.py` file is in order to resolve the outstanding [issue identified here](https://github.com/apache/airflow/pull/13536).
-
-Note that an `results` directory is expected, so create that. You'll also need to run:
-
-```
-chmod +777 logs
-chmod +777 plugins
-```
-
-once those directories are created.
-
-The default username and password is set on line 122-122 of the `docker-compose.yaml` file.
-
-Sample usage for `model.py` DAG to run the FSC model:
-
-```
-{
-   "image":"jataware/fsc_model:0.1",
-   "run_id": "abc1234",
-   "command": "1 2 0.6",
-   "outputs": ["Production_TimeSeries.csv", "Import_FinalTotalByCountry.csv"],
-   "output_directory": "/outputs"
-}
-```
-
-The `outputs` key should contain an array of output file names that ought to be pushed up to S3. These should be found in the `output_directory` within the container. The `run_id` would be specified by the manager API, as would the `command`. The `command` is `image` specific and should be captured by the Domain Model Interrogator.
-
 
 ### Airflow REST API
 

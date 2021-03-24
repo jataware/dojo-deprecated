@@ -1,0 +1,106 @@
+from datetime import timedelta
+from airflow import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
+from operators.dojo_operators import DojoDockerOperator
+from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.bash_operator import BashOperator
+from airflow.operators.python_operator import PythonOperator
+from airflow.providers.amazon.aws.hooks.s3 import S3Hook
+from airflow.utils.dates import days_ago
+from airflow.configuration import conf
+from airflow.models import Variable
+
+import glob
+'''
+
+scp -v /Users/travishartman/ssh/id_rsa /Users/travishartman/Desktop/dags/* ubuntu@34.204.189.38:/home/ubuntu/dojo/dmc/dags/
+
+'''
+
+############################
+####### Generate DAG #######
+############################
+
+default_args = {
+    'owner': 'Brandon',
+    'depends_on_past': False,
+    'start_date': days_ago(0),
+    'catchup': False,
+    'email': ['brandon@jataware.com'],
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 0,
+    'retry_delay': timedelta(minutes=5),
+}
+
+dag = DAG(
+    'model_xform',
+    default_args=default_args,
+    schedule_interval=None,
+    max_active_runs=1,
+    concurrency=10
+)
+
+
+#########################
+###### Functions ########
+#########################
+
+def s3copy(**kwargs):
+    s3 = S3Hook(aws_conn_id="s3_connection")
+
+    results_path = f"/results/{kwargs['dag_run'].conf.get('run_id')}"
+    print(f'results_path:{results_path}')
+
+    for fpath in glob.glob(f'{results_path}/*[trans]*.csv'):
+        print(f'fpath:{fpath}')
+        fn = fpath.split("/")[-1]
+        print(f'fn:{fn}')
+        key=f"{kwargs['dag_run'].conf.get('run_id')}/{fn}"
+        
+        s3.load_file(
+            filename=fpath,
+            key=key,
+            replace=True,
+            bucket_name='jataware-world-modelers'
+        )
+    
+    return
+
+###########################
+###### Create Tasks #######
+###########################
+
+s3_node = PythonOperator(task_id='s3push-task', 
+                             python_callable=s3copy,
+                             provide_context=True,
+                             dag=dag)
+
+model_node = DojoDockerOperator(
+    task_id='model-task',    
+    image="{{ dag_run.conf['model_image'] }}",
+    container_name="run_{{ dag_run.conf['run_id'] }}",
+    volumes=["//var/run/docker.sock://var/run/docker.sock", "/home/ubuntu/dojo/dmc/results/{{ dag_run.conf['run_id'] }}:{{ dag_run.conf['model_output_directory'] }}"],
+    docker_url="unix:///var/run/docker.sock",
+    network_mode="bridge",
+    command="{{ dag_run.conf['model_command'] }}",
+    auto_remove=True,
+    dag=dag
+)
+
+transform_node = DojoDockerOperator(
+    task_id='transform-task',    
+    image="jataware/mixmasta:0.2",
+    container_name="run_{{ dag_run.conf['run_id'] }}",
+    volumes=["//var/run/docker.sock://var/run/docker.sock", 
+             "/home/ubuntu/dojo/dmc/results/{{ dag_run.conf['run_id'] }}:/inputs",
+             "/home/ubuntu/dojo/dmc/results/{{ dag_run.conf['run_id'] }}:/outputs"],
+
+    docker_url="unix:///var/run/docker.sock",
+    network_mode="bridge",
+    command="{{ dag_run.conf['xfrm_command'] }}",
+    auto_remove=True,
+    dag=dag
+)
+
+model_node >> transform_node >> s3_node
