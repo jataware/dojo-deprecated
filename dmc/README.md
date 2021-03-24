@@ -175,53 +175,36 @@ once those directories are created.
 
 The default username and password is set on line 122-122 of the `docker-compose.yaml` file.
 
-Sample usage for `model.py` DAG to run the FSC model:
-
-```
-{
-   "image":"jataware/fsc_model:0.1",
-   "run_id": "abc1234",
-   "command": "1 2 0.6",
-   "outputs": ["Production_TimeSeries.csv", "Import_FinalTotalByCountry.csv"],
-   "output_directory": "/outputs"
-}
-```
-
-The `outputs` key should contain an array of output file names that ought to be pushed up to S3. These should be found in the `output_directory` within the container. The `run_id` would be specified by the manager API, as would the `command`. The `command` is `image` specific and should be captured by the Domain Model Interrogator.
-
 ### Example Model-to-S3 DAG
 
-The `maxhop` DAG:
+The config json below will trigger the `model_xform.py` DAG to: 
 
-1. Runs the maxhop model
+1. Run the maxhop model
 
-2. Via mixmasta, transforms the model output to a geocoded .csv
+2. Via mixmasta, transform the maxhop geotiff output file to a geocoded .csv
 
-3. Uploads the csv file to S3:world-modelers-jataware
+3. Upload the csv file to S3:world-modelers-jataware/{run_id}/ bucket
 
 To trigger the DAG, add the following configuration json:
-
 ```
 {
-   "image":"marshhawk4/maxhop",
-   "run_id": "maxhop_2",
-   "command": "--country=Ethiopia --annualPrecipIncrease=.4 --meanTempIncrease=-.3 --format=GTiff",
-   "outputs": ["maxent_Ethiopia_precipChange=0.4tempChange=-0.3.tif"],
-   "output_directory": "/usr/local/src/myscripts/output",
+   "run_id": "maxhop_14",
 
-   "x_image":"jataware/mixmasta:0.2",
-   "x_command": "-xform geotiff -input_file maxent_Ethiopia_precipChange=0.4tempChange=-0.3.tif -output_file maxhop_geocode.csv -geo admin2 -feature_name probability -band=1 -x longitude -y latitude",
-   "x_input_directory": "/inputs",
-   "x_outputs": ["maxhop_geocode.csv"],
-   "x_output_directory": "/outputs"
+   "model_image":"marshhawk4/maxhop",
+   "model_command": "--country=Ethiopia --annualPrecipIncrease=.4 --meanTempIncrease=-.3 --format=GTiff",
+   "model_output_directory": "/usr/local/src/myscripts/output",
+
+   "xfrm_command": "-xform geotiff -input_file maxent_Ethiopia_precipChange=0.4tempChange=-0.3.tif
+                    -geo admin2 -x longitude -y latitude -output_file maxhop_transformed.csv
+                    -feature_name probability -band 1"
 }
-``` 
-
-Where the `<input/output>_directory` references the directory **within the Docker container**. 
+```
+For the model run: the `model_output_directory` references the directory **within the Docker container**. 
+For mixmasta: the DAG looks for the file to be transferred in the mounted `inputs` folder and will write the transformed csv to the mounted `outputs` folder.
 
 ### Multiple S3 File upload.
 
-See the DAG `fsc_t.py` for an example of uploading several csv files to the S3 bucket.
+See the DAG `mulitpleFiles.py` for an example of uploading several csv files to the S3 bucket.
 
 ### Airflow REST API
 
