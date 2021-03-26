@@ -22,21 +22,19 @@ The config json below will trigger the `model_xform.py` DAG to:
 3. Upload the csv file to S3:world-modelers-jataware/{run_id}/ bucket
 
 To trigger the DAG, add the following configuration json:
+
 ```
 {
-   "run_id": "maxhop_14",
-
+   "run_id":"maxhop_test1",
    "model_image":"marshhawk4/maxhop",
-   "model_command": "--country=Ethiopia --annualPrecipIncrease=.4 --meanTempIncrease=-.3 --format=GTiff",
-   "model_output_directory": "/usr/local/src/myscripts/output",
-
-   "xfrm_command": "-xform geotiff -input_file maxent_Ethiopia_precipChange=0.4tempChange=-0.3.tif
-                    -geo admin2 -x longitude -y latitude -output_file maxhop_transformed.csv
-                    -feature_name probability -band 1"
+   "model_command":"--country=Ethiopia --annualPrecipIncrease=.4 --meanTempIncrease=-.3 --format=GTiff",
+   "model_output_directory":"/usr/local/src/myscripts/output",
+   "xfrm_command":"-xform geotiff -input_file /tmp/maxent_Ethiopia_precipChange=0.4tempChange=-0.3.tif -geo admin2 -x longitude -y latitude -output_file /tmp/maxhop_transformed.csv -feature_name probability -band 1"
 }
 ```
+
 For the model run: the `model_output_directory` references the directory **within the Docker container**. 
-For mixmasta: the DAG looks for the file to be transferred in the mounted `inputs` folder and will write the transformed csv to the mounted `outputs` folder.
+For mixmasta: the DAG looks for the file to be transferred in the mounted `/tmp` folder and will write the transformed csv to the mounted `/tmp` folder.
 
 ### Multiple S3 File upload.
 

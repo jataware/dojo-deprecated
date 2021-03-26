@@ -11,11 +11,6 @@ from airflow.configuration import conf
 from airflow.models import Variable
 
 import glob
-'''
-
-scp -v /Users/travishartman/ssh/id_rsa /Users/travishartman/Desktop/dags/* ubuntu@34.204.189.38:/home/ubuntu/dojo/dmc/dags/
-
-'''
 
 ############################
 ####### Generate DAG #######
@@ -56,7 +51,7 @@ def s3copy(**kwargs):
         print(f'fpath:{fpath}')
         fn = fpath.split("/")[-1]
         print(f'fn:{fn}')
-        key=f"{kwargs['dag_run'].conf.get('run_id')}/{fn}"
+        key=f"dmc_results/{kwargs['dag_run'].conf.get('run_id')}/{fn}"
         
         s3.load_file(
             filename=fpath,
@@ -90,11 +85,10 @@ model_node = DojoDockerOperator(
 
 transform_node = DojoDockerOperator(
     task_id='transform-task',    
-    image="jataware/mixmasta:0.2",
+    image="jataware/mixmasta:latest",
     container_name="run_{{ dag_run.conf['run_id'] }}",
     volumes=["//var/run/docker.sock://var/run/docker.sock", 
-             "/home/ubuntu/dojo/dmc/results/{{ dag_run.conf['run_id'] }}:/inputs",
-             "/home/ubuntu/dojo/dmc/results/{{ dag_run.conf['run_id'] }}:/outputs"],
+             "/home/ubuntu/dojo/dmc/results/{{ dag_run.conf['run_id'] }}:/tmp"],
 
     docker_url="unix:///var/run/docker.sock",
     network_mode="bridge",
