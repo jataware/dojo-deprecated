@@ -17,7 +17,7 @@ docker-compose up --build -d
 
 ```
 
-This will build the API container.
+This will build the API container and run the server on `http://localhost:8000/`
 
 ## Running the webapp in development
 

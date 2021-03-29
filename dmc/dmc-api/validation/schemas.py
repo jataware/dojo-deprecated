@@ -39,6 +39,30 @@ class ModelStatus(str, Enum):
     NOT_RUNNABLE_DEPRECATED = "not-runnable-deprecated"  # image doesn't exist, more recent version of model exists
 
 
+class AllowableTypes(str, Enum):
+    """
+    A enumeration of model parameter types
+    """
+    INT = "int"
+    FLOAT = "float"
+    STR = "str"
+    DATETIME = "datetime"
+    DATE = "date"
+    TIME = "time"
+    LONGLAT = "longlat"
+    BINARY = "binary"
+    BOOLEAN = "boolean"
+
+
+class FileTypes(str, Enum):
+    """
+    A enumeration of model output file types
+    """
+    CSV = "csv"
+    GEOTIFF = "geotiff"
+    NETCDF = "netcdf"
+
+
 class ModelMaintainer(BaseModel):
     """
     Model maintainer information
@@ -71,22 +95,6 @@ class ModelMaintainer(BaseModel):
                 "website": "http://ufl.edu",
             }
         }
-
-
-class AllowableTypes(str, Enum):
-    """
-    A enumeration of model parameter types
-    """
-
-    INT = "int"
-    FLOAT = "float"
-    STR = "str"
-    DATETIME = "datetime"
-    DATE = "date"
-    TIME = "time"
-    LONGLAT = "longlat"
-    BINARY = "binary"
-    BOOLEAN = "boolean"
 
 
 class ModelParameter(BaseModel):
@@ -178,20 +186,13 @@ class ModelOutput(BaseModel):
     class Config:
         extra = "allow"
         schema_extra = {
-            "example": [
+            "example":
                 {
                     "name": "HWAH",
                     "description": "Harvested weight at harvest (kg/ha).",
                     "type": "float",
                     "tags": ["agriculture"],
-                },
-                {
-                    "name": "SDAT",
-                    "description": "Sowing Date",
-                    "type": "datetime",
-                    "tags": ["agriculture"],
-                },
-            ]
+                }
         }
 
 
@@ -203,9 +204,19 @@ class ModelOutputFile(BaseModel):
     )
     path: str = Field(
         title="Output File Path",
-        description="The full file path of the output file within the model container image",
-        example="/home/ubuntu/dssat/results/yield_forecast.csv",
+        description="The relative file path of the output file within the model's `output_directory`",
+        example="yield_forecast.csv",
     )
+    file_type: FileTypes = Field(
+        title="Output File Type",
+        description="The type of the output file",
+        example="csv"
+    )
+    transform: Dict = Field(
+        title="Transform Directives",
+        description="A dictionary of transform directives that are used to convert the model output file into a CauseMos compliant schema",
+        example={"x": "lng", "y": "lat"}
+        )
     features: List[ModelOutput] = Field(
         title="Output Features",
         description="An array of features contained within the output file",
@@ -230,7 +241,7 @@ class ModelDirectives(BaseModel):
         schema_extra = {
             "example": {
                 "command": "python3 dssat.py --management_practice = {{ management_practice }}",
-                "output_directory": "/output",
+                "output_directory": "/results",
             }
         }
 

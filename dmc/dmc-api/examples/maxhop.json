@@ -1,0 +1,94 @@
+{
+   "name":"MaxHop",
+   "version":"0.2",
+   "description":"The Jataware locust model predicts the probability of locust presence in Africa using a maximum entropy model over environmental data such as climate and soil texture. This model provides a command line interface which allows users to manipulate environmental input conditions against a pre-trained model to predict future locust distributions.",
+   "image":"marshhawk4/maxhop",
+   "status":"current",
+   "maintainer":{
+      "name":"Kyle Marsh",
+      "email":"kyle@jataware.com",
+      "organization":"Jataware",
+      "website":"https://jataware.come"
+   },
+   "parameters":[
+      {
+         "name":"country",
+         "description":"Country of interest to run the model over",
+         "type":"str",
+         "choices":[
+            "Ethiopia",
+            "Algeria",
+            "Chad",
+            "Egypt",
+            "Eritrea",
+            "Ethiopia",
+            "Kenya",
+            "Libya",
+            "Mali",
+            "Mauritania",
+            "Morocco",
+            "Niger",
+            "S.Sudan",
+            "SaudiArabia",
+            "Somalia",
+            "Sudan"
+         ],
+         "default":"Ethiopia",
+         "tags":[
+            
+         ]
+      },
+      {
+         "name":"annualPrecipIncrease",
+         "description":"Percentage precipitation increase",
+         "type":"float",
+         "min":-1,
+         "max":1,
+         "default":0,
+         "tags":[
+            
+         ]
+      },
+      {
+         "name":"meanTempIncrease",
+         "description":"Percentage temperature increase",
+         "type":"float",
+         "min":-1,
+         "max":1,
+         "default":0,
+         "tags":[
+            
+         ]
+      }
+   ],
+   "outputs":[
+      {
+         "name":"Hopper Presence Prediction",
+         "path":"maxent_Ethiopia_precipChange={{ annualPrecipIncrease }}tempChange=-{{ meanTempIncrease }}.tif ",
+         "file_type":"geotiff",
+         "transform":{
+            "band":"1",
+            "feature_name":"Locust [hopper stage] presence"
+         },
+         "features":[
+            {
+               "name":"Locust [hopper stage] presence",
+               "description":"Probability of presence of locusts",
+               "type":"float",
+               "units":"percentage",
+               "units_description":"Percentage probability",
+               "tags":[
+                  
+               ]
+            }
+         ]
+      }
+   ],
+   "directives":{
+      "command":"--country={{ country }} --annualPrecipIncrease={{ annualPrecipIncrease }} --meanTempIncrease=-{{ meanTempIncrease }} --format=GTiff",
+      "output_directory":"/usr/local/src/myscripts/output"
+   },
+   "tags":[
+      "agriculture"
+   ]
+}
