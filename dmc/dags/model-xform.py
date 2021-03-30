@@ -17,7 +17,7 @@ import glob
 ############################
 
 default_args = {
-    'owner': 'Brandon',
+    'owner': 'Jataware',
     'depends_on_past': False,
     'start_date': days_ago(0),
     'catchup': False,
