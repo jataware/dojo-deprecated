@@ -1,76 +1,60 @@
 from __future__ import annotations
 
+import configparser
+import time
 from datetime import datetime
 from typing import Any, Dict, Generator, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
-from fastapi.logger import logger
+from elasticsearch import Elasticsearch
 from pydantic import BaseModel, Field
 
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi.logger import logger
 from validation import schemas
 
 router = APIRouter()
 
 
-"""
-We have two views of models:
-
-* schemas.ModelMetadata. This is what is used when registering models (with POST
-  requests) and retrieving models (with GET requests). This corresponds to the
-  schema specified in
-  https://gitlab-ext.galois.com/world-modelers/galois-internal/supermaas/-/blob/master/docs/metadata.md#model-metadata-schema.
-
-  Another way of saying this, to borrow some turns of phrase from the FastAPI
-  documentation (https://fastapi.tiangolo.com/tutorial/extra-models/), is that
-  this is the input/output model.
-* db.Model. This is what is stored in the SQL database directly. Its schema is
-  almost the same as the metadata schema, but instead of having `parameters`
-  and `outputs` fields, it instead has a `type` field with the following
-  schema:
-
-    Field  Subfields   Type
-    type               dict
-           parameters  type-dict
-           outputs     List of type-dicts
-
-  Where a "type-dict" maps names to { "type": <type>, "annotations": <dict> }
-  pairs. This contains exactly the same information as the current schema, but
-  with different "type-centric" organization.
-
-  In FastAPI-documentation terms, this is the database model.
-"""
-
-"""
-Metadata-to-database conversion
-"""
+config = configparser.ConfigParser()
+config.read("/dmc-api/config.ini")
+es = Elasticsearch(
+    [config["ELASTICSEARCH"]["URL"]], port=config["ELASTICSEARCH"]["PORT"]
+)
 
 
 @router.post("/models")
-def create_model(
-    payload: schemas.ModelMetadata
-):
-    model_id = 1
+def create_model(payload: schemas.ModelMetadata):
+    model_id = payload.name + str(time.time()).split(".")[0]
+    payload.created_at = datetime.now()
+    body = payload.json()
+    es.index(index="models", body=body, id=model_id)
     return Response(
         status_code=status.HTTP_201_CREATED,
-        headers={"location": f"/api/v1/models/{model_id}"},
+        headers={"location": f"/api/models/{model_id}"},
         content=f"Created model with id = {model_id}",
     )
 
 
 @router.get("/models")
-def get_models(
-    inputs: List[str] = Query(None),
-    outputs: List[str] = Query(None),
-    tags: List[str] = Query(None),
-    status: List[str] = Query(None),
-    created_since: datetime = Query(None),
-) -> List[str]:
-    return 
+def search_models(query: str = Query(None)) -> List[schemas.ModelMetadata]:
+    if query:
+        q = {
+            "query": {
+                "query_string": {
+                    "query": query,
+                }
+            }
+        }
+    else:
+        q = {"query": {"match_all": {}}}
+    results = es.search(index="models", body=q)
+    return [i["_source"] for i in results["hits"]["hits"]]
 
 
 @router.get("/models/{model_id}")
 def get_model(model_id: str) -> Model:
-    model = model
-    if model is None:
+    try:
+        model = es.get(index="models", id=model_id)["_source"]
+    except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    return model_database_to_metadata(model)
+    return model

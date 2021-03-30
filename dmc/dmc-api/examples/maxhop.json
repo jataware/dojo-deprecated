@@ -42,9 +42,9 @@
          "name":"annualPrecipIncrease",
          "description":"Percentage precipitation increase",
          "type":"float",
-         "min":-1,
-         "max":1,
-         "default":0,
+         "min":"-1",
+         "max":"1",
+         "default":"0",
          "tags":[
             
          ]
@@ -53,9 +53,9 @@
          "name":"meanTempIncrease",
          "description":"Percentage temperature increase",
          "type":"float",
-         "min":-1,
-         "max":1,
-         "default":0,
+         "min":"-1",
+         "max":"1",
+         "default":"0",
          "tags":[
             
          ]

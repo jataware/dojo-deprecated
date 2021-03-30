@@ -20,8 +20,8 @@ from typing import Any, Dict, List, Optional
 import dateutil.parser
 from pydantic import BaseModel, Field, validator
 from shapely.geometry import LineString, Point, Polygon
-from toposort import CircularDependencyError, toposort_flatten
 
+from toposort import CircularDependencyError, toposort_flatten
 from validation import api_types as types
 
 ################################################################
@@ -43,6 +43,7 @@ class AllowableTypes(str, Enum):
     """
     A enumeration of model parameter types
     """
+
     INT = "int"
     FLOAT = "float"
     STR = "str"
@@ -58,6 +59,7 @@ class FileTypes(str, Enum):
     """
     A enumeration of model output file types
     """
+
     CSV = "csv"
     GEOTIFF = "geotiff"
     NETCDF = "netcdf"
@@ -122,15 +124,15 @@ class ModelParameter(BaseModel):
         title="Parameter Tags",
         description="Tags associated with the parameter",
     )
-    choices: Optional[List[Any]] = Field(
+    choices: Optional[List[str]] = Field(
         title="Parameter Choices",
         description="Choices associated with the parameter",
     )
-    min: Optional[Any] = Field(
+    min: Optional[str] = Field(
         title="Minimum Value",
         description="Minimum value of the parameter",
     )
-    max: Optional[Any] = Field(
+    max: Optional[str] = Field(
         title="Maximum Value",
         description="Maximm value of the parameter",
     )
@@ -138,7 +140,7 @@ class ModelParameter(BaseModel):
         title="Parameter Boundary",
         description="The boundary for the parameter",
     )
-    default: Optional[Any] = Field(
+    default: Optional[str] = Field(
         title="Default Value",
         description="The default value of the parameter",
     )
@@ -186,13 +188,12 @@ class ModelOutput(BaseModel):
     class Config:
         extra = "allow"
         schema_extra = {
-            "example":
-                {
-                    "name": "HWAH",
-                    "description": "Harvested weight at harvest (kg/ha).",
-                    "type": "float",
-                    "tags": ["agriculture"],
-                }
+            "example": {
+                "name": "HWAH",
+                "description": "Harvested weight at harvest (kg/ha).",
+                "type": "float",
+                "tags": ["agriculture"],
+            }
         }
 
 
@@ -210,13 +211,13 @@ class ModelOutputFile(BaseModel):
     file_type: FileTypes = Field(
         title="Output File Type",
         description="The type of the output file",
-        example="csv"
+        example="csv",
     )
     transform: Dict = Field(
         title="Transform Directives",
         description="A dictionary of transform directives that are used to convert the model output file into a CauseMos compliant schema",
-        example={"x": "lng", "y": "lat"}
-        )
+        example={"x": "lng", "y": "lat"},
+    )
     features: List[ModelOutput] = Field(
         title="Output Features",
         description="An array of features contained within the output file",
