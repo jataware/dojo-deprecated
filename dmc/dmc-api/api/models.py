@@ -34,6 +34,18 @@ def create_model(payload: ModelSchema.ModelMetadata):
         content=f"Created model with id = {model_id}",
     )
 
+@router.put("/models")
+def update_model(payload: ModelSchema.ModelMetadata):
+    model_id = payload.id
+    payload.created = datetime.now()
+    body = payload.json()
+    es.index(index="models", body=body, id=model_id)
+    return Response(
+        status_code=status.HTTP_201_CREATED,
+        headers={"location": f"/api/models/{model_id}"},
+        content=f"Updated model with id = {model_id}",
+    )
+
 
 @router.get("/models")
 def search_models(query: str = Query(None)) -> List[ModelSchema.ModelMetadata]:
