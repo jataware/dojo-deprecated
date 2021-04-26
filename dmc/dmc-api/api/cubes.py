@@ -28,7 +28,7 @@ from fastapi import (
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from validation import schemas
+from validation import CubeSchema
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ def get_cubes(
 
 
 @router.post("/cubes")
-def create_cube(payload: schemas.CubeMetadata):
+def create_cube(payload: CubeSchema.CubeMetadata):
     return Response(
         status_code=status.HTTP_201_CREATED,
         headers={"location": f"/api/v1/cubes/{cube.id}"},
@@ -54,7 +54,7 @@ def create_cube(payload: schemas.CubeMetadata):
 
 
 @router.post("/cubes/open")
-def empty_cube(payload: schemas.CubeMetadata):
+def empty_cube(payload: CubeSchema.CubeMetadata):
     return Response(
         status_code=status.HTTP_201_CREATED,
         headers={"location": f"/api/v1/cubes/{cube.id}"},
@@ -79,7 +79,7 @@ def store_intermediate(filename, cube_id):
 @router.post("/cubes/{cube_id}/points")
 def add_point(
     cube_id: int,
-    points: List[schemas.CubePoint],
+    points: List[CubeSchema.CubePoint],
 ):
     return Response(status_code=status.HTTP_201_CREATED)
 

@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from pydantic.json import pydantic_encoder
 from typing_extensions import final
 
-from validation import schemas
+from validation import JobSchema
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ def dispatch_job(job):
     return
 
 @router.post("/jobs")
-def create_job(payload: schemas.JobMetadata):
+def create_job(payload: JobSchema.JobMetadata):
     return Response(
         status_code=status.HTTP_201_CREATED,
         headers={"Location": f"/api/v1/jobs/{job.id}"},

@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.logger import logger
-from validation import schemas
+from validation import ModelSchema
 
 router = APIRouter()
 
@@ -23,9 +23,9 @@ es = Elasticsearch(
 
 
 @router.post("/models")
-def create_model(payload: schemas.ModelMetadata):
-    model_id = payload.name + str(time.time()).split(".")[0]
-    payload.created_at = datetime.now()
+def create_model(payload: ModelSchema.ModelMetadata):
+    model_id = payload.id
+    payload.created = datetime.now()
     body = payload.json()
     es.index(index="models", body=body, id=model_id)
     return Response(
@@ -36,7 +36,7 @@ def create_model(payload: schemas.ModelMetadata):
 
 
 @router.get("/models")
-def search_models(query: str = Query(None)) -> List[schemas.ModelMetadata]:
+def search_models(query: str = Query(None)) -> List[ModelSchema.ModelMetadata]:
     if query:
         q = {
             "query": {

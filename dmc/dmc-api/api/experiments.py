@@ -10,7 +10,7 @@ from fastapi.logger import logger
 from pydantic import BaseModel
 from pydantic.json import pydantic_encoder
 
-from validation import schemas
+from validation import ExperimentSchema
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ def get_experiment(experiment_id: int):
 
 @router.post("/experiments")
 def create_experiment(
-    payload: schemas.ExperimentMetadata,
+    payload: ExperimentSchema.ExperimentMetadata,
 ):
     return Response(
         status_code=status.HTTP_201_CREATED,
