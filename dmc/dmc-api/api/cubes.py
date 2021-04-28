@@ -75,15 +75,6 @@ def store_intermediate(filename, cube_id):
     """
     return
 
-
-@router.post("/cubes/{cube_id}/points")
-def add_point(
-    cube_id: int,
-    points: List[CubeSchema.CubePoint],
-):
-    return Response(status_code=status.HTTP_201_CREATED)
-
-
 def causemos_compliant(df: pd.DataFrame) -> bool:
     """
     The definition of causemos compliance for this function:

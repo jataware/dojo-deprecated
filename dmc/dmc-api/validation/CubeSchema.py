@@ -12,42 +12,50 @@ from shapely.geometry import LineString, Point, Polygon
 from toposort import CircularDependencyError, toposort_flatten
 from validation import api_types as types
 
-class CubeMetadataFromModeler(BaseModel):
-    """ The fields a modeler needs to provide for cube metadata """
+from validation.ModelSchema import Geography
 
-    description: Optional[str] = ""
-    parameters: Dict[str, Any]
-    independent_vars: List[str]
-    dependent_vars: List[str]
+class Period(BaseModel):
+    gte: str = Field(
+        title="Start Time",
+        description="Start time (inclusive)",
+        example="2019-01-01T00:00:00Z"
+    )
+    lte: str = Field(
+        title="End Time",
+        description="End time (inclusive)",
+        example="2020-01-01T00:00:00Z"
+    )
+    resolution: str = Field(
+        title="Temporal Resolution",
+        enum=["annual", "monthly", "dekad", "weekly", "daily", "other"]
+    )
+
+class Parameter(BaseModel):
+    id: str = Field(
+        title="Parameter ID",
+        description="The ID of the parameter",
+        example="123e4567-e89b-12d3-a456-426614174000"
+    )
+    value: Any = Field(
+        title="Parameter Value",
+        example="irrig"
+    )
+
+class CubeMetadata(BaseModel):
+    """ Metadata describing a datacube """
+    id: str
+    name: str
+    description: str
+    created: Optional[str]
+    job_id: str
+    model_id: str
+    data_paths: List[str]
+    pre_gen_output_paths: Optional[List[str]]
+    default_run: Optional[bool]
+    parameters: List[Parameter]
+    periods: Optional[List[Period]]
     tags: Optional[List[str]] = []
+    geography: Optional[Geography]
 
     class Config:
-        extra = "allow"
-
-
-class CubeMetadata(CubeMetadataFromModeler):
-    """ The fields that are inserted by SuperMaaS in cube metadata """
-
-    job_id: int
-    model_id: int
-    paths: List[str]
-    entries: Optional[List[Any]] = []
-
-    class Config:
-        extra = "allow"
-
-
-class CubePoint(BaseModel):
-    # The exclusive purpose of this model is to propagate an example into the Swagger UI.
-    # This example describes what a CubePoint may be - namely, a Dict[str, Any]
-    class Config:
-        schema_extra = {
-            "example": {
-                "ind_var_1": "<ind_val_1>",
-                "ind_var_2": "<ind_val_2>",
-                "dep_var_1": "<dep_val_1>",
-                "dep_var_2": "<dep_val_2>",
-            }
-        }
-
         extra = "allow"

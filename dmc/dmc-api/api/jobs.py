@@ -7,6 +7,9 @@ import time
 from threading import Thread, current_thread
 from typing import Any, Dict
 
+import configparser
+from elasticsearch import Elasticsearch
+
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.logger import logger
 from fastapi.responses import StreamingResponse
@@ -16,14 +19,21 @@ from typing_extensions import final
 
 from validation import JobSchema
 
+from api.models import get_model
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+config = configparser.ConfigParser()
+config.read("/dmc-api/config.ini")
+es = Elasticsearch(
+    [config["ELASTICSEARCH"]["URL"]], port=config["ELASTICSEARCH"]["PORT"]
+)
+
 @router.get("/jobs")
 def get_jobs():
     return 
-
 
 @router.get("/jobs/{job_id}")
 def get_job(job_id: int):
@@ -33,7 +43,9 @@ def dispatch_job(job):
     return
 
 @router.post("/jobs")
-def create_job(payload: JobSchema.JobMetadata):
+def create_job(job: JobSchema.JobMetadata):
+    model = get_model(job.model_id)
+    es.index(index="jobs", body=job, id=job.id)
     return Response(
         status_code=status.HTTP_201_CREATED,
         headers={"Location": f"/api/v1/jobs/{job.id}"},
@@ -51,7 +63,6 @@ def stop_job(job_id: int):
     return Response(
         status_code=status.HTTP_200_OK,
     )
-
 
 @router.patch("/jobs/{job_id}", response_model=Dict[str, Any])
 def add_metadata(
@@ -75,10 +86,6 @@ def add_metadata(
     return Response(status_code=status.HTTP_200_OK)
 
 
-# HACK: this endpoint was added exclusively to support the demo of our
-#       image preview. The reason is that minio does not support a simple,
-#       authentication-free way to retrieve files, so this endpoint is
-#       meant to provide a simple way for the UI to GET the image
 @router.get("/jobs/{job_id}/file", include_in_schema=False)
 def get_file(
     job_id: int,

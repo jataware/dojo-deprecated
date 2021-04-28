@@ -12,16 +12,19 @@ from shapely.geometry import LineString, Point, Polygon
 from toposort import CircularDependencyError, toposort_flatten
 from validation import api_types as types
 
-class JobKind(str, Enum):
-    RUN = "run"
-    IMPORT = "import"
 
-
-# TODO: Refactor to make more generic.
 class JobMetadata(BaseModel):
-    kind: Optional[JobKind] = JobKind.RUN
-    model: int
-    parameters: Dict[str, Any]
+    id: str
+    model_id: str = Field(
+        title="Model ID",
+        description="The ID of the model to run",
+        example="abcd-efg-1233"
+    )
+    parameters: Dict[Any, Any] = Field(
+        title="Run Parameters",
+        description="A dictionary of parameters for the model run. Each key should be the `name` of a model parameter and each `value` the parameter level or setting",
+        example={"rainfall": 0.9, "temperature": 1.2}
+    )
     attributes: Optional[Dict[str, Any]] = dict()
     tags: Optional[List[str]] = []
 

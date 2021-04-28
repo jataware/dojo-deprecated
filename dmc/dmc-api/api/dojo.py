@@ -35,6 +35,11 @@ def search_by_model(model_id):
 
 @router.post("/dojo/directive")
 def create_directive(payload: DojoSchema.ModelDirective):
+    """
+    Create a `directive` for a model. This is the command which is used to execute
+    the model container. The `directive` is templated out using Jinja, where each templated `{{ item }}`
+    maps directly to the name of a specific `parameter.
+    """
     es.index(index="directives", body=payload.json(), id=payload.id)
     return Response(
         status_code=status.HTTP_201_CREATED,
@@ -56,6 +61,11 @@ def get_directive(model_id: str) -> DojoSchema.ModelDirective:
 
 @router.post("/dojo/config")
 def create_configs(payload: List[DojoSchema.ModelConfig]):
+    """
+    Create one or more model `configs`. A `config` is a settings file which is used by the model to 
+    set a specific parameter level. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
+    maps directly to the name of a specific `parameter.
+    """    
     for p in payload:
         es.index(index="configs", body=p.json(), id=p.id)
     return Response(
@@ -77,6 +87,11 @@ def get_outputfiles(model_id: str) -> List[DojoSchema.ModelConfig]:
 
 @router.post("/dojo/outputfile")
 def create_outputfiles(payload: List[DojoSchema.ModelOutputFile]):
+    """
+    Create an `outputfile` for a model. Each `outputfile` represents a single file that is created upon each model
+    execution. Here we store key metadata about the `outputfile` which enables us to find it within the container and 
+    normalize it into a CauseMos compliant format.
+    """    
     for p in payload:
         es.index(index="outputfiles", body=p.json(), id=p.id)
     return Response(
