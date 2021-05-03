@@ -1,4 +1,31 @@
-### Run Airflow DAG
+# Domain Model Controller
+
+The Domain Model Controller (DMC), is an implementation of Airflow designed to support black box model execution, normalization, and storage.
+
+Please see `Known Issues` before running.
+
+## Setup
+
+The DMC can be run via `docker-compose` with:
+
+```
+docker-compose up -d
+```
+
+If using Docker Desktop (e.g. on Mac) you may need to open the `Preferences` and **disable** `Use gRPC FUSE for file sharing`. 
+
+To change the authentification username and password adjust the following in the `docker-compose.yaml`:
+
+```
+_AIRFLOW_WWW_USER_USERNAME: jataware
+_AIRFLOW_WWW_USER_PASSWORD: wileyhippo
+```      
+
+> Note: these should be changed for production; the above credentials are the default.
+
+This should run the Airflow UI at `http://localhost:8080/home`.
+
+## Run Airflow DAG
 
 - Launch Airflow:
 
@@ -229,3 +256,8 @@ curl 'localhost:8080/api/v1/dags' \
 -H 'Content-Type: application/json' \
 --user "jataware:wileyhippo" 
 ```
+
+
+### Known Issues
+
+There seems to be a problem with permissions on Mac with the `/var/run/docker.sock` file which prohibits Airflow from kicking off Docker runs. Therefore this should be run on Ubuntu only for the time being.
