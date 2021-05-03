@@ -21,7 +21,7 @@ directive = {
     "output_directory": "/usr/local/src/myscripts/output"
 }
 resp = requests.post(f"{url}/dojo/directive", json=directive)
-resp.text
+print(resp.text)
 
 
 #### Add OutputFile
@@ -35,4 +35,4 @@ outputfile = {
     "transform": mapper,
 }
 resp = requests.post(f"{url}/dojo/outputfile", json=[outputfile])
-resp.text
+print(resp.text)
