@@ -58,6 +58,7 @@
       - //var/run/docker.sock://var/run/docker.sock
       - ./docker.py:/home/airflow/.local/lib/python3.6/site-packages/airflow/providers/docker/operators/docker.py
       - ./results:/results
+      - ./mappers:/mappers
     user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-50000}"
     depends_on:
       redis:
