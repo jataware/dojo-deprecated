@@ -68,7 +68,9 @@ def getMapper(**kwargs):
     model_id = kwargs['dag_run'].conf.get('model_id')
     of = requests.get(f"{dojo_url}/dojo/outputfile/{model_id}").json()
     mapper = of[0]['transform']
-    with open(f'/home/ubuntu/dojo/dmc/mappers/mapper_{model_id}.json','w') as f:
+    print("Mapper obtained:")
+    print(mapper)
+    with open(f'/mappers/mapper_{model_id}.json','w') as f:
         f.write(json.dumps(mapper))
 
 ###########################
