@@ -12,6 +12,23 @@ The DMC can be run via `docker-compose` with:
 docker-compose up -d
 ```
 
+You'll need to make the following permissions change:
+
+```
+sudo chmod -R +777 logs mappers results
+```
+
+This enables Docker containers to write to these mounts.
+
+You'll also likely need to:
+
+```
+cd /var/run
+sudo chmod +777 docker.sock
+```
+
+to enable Airflow to control Docker containers.
+
 If using Docker Desktop (e.g. on Mac) you may need to open the `Preferences` and **disable** `Use gRPC FUSE for file sharing`. 
 
 To change the authentification username and password adjust the following in the `docker-compose.yaml`:

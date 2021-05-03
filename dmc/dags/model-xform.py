@@ -49,7 +49,7 @@ def s3copy(**kwargs):
     results_path = f"/results/{kwargs['dag_run'].conf.get('run_id')}"
     print(f'results_path:{results_path}')
 
-    for fpath in glob.glob(f'{results_path}/*[norm]*.csv'):
+    for fpath in glob.glob(f'{results_path}/*[norm]*.parquet.gzip'):
         print(f'fpath:{fpath}')
         fn = fpath.split("/")[-1]
         print(f'fn:{fn}')
