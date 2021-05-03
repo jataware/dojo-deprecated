@@ -1,5 +1,6 @@
 from datetime import timedelta
 import requests
+import json
 from airflow import DAG
 from airflow.providers.docker.operators.docker import DockerOperator
 from operators.dojo_operators import DojoDockerOperator
