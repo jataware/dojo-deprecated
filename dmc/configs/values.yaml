@@ -225,14 +225,14 @@ data:
   metadataConnection:
     user: postgres
     pass: postgres
-    host: ~
+    host: 10.96.78.224
     port: 5432
     db: postgres
     sslmode: disable
   resultBackendConnection:
     user: postgres
     pass: postgres
-    host: ~
+    host: 10.96.78.224
     port: 5432
     db: postgres
     sslmode: disable
