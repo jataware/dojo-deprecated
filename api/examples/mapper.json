@@ -1,0 +1,80 @@
+{
+    "annotations": {
+        "longitude": {
+            "Description": null,
+            "Type": "GEO",
+            "Geo": "Longitude",
+            "Primary_geo": "true",
+            "Is_geo_pair": "true",
+            "Primary_time": null,
+            "Coordinate_format": null,
+            "Data_type": null,
+            "Units": null,
+            "Timeformat": null,
+            "Year": null,
+            "Other_geo": "latitude",
+            "Time": null,
+            "Unit_description": null,
+            "New_col_name": null
+        },
+        "latitude": {
+            "Description": null,
+            "Type": "GEO",
+            "Geo": "Latitude",
+            "Primary_geo": "true",
+            "Is_geo_pair": "true",
+            "Other_geo": "longitude",
+            "Primary_time": null,
+            "Coordinate_format": null,
+            "Data_type": null,
+            "Units": null,
+            "Timeformat": null,
+            "Year": null,
+            "Time": null,
+            "Unit_description": null,
+            "New_col_name": null
+        },
+        "Hopper Presence Prediction": {
+            "Description": "Probability of presence of locusts",
+            "Type": "OTHER",
+            "Data_type": "FLOAT",
+            "Units": "percentage",
+            "Unit_description": "Percentage probability",
+            "Primary_time": null,
+            "Primary_geo": null,
+            "Coordinate_format": null,
+            "Timeformat": null,
+            "Year": null,
+            "Is_geo_pair": null,
+            "Other_geo": null,
+            "Time": null,
+            "Geo": null,
+            "New_col_name": null
+        },
+        "date": {
+            "Description": null,
+            "Type": "DATE/TIME",
+            "Time": "Date",
+            "Primary_time": "true",
+            "Time_format": "%m/%d/%Y",
+            "Primary_geo": null,
+            "Coordinate_format": null,
+            "Data_type": null,
+            "Units": null,
+            "Timeformat": null,
+            "Year": null,
+            "Is_geo_pair": null,
+            "Other_geo": null,
+            "Geo": null,
+            "Unit_description": null,
+            "New_col_name": null
+        }
+    },
+    "meta": {
+        "Feature_name": "Hopper Presence Prediction",
+        "Band": "1",
+        "Null_val": "-9999",
+        "Date": "01/01/2021",
+        "ftype": "Geotiff"
+    }
+}

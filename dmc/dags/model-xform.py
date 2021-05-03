@@ -1,4 +1,5 @@
 from datetime import timedelta
+import requests
 from airflow import DAG
 from airflow.providers.docker.operators.docker import DockerOperator
 from operators.dojo_operators import DojoDockerOperator
@@ -47,7 +48,7 @@ def s3copy(**kwargs):
     results_path = f"/results/{kwargs['dag_run'].conf.get('run_id')}"
     print(f'results_path:{results_path}')
 
-    for fpath in glob.glob(f'{results_path}/*[trans]*.csv'):
+    for fpath in glob.glob(f'{results_path}/*[norm]*.csv'):
         print(f'fpath:{fpath}')
         fn = fpath.split("/")[-1]
         print(f'fn:{fn}')
@@ -61,6 +62,14 @@ def s3copy(**kwargs):
         )
     
     return
+
+def getMapper(**kwargs):
+    dojo_url = kwargs['dag_run'].conf.get('dojo_url')
+    model_id = kwargs['dag_run'].conf.get('model_id')
+    of = requests.get(f"{dojo_url}/dojo/outputfile/{model_id}").json()
+    mapper = of[0]['transform']
+    with open(f'/home/ubuntu/dojo/dmc/mappers/mapper_{model_id}.json','w') as f:
+        f.write(json.dumps(mapper))
 
 ###########################
 ###### Create Tasks #######
@@ -84,15 +93,15 @@ model_node = DojoDockerOperator(
 )
 
 transform_node = DojoDockerOperator(
-    task_id='transform-task',    
+    task_id='mixmasta-task',    
     image="jataware/mixmasta:latest",
     container_name="run_{{ dag_run.conf['run_id'] }}",
     volumes=["//var/run/docker.sock://var/run/docker.sock", 
-             "/home/ubuntu/dojo/dmc/results/{{ dag_run.conf['run_id'] }}:/tmp"],
-
+             "/home/ubuntu/dojo/dmc/results/{{ dag_run.conf['run_id'] }}:/tmp",
+             "/home/ubuntu/dojo/dmc/mappers:/mappers"],
     docker_url="unix:///var/run/docker.sock",
     network_mode="bridge",
-    command="{{ dag_run.conf['xfrm_command'] }}",
+    command="{{ dag_run.conf['mixmasta_cmd'] }}",
     auto_remove=True,
     dag=dag
 )

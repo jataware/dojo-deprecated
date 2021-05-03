@@ -2,6 +2,7 @@ import json
 import logging
 import pathlib
 import re
+import requests
 import sys
 import time
 from threading import Thread, current_thread
@@ -17,7 +18,7 @@ from pydantic import BaseModel
 from pydantic.json import pydantic_encoder
 from typing_extensions import final
 
-from validation import JobSchema
+from validation import RunSchema
 
 from api.models import get_model
 
@@ -31,46 +32,46 @@ es = Elasticsearch(
     [config["ELASTICSEARCH"]["URL"]], port=config["ELASTICSEARCH"]["PORT"]
 )
 
-@router.get("/jobs")
-def get_jobs():
+@router.get("/runs")
+def get_runs():
     return 
 
-@router.get("/jobs/{job_id}")
-def get_job(job_id: int):
+@router.get("/runs/{run_id}")
+def get_run(run_id: int):
     return
 
-def dispatch_job(job):
+def dispatch_run(run):
     return
 
-@router.post("/jobs")
-def create_job(job: JobSchema.JobMetadata):
-    model = get_model(job.model_id)
-    es.index(index="jobs", body=job, id=job.id)
+@router.post("/runs")
+def create_run(run: RunSchema.RunMetadata):
+    model = get_model(run.model_id)
+    es.index(index="runs", body=run, id=run.id)
     return Response(
         status_code=status.HTTP_201_CREATED,
-        headers={"Location": f"/api/v1/jobs/{job.id}"},
-        content=f"Created job with id = {job.id}",
+        headers={"Location": f"/api/v1/runs/{run.id}"},
+        content=f"Created run with id = {run.id}",
     )
 
-@router.get("/jobs/{job_id}/logs")
-def get_job_logs(job_id: int):
+@router.get("/runs/{run_id}/logs")
+def get_run_logs(run_id: int):
     return
 
 
-@router.put("/jobs/{job_id}/kill")
-def stop_job(job_id: int):
+@router.put("/runs/{run_id}/kill")
+def stop_run(run_id: int):
 
     return Response(
         status_code=status.HTTP_200_OK,
     )
 
-@router.patch("/jobs/{job_id}", response_model=Dict[str, Any])
+@router.patch("/runs/{run_id}", response_model=Dict[str, Any])
 def add_metadata(
-    job_id: int,
+    run_id: int,
     patch_attributes: Dict[str, Any],
 ):
     """
-    Insert some key-value pair into the `attributes` field of a job's metadata.
+    Insert some key-value pair into the `attributes` field of a run's metadata.
     As an example, suppose we use this endpoint to insert `{ "file": "foo.png" }`:
 
     * If the `attributes` do not yet contain `"file"`, then a new key-value pair
@@ -86,8 +87,8 @@ def add_metadata(
     return Response(status_code=status.HTTP_200_OK)
 
 
-@router.get("/jobs/{job_id}/file", include_in_schema=False)
+@router.get("/runs/{run_id}/file", include_in_schema=False)
 def get_file(
-    job_id: int,
+    run_id: int,
 ):
     return
