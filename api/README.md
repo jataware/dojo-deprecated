@@ -1,6 +1,6 @@
-# DMC API
+# Dojo API
 
-This is a FastAPI webapp that provides an interface to the Domain Model Controller execution engine. It is a re-implementation of the SuperMaaS API.
+This is a FastAPI webapp that provides an interface to the Domain Model Controller execution engine.
 
 ## Installation
 
