@@ -9,7 +9,7 @@ from datetime import datetime
 import uvicorn
 from fastapi import FastAPI
 
-from api import cubes, dojo, experiments, runs, models
+from src import cubes, dojo, experiments, runs, models
 
 logger = logging.getLogger(__name__)
 
