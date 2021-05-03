@@ -80,6 +80,11 @@ s3_node = PythonOperator(task_id='s3push-task',
                              provide_context=True,
                              dag=dag)
 
+mapper_node = PythonOperator(task_id='mapper-task', 
+                             python_callable=getMapper,
+                             provide_context=True,
+                             dag=dag)                   
+
 model_node = DojoDockerOperator(
     task_id='model-task',    
     image="{{ dag_run.conf['model_image'] }}",
@@ -106,4 +111,4 @@ transform_node = DojoDockerOperator(
     dag=dag
 )
 
-model_node >> transform_node >> s3_node
+model_node >> mapper_node >> transform_node >> s3_node
