@@ -29,30 +29,18 @@ docker-compose -f docker-compose-dev.yaml up --build -d
 
 This will turn on the API, Elasticsearch and Kibana, but the API will be in `reload` mode and any changes made to the local repository will be reflected in the container to facilitate development.
 
-## Usage
+## Setup
 
-The only 3 endpoints currently working are the `/models` endpoints. You can "create" the MaxHop model as an example with:
-
-```
-curl -X POST -H "Content-Type: application/json" -d @examples/maxhop.json localhost:8000/models
-```
-
-You can then search with:
+First, you should create the example model (MaxHop) with:
 
 ```
-curl -XGET 'http://localhost:8000/models?query=locusts'
+cd examples
+python3 Examples.py
 ```
 
-Note that the `query` parameter can be any valid Lucene Syntax query against the Elasticsearch schema, but it must be url encoded. For example you may query for `(locusts) AND (jataware)` with:
+Then you should create the `runs` index mapping for Elasticsearch with:
 
 ```
-curl -XGET 'http://localhost:8000/models?query=%28locusts%29%20AND%20%28jataware%29'
+cd es-mappings
+python3 CreateMappings.py
 ```
-
-You can query for things like `maintainer.name: kyle` or `created_at:<=2021-03-30`
-
-## TODO
-
-* The schema does not inclued `created_at`, but this is added upon indexing to ES. This seems suboptimal
-* The schema for `ModelOutputFile.transform` is just an arbitrary dictionary. This ultimately needs to be further refined into a schema that can map to the data annotation UI
-* Currently we allow for Jinja templating in the output file name, but if the output file names rely on timestamps or are somehow random, this will be a major problem.

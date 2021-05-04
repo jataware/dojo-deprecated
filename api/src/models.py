@@ -16,7 +16,7 @@ router = APIRouter()
 
 
 config = configparser.ConfigParser()
-config.read("/dmc-api/config.ini")
+config.read("/api/config.ini")
 es = Elasticsearch(
     [config["ELASTICSEARCH"]["URL"]], port=config["ELASTICSEARCH"]["PORT"]
 )

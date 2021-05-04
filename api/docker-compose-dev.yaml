@@ -2,14 +2,14 @@ version: '2.2'
 services:
   api:
     build: .
-    container_name: dmc-api
+    container_name: dojo-api
     volumes:
-      - ./:/dmc-api
-    command: ["uvicorn", "server:api", "--host", "0.0.0.0", "--port", "80", "--reload"]
+      - ./:/api
+    command: ["uvicorn", "server:api", "--host", "0.0.0.0", "--port", "80", "--reload", "--reload-dir", "src", "--log-level", "debug"]
     ports: 
       - 8000:80
     networks:
-      - dmc
+      - dojo
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.11.2
@@ -23,11 +23,11 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - data:/usr/share/elasticsearch/data
+      - dojo_esdata:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
     networks:
-      - dmc
+      - dojo
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.11.2
@@ -37,13 +37,13 @@ services:
     environment:
       ELASTICSEARCH_URL: http://elasticsearch:9200
     networks:
-      - dmc
+      - dojo
 
 volumes:
-  data:
+  dojo_esdata:
     driver: local
 
 
 networks:
-  dmc:
+  dojo:
     driver: bridge

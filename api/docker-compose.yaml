@@ -2,11 +2,11 @@ version: '2.2'
 services:
   api:
     build: .
-    container_name: dmc-api
+    container_name: dojo-api
     ports: 
       - 8000:80
     networks:
-      - dmc
+      - dojo
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.11.2
@@ -20,11 +20,11 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - data:/usr/share/elasticsearch/data
+      - dojo_esdata:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
     networks:
-      - dmc
+      - dojo
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.11.2
@@ -34,13 +34,13 @@ services:
     environment:
       ELASTICSEARCH_URL: http://elasticsearch:9200
     networks:
-      - dmc
+      - dojo
 
 volumes:
-  data:
+  dojo_esdata:
     driver: local
 
 
 networks:
-  dmc:
+  dojo:
     driver: bridge
