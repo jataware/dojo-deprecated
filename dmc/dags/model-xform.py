@@ -94,7 +94,8 @@ def RunExit(**kwargs):
     run['data_paths'] = [pth]
     run['attributes']['executed_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     response = requests.put(f"{dojo_url}/runs", json=run)
-    print(response.json())   
+    print(response.text)
+    return   
 
 ###########################
 ###### Create Tasks #######
