@@ -5,7 +5,7 @@ services:
     container_name: dojo-api
     volumes:
       - ./:/api
-    command: ["uvicorn", "server:api", "--host", "0.0.0.0", "--port", "80", "--reload", "--reload-dir", "src"]
+    command: ["uvicorn", "server:api", "--host", "0.0.0.0", "--port", "80", "--reload", "--reload-dir", "src", "--log-level", "debug"]
     ports: 
       - 8000:80
     networks:
