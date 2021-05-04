@@ -80,6 +80,7 @@ def getMapper(**kwargs):
 
 
 def RunExit(**kwargs):
+    dojo_url = kwargs['dag_run'].conf.get('dojo_url')
     run_id = kwargs['dag_run'].conf.get('run_id')
     model_id = kwargs['dag_run'].conf.get('model_id')
     run = requests.get(f"{dojo_url}/runs/{run_id}").json()
