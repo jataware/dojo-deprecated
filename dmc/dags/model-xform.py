@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 import requests
 import json
 from airflow import DAG
@@ -74,6 +74,23 @@ def getMapper(**kwargs):
     with open(f'/mappers/mapper_{model_id}.json','w') as f:
         f.write(json.dumps(mapper))
 
+
+def RunExit(**kwargs):
+    run_id = kwargs['dag_run'].conf.get('run_id')
+    model_id = kwargs['dag_run'].conf.get('model_id')
+    run = requests.get(f"{dojo_url}/runs/{run_id}").json()
+
+    # TODO: this should be conditional; if the other tasks fail
+    # this should reflect the failure; job should always finish
+    run['attributes']['status'] = dmc_run['success']
+   
+    # TODO: handle additional output files
+    pth = f"https://jataware-world-modelers.s3.amazonaws.com/dmc_results/{run_id}/{run_id}_{model_id}.parquet.gzip"
+    run['data_paths'] = [pth]
+    run['attributes']['executed_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    response = requests.post(f"{dojo_url}/runs/{run_id}", json=run)
+    return response.json()   
+
 ###########################
 ###### Create Tasks #######
 ###########################
@@ -86,7 +103,12 @@ s3_node = PythonOperator(task_id='s3push-task',
 mapper_node = PythonOperator(task_id='mapper-task', 
                              python_callable=getMapper,
                              provide_context=True,
-                             dag=dag)                   
+                             dag=dag)               
+
+exit_node = PythonOperator(task_id='exit-task', 
+                             python_callable=RunExit,
+                             provide_context=True,
+                             dag=dag)                                   
 
 model_node = DojoDockerOperator(
     task_id='model-task',    
@@ -114,4 +136,4 @@ transform_node = DojoDockerOperator(
     dag=dag
 )
 
-model_node >> mapper_node >> transform_node >> s3_node
+model_node >> mapper_node >> transform_node >> s3_node >> exit_node

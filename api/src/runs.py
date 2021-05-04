@@ -7,13 +7,13 @@ import requests
 import sys
 import time
 from threading import Thread, current_thread
-from typing import Any, Dict
+from typing import Any, Dict, Generator, List, Optional
 
 import configparser
 from elasticsearch import Elasticsearch
 from jinja2 import Template
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.logger import logger
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -46,33 +46,26 @@ dojo_url = config["DOJO"]["URL"]
 headers = {'Content-Type': 'application/json'}
 
 @router.get("/runs")
-def get_runs():
-    return 
+def search_runs(query: str = Query(None)) -> List[RunSchema.RunMetadata]:
+    if query:
+        q = {
+            "query": {
+                "query_string": {
+                    "query": query,
+                }
+            }
+        }
+    else:
+        q = {"query": {"match_all": {}}}
+    results = es.search(index="runs", body=q)
+    return [i["_source"] for i in results["hits"]["hits"]]
 
 @router.get("/runs/{run_id}")
-def get_run(run_id: str):
+def get_run(run_id: str) -> RunSchema.RunMetadata:
     try:
         run = es.get(index="runs", id=run_id)["_source"]
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
- 
-    response = requests.get(f'{dmc_base_url}/dags/model_xform/dagRuns/{run_id}',
-                            headers=headers, 
-                            auth=(dmc_user, dmc_pass))
-    dmc_run = response.json()
-    logging.info(dmc_run)
-
-    model_id = dmc_run['conf']['model_id']
-    
-    run['attributes']['status'] = dmc_run['state']
-
-    if dmc_run['state'] == 'success':
-        # TODO: handle additional output files
-        pth = f"https://jataware-world-modelers.s3.amazonaws.com/dmc_results/{run_id}/{run_id}_{model_id}.parquet.gzip"
-        run['data_paths'] = [pth]
-        run['attributes']['executed_at'] = dmc_run['execution_date']
-
-    es.index(index="runs", body=run, id=run_id)
     return run
 
 def dispatch_run(run):
@@ -155,7 +148,6 @@ def get_run_logs(run_id: str):
         content=json.dumps(logs)
     )
 
-
 @router.put("/runs/{run_id}/kill")
 def stop_run(run_id: int):
 
@@ -163,27 +155,16 @@ def stop_run(run_id: int):
         status_code=status.HTTP_200_OK,
     )
 
-@router.patch("/runs/{run_id}", response_model=Dict[str, Any])
-def add_metadata(
-    run_id: int,
-    patch_attributes: Dict[str, Any],
-):
-    """
-    Insert some key-value pair into the `attributes` field of a run's metadata.
-    As an example, suppose we use this endpoint to insert `{ "file": "foo.png" }`:
-
-    * If the `attributes` do not yet contain `"file"`, then a new key-value pair
-      is inserted into `attributes`, where the key is `"file"` and the value is
-      `["foo.png"]`.
-
-    * If the `attributes` *do* contain `"file"`, then the value `"foo.png"` is
-      appended to the end of the list that `"file"` maps to in the `attributes`.
-      For instance, if the `attributes` previously contained
-      `{ "file": ["hi.txt"] }`, then it would contain
-      `{ "file": ["hi.txt", "foo.png"] }` after the `PATCH` request.
-    """
-    return Response(status_code=status.HTTP_200_OK)
-
+@router.put("/runs")
+def update_run(payload: RunSchema.RunMetadata):
+    run_id = payload.id
+    body = payload.json()
+    es.index(index="runs", body=body, id=run_id)
+    return Response(
+        status_code=status.HTTP_201_CREATED,
+        headers={"location": f"/api/runs/{run_id}"},
+        content=f"Updated run with id = {run_id}",
+    )
 
 @router.get("/runs/{run_id}/file", include_in_schema=False)
 def get_file(
