@@ -93,7 +93,7 @@ def RunExit(**kwargs):
     pth = f"https://jataware-world-modelers.s3.amazonaws.com/dmc_results/{run_id}/{run_id}_{model_id}.parquet.gzip"
     run['data_paths'] = [pth]
     run['attributes']['executed_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    response = requests.put(f"{dojo_url}/runs/{run_id}", json=run)
+    response = requests.put(f"{dojo_url}/runs", json=run)
     return response.json()   
 
 ###########################
