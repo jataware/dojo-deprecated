@@ -53,14 +53,17 @@ def s3copy(**kwargs):
         print(f'fpath:{fpath}')
         fn = fpath.split("/")[-1]
         print(f'fn:{fn}')
+
+        # NOTE: objects stored to dmc_results are automatically made public
+        # per the S3 bucket's policy
+        # TODO: may need to address this with more fine grained controls in the future
         key=f"dmc_results/{kwargs['dag_run'].conf.get('run_id')}/{fn}"
         
         s3.load_file(
             filename=fpath,
             key=key,
             replace=True,
-            bucket_name='jataware-world-modelers',
-            acl_policy='public-read' # makes object public
+            bucket_name='jataware-world-modelers'
         )
     
     return
