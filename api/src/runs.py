@@ -154,13 +154,6 @@ def get_run_logs(run_id: str):
         content=json.dumps(logs)
     )
 
-@router.put("/runs/{run_id}/kill")
-def stop_run(run_id: int):
-
-    return Response(
-        status_code=status.HTTP_200_OK,
-    )
-
 @router.put("/runs")
 def update_run(payload: RunSchema.RunMetadata):
     run_id = payload.id
@@ -171,9 +164,3 @@ def update_run(payload: RunSchema.RunMetadata):
         headers={"location": f"/api/runs/{run_id}"},
         content=f"Updated run with id = {run_id}",
     )
-
-@router.get("/runs/{run_id}/file", include_in_schema=False)
-def get_file(
-    run_id: int,
-):
-    return
