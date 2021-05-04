@@ -87,7 +87,7 @@ def RunExit(**kwargs):
 
     # TODO: this should be conditional; if the other tasks fail
     # this should reflect the failure; job should always finish
-    run['attributes']['status'] = dmc_run['success']
+    run['attributes']['status'] = 'success'
    
     # TODO: handle additional output files
     pth = f"https://jataware-world-modelers.s3.amazonaws.com/dmc_results/{run_id}/{run_id}_{model_id}.parquet.gzip"
