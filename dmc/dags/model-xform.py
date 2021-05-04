@@ -60,7 +60,7 @@ def s3copy(**kwargs):
             key=key,
             replace=True,
             bucket_name='jataware-world-modelers',
-            ExtraArgs={'ACL':'public-read'} # makes object public
+            acl_policy='public-read' # makes object public
         )
     
     return

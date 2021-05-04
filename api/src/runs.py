@@ -57,8 +57,14 @@ def search_runs(query: str = Query(None)) -> List[RunSchema.RunMetadata]:
         }
     else:
         q = {"query": {"match_all": {}}}
-    results = es.search(index="runs", body=q)
-    return [i["_source"] for i in results["hits"]["hits"]]
+    try:
+        results = es.search(index="runs", body=q)
+        return [i["_source"] for i in results["hits"]["hits"]]
+    except:
+        return Response(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="No runs available."
+        )
 
 @router.get("/runs/{run_id}")
 def get_run(run_id: str) -> RunSchema.RunMetadata:

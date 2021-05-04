@@ -20,7 +20,7 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - data:/usr/share/elasticsearch/data
+      - dojo_esdata:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
     networks:
@@ -37,7 +37,7 @@ services:
       - dojo
 
 volumes:
-  data:
+  dojo_esdata:
     driver: local
 
 
