@@ -61,6 +61,8 @@ export AWS_SECRET_KEY=yoursecretkey
 
 > **Note**: you must **URL encode** your access and secret keys before setting the environment variables
 
+Set the `DMC_DEBUG` environment variable in the `docker-compose.yaml` to `'false'` if you are running in production, otherwise leave it as `'true'`. If `'false'`, a notification is sent to Uncharted to let them know the model run as completed. We **don't** want to do this when developing the application.
+
 This should run the Airflow UI at `http://localhost:8080/home`.
 
 ## Run Airflow DAG

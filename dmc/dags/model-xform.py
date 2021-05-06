@@ -98,19 +98,24 @@ def RunExit(**kwargs):
     print(response.text)
 
     # Notify Uncharted
-    payload = {
-        "model_id":model_id,
-        "cube_id":f"{model_id}_{run_id}", #TODO: this should be set to an actual cube ID
-        "job_id":run_id,
-        "run_name_prefix":f"dojo_run_{model_id}_",
-        "test_run":True
-        }
-    response = requests.post('https://causemos.uncharted.software/api/model-run', 
-                            headers={'Content-Type': 'application/json'}, 
-                            json=payload, 
-                            auth=('worldmodelers', 'world!')) #TODO: this auth should not be hardcoded
-    print(f"Response from Uncharted: {response.text}")
-    return   
+    if os.getenv('DMC_DEBUG') == 'true':
+        print("Debug mode: no need to notify Uncharted")
+        return
+    else:
+        print('Notifying Uncharted...')
+        payload = {
+            "model_id":model_id,
+            "cube_id":f"{model_id}_{run_id}", #TODO: this should be set to an actual cube ID
+            "job_id":run_id,
+            "run_name_prefix":f"dojo_run_{model_id}_",
+            "test_run":True
+            }
+        response = requests.post('https://causemos.uncharted.software/api/model-run', 
+                                headers={'Content-Type': 'application/json'}, 
+                                json=payload, 
+                                auth=('worldmodelers', 'world!')) #TODO: this auth should not be hardcoded
+        print(f"Response from Uncharted: {response.text}")
+        return   
 
 
 ###########################

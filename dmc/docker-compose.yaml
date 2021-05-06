@@ -55,6 +55,7 @@
       DMC_LOCAL_DIR: "${PWD}"
       BUCKET: jataware-world-modelers
       BUCKET_DIR: dmc_results_dev
+      DMC_DEBUG: 'true'
       AIRFLOW_CONN_AWS_DEFAULT: aws://${AWS_ACCESS_KEY}:${AWS_SECRET_KEY}@
     volumes:
       - ./dags:/opt/airflow/dags
