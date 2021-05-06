@@ -45,8 +45,7 @@ dag = DAG(
 #########################
 
 def s3copy(**kwargs):
-    s3 = S3Hook(aws_conn_id="s3_connection")
-
+    s3 = S3Hook(aws_conn_id="aws_default")
     results_path = f"/results/{kwargs['dag_run'].conf.get('run_id')}"
     print(f'results_path:{results_path}')
 
@@ -58,13 +57,14 @@ def s3copy(**kwargs):
         # NOTE: objects stored to dmc_results are automatically made public
         # per the S3 bucket's policy
         # TODO: may need to address this with more fine grained controls in the future
-        key=f"dmc_results/{kwargs['dag_run'].conf.get('run_id')}/{fn}"
+        bucket_dir = os.getenv('BUCKET_DIR')
+        key=f"{bucket_dir}/{kwargs['dag_run'].conf.get('run_id')}/{fn}"
 
         s3.load_file(
             filename=fpath,
             key=key,
             replace=True,
-            bucket_name='jataware-world-modelers'
+            bucket_name=os.getenv('BUCKET')
         )
 
     return

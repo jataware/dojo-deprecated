@@ -52,6 +52,15 @@ _AIRFLOW_WWW_USER_PASSWORD: wileyhippo
 
 > Note: these should be changed for production; the above credentials are the default.
 
+You must also set environment variables for the AWS access and secret keys in order to be able to push results to S3:
+
+```
+export AWS_ACCESS_KEY=youraccesskey
+export AWS_SECRET_KEY=yoursecretkey
+```
+
+> **Note**: you must **URL encode** your access and secret keys before setting the environment variables
+
 This should run the Airflow UI at `http://localhost:8080/home`.
 
 ## Run Airflow DAG
