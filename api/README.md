@@ -8,6 +8,18 @@ This is a FastAPI webapp that provides an interface to the Domain Model Controll
 
 ## Run the webapp
 
+First you will need to determine your local machine IPv4
+
+For OSX
+```
+ipconfig getifaddr en0
+```
+For Linux
+```
+hostname -i
+```
+
+Put this into `config.ini` for the `DMC URL` and within the `DOJO URL` (keep the `http://` and `:8000`, just swap the IP).
 
 To run this API, along with Elasticsearch and Kibana, run:
 

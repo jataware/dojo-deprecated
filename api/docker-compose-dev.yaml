@@ -8,6 +8,8 @@ services:
     command: ["uvicorn", "server:api", "--host", "0.0.0.0", "--port", "80", "--reload", "--reload-dir", "src", "--log-level", "debug"]
     ports: 
       - 8000:80
+    expose: 
+      - "8000"
     networks:
       - dojo
 
