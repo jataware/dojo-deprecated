@@ -64,13 +64,13 @@ def s3copy():
         )
     return
 
-result_node = PythonOperator(task_id='python_task', 
+result_node = PythonOperator(task_id='python_task',
                              python_callable=s3copy,
                              dag=dag)
 
 fsc_node = DockerOperator(
     image="jataware/fsc_model:0.1",
-    volumes=["//var/run/docker.sock://var/run/docker.sock", "/home/ubuntu/dojo/dmc/outputs:/outputs"],
+    volumes=["/home/ubuntu/dojo/dmc/outputs:/outputs"],
     docker_url="unix:///var/run/docker.sock",
     network_mode="bridge",
     # cmds=["python", "-c"],
