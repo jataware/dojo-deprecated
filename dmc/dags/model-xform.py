@@ -95,6 +95,20 @@ def RunExit(**kwargs):
     run['attributes']['executed_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     response = requests.put(f"{dojo_url}/runs", json=run)
     print(response.text)
+
+    # Notify Uncharted
+    payload = {
+        "model_id":model_id,
+        "cube_id":f"{model_id}_{run_id}", #TODO: this should be set to an actual cube ID
+        "job_id":run_id,
+        "run_name_prefix":f"dojo_run_{model_id}_",
+        "test_run":true
+        }
+    response = requests.post('https://causemos.uncharted.software/api/model-run', 
+                            headers={'Content-Type': 'application/json'}, 
+                            json=payload, 
+                            auth=('worldmodelers', 'world!')) #TODO: this auth should not be hardcoded
+    print(f"Response from Uncharted: {response.text}")
     return   
 
 ###########################
