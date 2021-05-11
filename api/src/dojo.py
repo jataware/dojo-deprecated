@@ -22,13 +22,14 @@ es = Elasticsearch(
 
 def search_by_model(model_id):
     q = {
-    "query": {
-        "match": {
-        "model_id": {
-            "query": model_id
+        "query": {
+            "term": {
+            "model_id.keyword": {
+                "value": model_id,
+                "boost": 1.0
+            }
+            }
         }
-        }
-    }
     }
     return q    
 
