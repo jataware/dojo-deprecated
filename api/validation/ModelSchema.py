@@ -56,7 +56,7 @@ class Geography(BaseModel):
         example=["Aminyaa","Coole","Qarsaa"]
     )
     class Config:
-        extra = "allow"    
+        extra = "allow"
 
 class Concept(BaseModel):
     """ A concept provided by the UAZ Concept Aligner Service """
@@ -82,7 +82,7 @@ class Resolution(BaseModel):
         description="Temporal resolution of the output",
         enum=["annual","monthly","dekad","weekly","daily","other"],
         example="monthly"
-    )        
+    )
     spatial_resolution: Tuple[float,float] = Field(
         title="Spatial Resolution",
         description="Spatial resolution of the output",
@@ -136,7 +136,7 @@ class ModelParameter(BaseModel):
     display_name: str = Field(
         title="Parameter Display Name",
         description="The display name of the model parameter",
-    )    
+    )
     description: Optional[str] = Field(
         title="Parameter description",
         description="The description of the model parameter",
@@ -168,7 +168,7 @@ class ModelParameter(BaseModel):
     default: Any = Field(
         title="Default Value",
         description="The default value of the parameter",
-    )    
+    )
     tags: Optional[List[str]] = Field(
         title="Parameter Tags",
         description="Tags associated with the parameter",
@@ -188,7 +188,7 @@ class ModelParameter(BaseModel):
     boundary: Optional[List[List[float]]] = Field(
         title="Parameter Boundary",
         description="The boundary for the parameter",
-    )    
+    )
 
     class Config:
         extra = "allow"
@@ -220,7 +220,7 @@ class ModelOutput(BaseModel):
     display_name: str = Field(
         title="Model Output Display Name",
         description="The display name of the model output",
-    )    
+    )
     description: Optional[str] = Field(
         title="Model Output Description",
         description="A description of the model output",
@@ -238,7 +238,7 @@ class ModelOutput(BaseModel):
         description="Description of the units for the model output",
     )
     concepts: Optional[List[Concept]]
-    additional_options: Optional[dict]    
+    additional_options: Optional[dict]
     tags: Optional[List[str]] = Field(
         title="Model Output Tags",
         description="Tags associated with a model output",
@@ -323,7 +323,7 @@ class ModelMetadata(BaseModel):
         title="Cube Count",
         description="How many data cubes each job of the model produces",
         default=1
-    )    
+    )
     parameters: List[ModelParameter] = Field(
         title="Model Parameters",
         description="Parameters assocaited with the model",
@@ -336,7 +336,7 @@ class ModelMetadata(BaseModel):
         title="Model Output Tags",
         description="Tags associated with a model output",
         example=["agriculture", "teff"],
-    )    
+    )
     geography: Optional[Geography]
 
     class Config:
