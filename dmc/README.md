@@ -36,7 +36,7 @@ docker-compose up -d
 You'll need to make the following permissions change:
 
 ```
-sudo chmod -R +777 logs mappers results
+sudo chmod -R +777 logs mappers results model_configs
 ```
 
 to enable Airflow to control Docker containers.
