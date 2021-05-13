@@ -171,6 +171,11 @@ class IndicatorMetadata(BaseModel):
         description="A description of the indicator",
         example="Population below minimum level of dietary energy consumption (also referred to as prevalence of undernourishment) shows the percentage of the population whose food intake is insufficient to meet dietary energy requirements continuously. Data showing as 5 may signify a prevalence of undernourishment below 5%.",
     )
+    data_paths: List[str] = Field(
+        title="Data URL Paths",
+        description="URL paths to causemos compliant indicators",
+        example=["indicators/<indicator-id>/<url-1>","indicators/<indicator-id>/<url-2>"]
+    )    
     created: Optional[str] = Field(
         title="Indicator Registration Time",
         description="when the indicator was registered",
