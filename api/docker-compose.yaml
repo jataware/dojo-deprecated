@@ -5,6 +5,8 @@ services:
     container_name: dojo-api
     ports: 
       - 8000:80
+    expose: 
+      - "8000"      
     networks:
       - dojo
 

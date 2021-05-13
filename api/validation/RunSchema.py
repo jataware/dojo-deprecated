@@ -51,7 +51,7 @@ class RunMetadata(BaseModel):
         description="URL paths to pre-generated output",
         example=["runs/<run-id>/<cube-id-1>/pre-gen"]
     )
-    default_run: bool = Field(
+    is_default_run: bool = Field(
         title="Default Run?",
         description="Is this the default run of the model",
         default=False

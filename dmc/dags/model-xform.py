@@ -1,6 +1,7 @@
 from datetime import timedelta, datetime
 import requests
 import json
+import os
 from airflow import DAG
 from airflow.providers.docker.operators.docker import DockerOperator
 from operators.dojo_operators import DojoDockerOperator
@@ -44,8 +45,7 @@ dag = DAG(
 #########################
 
 def s3copy(**kwargs):
-    s3 = S3Hook(aws_conn_id="s3_connection")
-
+    s3 = S3Hook(aws_conn_id="aws_default")
     results_path = f"/results/{kwargs['dag_run'].conf.get('run_id')}"
     print(f'results_path:{results_path}')
 
@@ -57,15 +57,16 @@ def s3copy(**kwargs):
         # NOTE: objects stored to dmc_results are automatically made public
         # per the S3 bucket's policy
         # TODO: may need to address this with more fine grained controls in the future
-        key=f"dmc_results/{kwargs['dag_run'].conf.get('run_id')}/{fn}"
-        
+        bucket_dir = os.getenv('BUCKET_DIR')
+        key=f"{bucket_dir}/{kwargs['dag_run'].conf.get('run_id')}/{fn}"
+
         s3.load_file(
             filename=fpath,
             key=key,
             replace=True,
-            bucket_name='jataware-world-modelers'
+            bucket_name=os.getenv('BUCKET')
         )
-    
+
     return
 
 def getMapper(**kwargs):
@@ -88,40 +89,62 @@ def RunExit(**kwargs):
     # TODO: this should be conditional; if the other tasks fail
     # this should reflect the failure; job should always finish
     run['attributes']['status'] = 'success'
-   
+
     # TODO: handle additional output files
     pth = f"https://jataware-world-modelers.s3.amazonaws.com/dmc_results/{run_id}/{run_id}_{model_id}.parquet.gzip"
     run['data_paths'] = [pth]
     run['attributes']['executed_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     response = requests.put(f"{dojo_url}/runs", json=run)
     print(response.text)
-    return   
+
+    # Notify Uncharted
+    if os.getenv('DMC_DEBUG') == 'true':
+        print("Debug mode: no need to notify Uncharted")
+        return
+    else:
+        print('Notifying Uncharted...')
+        payload = {
+            "model_id":model_id,
+            "cube_id":f"{model_id}_{run_id}", #TODO: this should be set to an actual cube ID
+            "job_id":run_id,
+            "run_name_prefix":f"dojo_run_{model_id}_"
+            }
+        response = requests.post('https://causemos.uncharted.software/api/model-run', 
+                                headers={'Content-Type': 'application/json'}, 
+                                json=payload, 
+                                auth=('worldmodelers', 'world!')) #TODO: this auth should not be hardcoded
+        print(f"Response from Uncharted: {response.text}")
+        return   
+
 
 ###########################
 ###### Create Tasks #######
 ###########################
 
-s3_node = PythonOperator(task_id='s3push-task', 
+dmc_local_dir = os.environ.get("DMC_LOCAL_DIR")
+
+
+s3_node = PythonOperator(task_id='s3push-task',
                              python_callable=s3copy,
                              provide_context=True,
                              dag=dag)
 
-mapper_node = PythonOperator(task_id='mapper-task', 
+mapper_node = PythonOperator(task_id='mapper-task',
                              python_callable=getMapper,
                              provide_context=True,
-                             dag=dag)               
+                             dag=dag)
 
-exit_node = PythonOperator(task_id='exit-task', 
+exit_node = PythonOperator(task_id='exit-task',
                              python_callable=RunExit,
                              provide_context=True,
-                             dag=dag)                                   
+                             dag=dag)
 
 model_node = DojoDockerOperator(
-    task_id='model-task',    
+    task_id='model-task',
     image="{{ dag_run.conf['model_image'] }}",
     container_name="run_{{ dag_run.conf['run_id'] }}",
-    volumes=["//var/run/docker.sock://var/run/docker.sock", "/home/ubuntu/dojo/dmc/results/{{ dag_run.conf['run_id'] }}:{{ dag_run.conf['model_output_directory'] }}"],
-    docker_url="unix:///var/run/docker.sock",
+    volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:{{ dag_run.conf['model_output_directory'] }}"],
+    docker_url=os.environ.get("DOCKER_URL", "unix:///var/run/docker.sock"),
     network_mode="bridge",
     command="{{ dag_run.conf['model_command'] }}",
     auto_remove=True,
@@ -129,13 +152,12 @@ model_node = DojoDockerOperator(
 )
 
 transform_node = DojoDockerOperator(
-    task_id='mixmasta-task',    
+    task_id='mixmasta-task',
     image="jataware/mixmasta:latest",
     container_name="run_{{ dag_run.conf['run_id'] }}",
-    volumes=["//var/run/docker.sock://var/run/docker.sock", 
-             "/home/ubuntu/dojo/dmc/results/{{ dag_run.conf['run_id'] }}:/tmp",
-             "/home/ubuntu/dojo/dmc/mappers:/mappers"],
-    docker_url="unix:///var/run/docker.sock",
+    volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:/tmp",
+             dmc_local_dir + "/mappers:/mappers"],
+    docker_url=os.environ.get("DOCKER_URL", "unix:///var/run/docker.sock"),
     network_mode="bridge",
     command="{{ dag_run.conf['mixmasta_cmd'] }}",
     auto_remove=True,
