@@ -51,6 +51,7 @@ def update_indicator(payload: IndicatorSchema.IndicatorMetadata):
 def search_indicators(query: str = Query(None)) -> List[IndicatorSchema.IndicatorMetadata]:
     if query:
         q = {
+            "size": 100,
             "query": {
                 "query_string": {
                     "query": query,
@@ -58,7 +59,7 @@ def search_indicators(query: str = Query(None)) -> List[IndicatorSchema.Indicato
             }
         }
     else:
-        q = {"query": {"match_all": {}}}
+        q = {"size": 10000, "query": {"match_all": {}}}
     results = es.search(index="indicators", body=q)
     return [i["_source"] for i in results["hits"]["hits"]]
 
