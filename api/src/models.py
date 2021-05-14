@@ -29,9 +29,8 @@ def create_model(payload: ModelSchema.ModelMetadata):
         content=f"Created model with id = {model_id}",
     )
 
-@router.put("/models")
-def update_model(payload: ModelSchema.ModelMetadata):
-    model_id = payload.id
+@router.put("/models/{model_id}")
+def update_model(model_id: str, payload: ModelSchema.ModelMetadata):
     payload.created = datetime.now()
     body = payload.json()
     es.index(index="models", body=body, id=model_id)
