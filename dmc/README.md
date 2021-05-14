@@ -6,6 +6,27 @@ Please see `Known Issues` before running.
 
 ## Setup
 
+First you will need to determine your local machine IPv4
+
+For OSX
+```
+ipconfig getifaddr en0
+```
+For Linux
+```
+hostname -i
+```
+
+Either `export` this to your environment or update `docker-compose.yaml` and change `DOCKER_URL` to
+```
+      DOCKER_URL: http://<local ip>:8375
+```
+
+You can validate docker api is working after `docker-compose` has started with
+```
+curl localhost:8375/containers/json
+```
+
 The DMC can be run via `docker-compose` with:
 
 ```
@@ -15,30 +36,32 @@ docker-compose up -d
 You'll need to make the following permissions change:
 
 ```
-sudo chmod -R +777 logs mappers results
-```
-
-This enables Docker containers to write to these mounts.
-
-You'll also likely need to:
-
-```
-cd /var/run
-sudo chmod +777 docker.sock
+sudo chmod -R +777 logs mappers results model_configs
 ```
 
 to enable Airflow to control Docker containers.
 
-If using Docker Desktop (e.g. on Mac) you may need to open the `Preferences` and **disable** `Use gRPC FUSE for file sharing`. 
+If using Docker Desktop (e.g. on Mac) you may need to open the `Preferences` and **disable** `Use gRPC FUSE for file sharing`.
 
 To change the authentification username and password adjust the following in the `docker-compose.yaml`:
 
 ```
 _AIRFLOW_WWW_USER_USERNAME: jataware
 _AIRFLOW_WWW_USER_PASSWORD: wileyhippo
-```      
+```
 
 > Note: these should be changed for production; the above credentials are the default.
+
+You must also set environment variables for the AWS access and secret keys in order to be able to push results to S3:
+
+```
+export AWS_ACCESS_KEY=youraccesskey
+export AWS_SECRET_KEY=yoursecretkey
+```
+
+> **Note**: you must **URL encode** your access and secret keys before setting the environment variables
+
+Set the `DMC_DEBUG` environment variable in the `docker-compose.yaml` to `'false'` if you are running in production, otherwise leave it as `'true'`. If `'false'`, a notification is sent to Uncharted to let them know the model run as completed. We **don't** want to do this when developing the application.
 
 This should run the Airflow UI at `http://localhost:8080/home`.
 
@@ -57,7 +80,7 @@ This should run the Airflow UI at `http://localhost:8080/home`.
 
 ### Example Model-to-S3 DAG
 
-The config json below will trigger the `model_xform.py` DAG to: 
+The config json below will trigger the `model_xform.py` DAG to:
 
 1. Run the maxhop model
 
@@ -77,7 +100,7 @@ To trigger the DAG, add the following configuration json:
 }
 ```
 
-For the model run: the `model_output_directory` references the directory **within the Docker container**. 
+For the model run: the `model_output_directory` references the directory **within the Docker container**.
 For mixmasta: the DAG looks for the file to be transferred in the mounted `/tmp` folder and will write the transformed csv to the mounted `/tmp` folder.
 
 ### Multiple S3 File upload.
@@ -93,7 +116,7 @@ This is enabled on line 52 of `docker-compose.yaml`. The API reference can be fo
 ```
 curl 'localhost:8080/api/v1/dags' \
 -H 'Content-Type: application/json' \
---user "jataware:wileyhippo" 
+--user "jataware:wileyhippo"
 ```
 
 

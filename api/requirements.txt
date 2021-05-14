@@ -25,3 +25,5 @@ uvicorn==0.13.4
 elasticsearch==7.12.0
 Jinja2==2.11.3
 requests==2.25.1
+python-dotenv==0.17.1
+PyYAML==5.4.1

@@ -9,12 +9,11 @@ import time
 from threading import Thread, current_thread
 from typing import Any, Dict, Generator, List, Optional
 
-import configparser
 from elasticsearch import Elasticsearch
 from jinja2 import Template
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
-from fastapi.logger import logger
+
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from pydantic.json import pydantic_encoder
@@ -29,19 +28,19 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-config = configparser.ConfigParser()
-config.read("/api/config.ini")
-es = Elasticsearch(
-    [config["ELASTICSEARCH"]["URL"]], port=config["ELASTICSEARCH"]["PORT"]
-)
+from src.settings import settings
 
-dmc_url = config["DMC"]["URL"]
-dmc_port = config["DMC"]["PORT"]
-dmc_user = config["DMC"]["USER"]
-dmc_pass = config["DMC"]["PASSWORD"]
+router = APIRouter()
+
+es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
+
+dmc_url = settings.DMC_URL
+dmc_port = settings.DMC_PORT
+dmc_user = settings.DMC_USER
+dmc_pass = settings.DMC_PASSWORD
 dmc_base_url = f"http://{dmc_url}:{dmc_port}/api/v1"
 
-dojo_url = config["DOJO"]["URL"]
+dojo_url = settings.DOJO_URL
 
 headers = {'Content-Type': 'application/json'}
 

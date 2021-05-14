@@ -9,4 +9,4 @@ WORKDIR /api
 RUN pip install -r requirements.txt
 
 EXPOSE 80
-CMD ["uvicorn", "server:src", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "server:api", "--host", "0.0.0.0", "--port", "80", "--log-config", "logging.yaml"]

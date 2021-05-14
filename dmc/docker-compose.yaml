@@ -51,11 +51,16 @@
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       #AIRFLOW__API__ENABLE_EXPERIMENTAL_API: 'true'
       AIRFLOW__API__AUTH_BACKEND: 'airflow.api.auth.backend.basic_auth'
+      DOCKER_URL: http://${IP_ADDRESS}:8375
+      DMC_LOCAL_DIR: "${PWD}"
+      BUCKET: jataware-world-modelers
+      BUCKET_DIR: dmc_results_dev
+      DMC_DEBUG: 'true'
+      AIRFLOW_CONN_AWS_DEFAULT: aws://${AWS_ACCESS_KEY}:${AWS_SECRET_KEY}@
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
-      - //var/run/docker.sock://var/run/docker.sock
       - ./docker.py:/home/airflow/.local/lib/python3.6/site-packages/airflow/providers/docker/operators/docker.py
       - ./results:/results
       - ./mappers:/mappers
@@ -65,8 +70,16 @@
         condition: service_healthy
       postgres:
         condition: service_healthy
-  
+
   services:
+    socat:
+      image: alpine/socat
+      ports:
+        - 8375:8375
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+      command: tcp-listen:8375,fork,reuseaddr unix-connect:/var/run/docker.sock
+
     postgres:
       image: postgres:13
       environment:
@@ -80,7 +93,7 @@
         interval: 5s
         retries: 5
       restart: always
-  
+
     redis:
       image: redis:latest
       ports:
@@ -91,29 +104,31 @@
         timeout: 30s
         retries: 50
       restart: always
-  
+
     airflow-webserver:
       <<: *airflow-common
       command: webserver
       ports:
         - 8080:8080
+      expose: 
+        - "8080"        
       healthcheck:
         test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
         interval: 10s
         timeout: 10s
         retries: 5
       restart: always
-  
+
     airflow-scheduler:
       <<: *airflow-common
       command: scheduler
       restart: always
-  
+
     airflow-worker:
       <<: *airflow-common
       command: celery worker
       restart: always
-  
+
     airflow-init:
       <<: *airflow-common
       command: version
@@ -123,7 +138,7 @@
         _AIRFLOW_WWW_USER_CREATE: 'true'
         _AIRFLOW_WWW_USER_USERNAME: jataware
         _AIRFLOW_WWW_USER_PASSWORD: wileyhippo
-  
+
     flower:
       <<: *airflow-common
       command: celery flower
@@ -135,6 +150,6 @@
         timeout: 10s
         retries: 5
       restart: always
-  
+
   volumes:
     postgres-db-volume:
