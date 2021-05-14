@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import configparser
 import time
 from datetime import datetime
 from typing import Any, Dict, Generator, List, Optional
@@ -11,14 +10,11 @@ from pydantic import BaseModel, Field
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.logger import logger
 from validation import DojoSchema
+from src.settings import settings
 
 router = APIRouter()
 
-config = configparser.ConfigParser()
-config.read("/api/config.ini")
-es = Elasticsearch(
-    [config["ELASTICSEARCH"]["URL"]], port=config["ELASTICSEARCH"]["PORT"]
-)
+es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
 
 def search_by_model(model_id):
     q = {
