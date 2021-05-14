@@ -19,10 +19,11 @@ For Linux
 hostname -i
 ```
 
-Put this into `config.ini` for the `DMC URL` and within the `DOJO URL` (keep the `http://` and `:8000`, just swap the IP).
+Put this into `.env` for the `DMC URL` and within the `DOJO URL` (keep the `http://` and `:8000`, just swap the IP).
+
+> Note: you can override values in the `.env` file by setting them in your environment directly. For example `export ELASTICSEARCH_PORT=9200` will take precedence over what is specified in the `.env` file.
 
 To run this API, along with Elasticsearch and Kibana, run:
-
 
 ```
 docker-compose up --build -d
@@ -56,3 +57,7 @@ Then you should create the `runs` index mapping for Elasticsearch with:
 cd es-mappings
 python3 CreateMappings.py
 ```
+
+## Logging
+
+To set the log level, change the level for FastAPI in `logging.yaml`. 
