@@ -47,7 +47,7 @@ def create_directive(payload: DojoSchema.ModelDirective):
 def get_directive(model_id: str) -> DojoSchema.ModelDirective:
     results = es.search(index="directives", body=search_by_model(model_id))
     try:
-        directive = results["hits"]["hits"][0]["_source"]
+        directive = results["hits"]["hits"][-1]["_source"]
         return directive
     except:
         return Response(
