@@ -252,7 +252,9 @@ class ModelOutput(BaseModel):
         extra = "allow"
         schema_extra = {
             "example": {
+                "id": "some-output-id",
                 "name": "HWAH",
+                "display_name": "Harvested weight at harvest",
                 "description": "Harvested weight at harvest (kg/ha).",
                 "type": "float",
                 "tags": ["agriculture"],
