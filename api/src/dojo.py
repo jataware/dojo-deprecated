@@ -71,7 +71,7 @@ def create_configs(payload: List[DojoSchema.ModelConfig]):
     )
 
 @router.get("/dojo/config/{model_id}")
-def get_outputfiles(model_id: str) -> List[DojoSchema.ModelConfig]:
+def get_configs(model_id: str) -> List[DojoSchema.ModelConfig]:
     results = es.search(index="configs", body=search_by_model(model_id))
     try:
         return [i["_source"] for i in results["hits"]["hits"]]
@@ -98,8 +98,10 @@ def create_outputfiles(payload: List[DojoSchema.ModelOutputFile]):
 
 @router.get("/dojo/outputfile/{model_id}")
 def get_outputfiles(model_id: str) -> List[DojoSchema.ModelOutputFile]:
+    print('sssssssssssssssssssssssssssssssssssssssssssssssss')
     results = es.search(index="outputfiles", body=search_by_model(model_id))
     try:
+        print('correct', [i["_source"] for i in results["hits"]["hits"]])
         return [i["_source"] for i in results["hits"]["hits"]]
     except:
         return Response(

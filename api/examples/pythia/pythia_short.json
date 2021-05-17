@@ -1,0 +1,121 @@
+{
+   "id":"dssat_pythia-v0.1_short",
+   "name":"DSSAT-PYTHIA",
+   "version":"0.1",
+   "description":"Pythia is a simple framework to assist users in running DSSAT over a spatial area based on grid points. Pythia can use any DSSAT v4.7 build. The inputs to the framework are: A JSON configuration file, Shape files, Raster files, and DSSAT template files (XFiles).",
+   "image":"jataware/pythia:0.1",
+   "type":"model",
+   "status":"current",
+   "category":["Agricultural","Crops", "Climate"],
+   "maintainer":{
+      "name":"Cheryl Porter",
+      "email":"cporter@ufl.edu",
+      "organization":"University of Florida",
+      "website":"https://dssat.net/"
+   },
+   "parameters":[
+      {
+         "id":"pythia-param-1",
+         "name":"management_practice",
+         "display_name": "Management Practice",
+         "description":"The management practice to model. rf_highN corresponds to a high nitrogen management practice. irrig corresponds to a high nitrogen, irrigated management practice. rf_0N  corresponds to a subsistence management practice. rf_lowN corresponds to a low nitrogen  managemet practice.",
+         "type":"str",
+         "data_type":"nominal",
+         "is_drilldown":true,
+         "choices":[
+            "irrig",
+            "rf_highN",
+            "rf_lowN",
+            "rf_0N"
+         ],
+         "default":"irrig",
+         "tags":[]
+      },
+      {
+         "id":"pythia-param-2",
+         "name":"fertilizer",
+         "display_name": "Fertilizer",
+         "description":"Nitrogen, total amount over season kg[N]/ha",
+         "type":"float",
+         "data_type":"numerical",
+         "is_drilldown":false,
+         "min":0,
+         "max":1000.0,
+         "default":100.0,
+         "tags":[]
+      },
+      {
+         "id":"pythia-param-3",
+         "name":"start_year",
+         "display_name": "Start Year",
+         "description":"Four digit Year to start simulation",
+         "type":"int",
+         "data_type":"datetime",
+         "is_drilldown":true,
+         "min":1984,
+         "max":2018,
+         "default":2008,
+         "tags":[]
+      }, 
+      {
+         "id":"pythia-param-4",
+         "name":"number_years",
+         "display_name": "Number of Years",
+         "description":"Number of years to run simulation",
+         "type":"int",
+         "data_type":"datetime",
+         "is_drilldown":false,
+         "min":1,
+         "max":33,
+         "default":10,
+         "tags":[]
+      }                           
+   ],
+   "outputs":[
+      {
+         "id":"pythia-output-1",
+         "name":"LATITUDE",
+         "display_name":"Latitude",
+         "description": "The latitude of the given point.",
+         "type":"float",
+         "units":"degrees",
+         "units_description":"plane angle",
+         "tags":[]
+      },
+      {
+         "id":"pythia-output-2",
+         "name":"LONGITUDE",
+         "display_name":"Longitude",
+         "description": "The longitude of the given point.",
+         "type":"float",
+         "units":"degrees",
+         "units_description":"plane angle",
+         "tags":[]
+      },
+ 
+     {
+         "id":"pythia-output-3",
+         "name":"PDAT",
+         "display_name":"Planting Date",
+         "description": "Planting date (YrDoy)",
+         "type":"datetime",
+         "units":"days",
+         "units_description":"Year and Julian Date",
+         "tags":[]
+      },
+ 
+      {
+         "id":"pythia-output-4",
+         "name":"HWAH",
+         "display_name":"Harvested Weight at Harvest",
+         "description": "Harvested yield (kg [dm]/ha)",
+         "type":"float",
+         "units":"kg [dm]/ha",
+         "units_description":"kilogram * decimeter per hectare",
+         "tags":[]
+      }
+   ],
+   "tags":[
+      "agricultural","crops", "climate"
+   ]
+}

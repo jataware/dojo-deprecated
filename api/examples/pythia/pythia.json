@@ -1,0 +1,317 @@
+{
+   "id":"dssat_pythia-v0.1",
+   "name":"DSSAT-PYTHIA",
+   "version":"0.1",
+   "description":"Pythia is a simple framework to assist users in running DSSAT over a spatial area based on grid points. Pythia can use any DSSAT v4.7 build. The inputs to the framework are: A JSON configuration file, Shape files, Raster files, and DSSAT template files (XFiles).",
+   "image":"jataware/pythia:0.1",
+   "type":"model",
+   "status":"current",
+   "category":["Agricultural","Crops", "Climate"],
+   "maintainer":{
+      "name":"Cheryl Porter",
+      "email":"cporter@ufl.edu",
+      "organization":"University of Florida",
+      "website":"https://dssat.net/"
+   },
+   "parameters":[
+      {
+         "id":"pythia-param-1",
+         "name":"management_practice",
+         "display_name": "Management Practice",
+         "description":"The management practice to model. rf_highN corresponds to a high nitrogen management practice. irrig corresponds to a high nitrogen, irrigated management practice. rf_0N  corresponds to a subsistence management practice. rf_lowN corresponds to a low nitrogen  managemet practice.",
+         "type":"str",
+         "data_type":"nominal",
+         "is_drilldown":true,
+         "choices":[
+            "irrig",
+            "rf_highN",
+            "rf_lowN",
+            "rf_0N"
+         ],
+         "default":"irrig",
+         "tags":[]
+      },
+      {
+         "id":"pythia-param-2",
+         "name":"fertilizer",
+         "display_name": "Fertilizer",
+         "description":"Nitrogen, total amount over season kg[N]/ha",
+         "type":"float",
+         "data_type":"numerical",
+         "is_drilldown":false,
+         "min":0,
+         "max":1000.0,
+         "default":100.0,
+         "tags":[]
+      },
+      {
+         "id":"pythia-param-3",
+         "name":"crop",
+         "display_name": "Crop",
+         "description":"Crop to run simulation",
+         "type":"str",
+         "data_type":"nominal",
+         "is_drilldown":true,
+         "choices":[
+            "maize",
+            "teff",
+            "wheat"
+         ],
+         "default":"maize",
+         "tags":[]
+      },
+      {
+         "id":"pythia-param-4",
+         "name":"sample",
+         "display_name": "Sample",
+         "description":"Used to subset the data. Applies the configuration the first x number of valid simulations. This may be different between runs.",
+         "type":"int",
+         "data_type":"numerical",
+         "is_drilldown":false,
+         "min":0,
+         "max":50,
+         "default":25,
+         "tags":[]
+      }, 
+      {
+         "id":"pythia-param-5",
+         "name":"rain",
+         "display_name": "Rain",
+         "description":"Rainfall, including moisture in snow, in one day mm",
+         "type":"float",
+         "data_type":"numerical",
+         "is_drilldown":true,
+         "min":0,
+         "max":200,
+         "default":10,
+         "tags":[]
+      }, 
+      {
+         "id":"pythia-param-6",
+         "name":"start_year",
+         "display_name": "Start Year",
+         "description":"Four digit Year to start simulation",
+         "type":"int",
+         "data_type":"datetime",
+         "is_drilldown":true,
+         "min":1984,
+         "max":2018,
+         "default":2008,
+         "tags":[]
+      }, 
+      {
+         "id":"pythia-param-7",
+         "name":"number_years",
+         "display_name": "Number of Years",
+         "description":"Number of years to run simulation",
+         "type":"int",
+         "data_type":"datetime",
+         "is_drilldown":false,
+         "min":1,
+         "max":33,
+         "default":10,
+         "tags":[]
+      },                             
+   ],
+   "outputs":[
+      {
+         "id":"pythia-output-1",
+         "name":"LATITUDE",
+         "display_name":"Latitude",
+         "description": "The latitude of the given point.",
+         "type":"float",
+         "units":"degrees",
+         "units_description":"plane angle",
+         "data_resolution": {
+            "temporal_resolution": "",
+            "spatial_resolution": []
+         },
+         "tags":[]
+      },
+      {
+         "id":"pythia-output-2",
+         "name":"LONGITUDE",
+         "display_name":"Longitude",
+         "description": "The longitude of the given point.",
+         "type":"float",
+         "units":"degrees",
+         "units_description":"plane angle",
+         "data_resolution": {
+            "temporal_resolution": "",
+            "spatial_resolution": []
+         },
+         "tags":[]
+      },
+      {
+         "id":"pythia-output-3",
+         "name":"HARVEST_AREA",
+         "display_name":"Harvest Area",
+         "description": "Amount of area harvested under all management practices for this point (ha)",
+         "type":"float",
+         "units":"ha",
+         "units_description":"unit of land area",
+         "data_resolution": {
+            "temporal_resolution": "",
+            "spatial_resolution": []
+         },
+         "tags":[]
+      },   
+      {
+         "id":"pythia-output-4",
+         "name":"RUN_NAME",
+         "display_name":"Run Name",
+         "description": "Name of the model run",
+         "type":"str",
+         "units":"",
+         "units_description":"unitless",
+         "data_resolution": {
+            "temporal_resolution": "",
+            "spatial_resolution": []
+         },
+         "tags":[]
+      },         
+      {
+         "id":"pythia-output-5",
+         "name":"CR",
+         "display_name":"Crop ID",
+         "description": "Crop ID",
+         "type":"str",
+         "units":"",
+         "units_description":"unitless",
+         "data_resolution": {
+            "temporal_resolution": "",
+            "spatial_resolution": []
+         },
+         "tags":[]
+      },
+     {
+         "id":"pythia-output-6",
+         "name":"PDAT",
+         "display_name":"Planting Date",
+         "description": "Planting date (YrDoy)",
+         "type":"datetime",
+         "units":"days",
+         "units_description":"Year and Julian Date",
+         "data_resolution": {
+            "temporal_resolution": "day",
+            "spatial_resolution": []
+         },
+         "tags":[]
+      },
+      {
+         "id":"pythia-output-7",
+         "name":"MDAT",
+         "display_name":"Mature Date",
+         "description": "Physiological maturity date (YrDoy)",
+         "type":"datetime",
+         "units":"days",
+         "units_description":"Year and Julian Date",
+         "data_resolution": {
+            "temporal_resolution": "day",
+            "spatial_resolution": []
+         },
+         "tags":[]
+      },
+      {
+         "id":"pythia-output-8",
+         "name":"HDAT",
+         "display_name":"Harvest Date",
+         "description": "Harvest date (YRDOY)",
+         "type":"datetime",
+         "units":"days",
+         "units_description":"Year and Julian Date",
+         "data_resolution": {
+            "temporal_resolution": "day",
+            "spatial_resolution": []
+         },
+         "tags":[]
+      },
+     {
+         "id":"pythia-output-9",
+         "name":"CWAM",
+         "display_name":"Crop Weight at Maturity",
+         "description": "Tops weight at maturity (kg [dm]/ha)",
+         "type":"float",
+         "units":"kg [dm]/ha",
+         "units_description":"kilogram * decimeter per hectare",
+         "data_resolution": {
+            "temporal_resolution": "",
+            "spatial_resolution": []
+         },
+         "tags":[]
+      },
+      {
+         "id":"pythia-output-10",
+         "name":"HWAH",
+         "display_name":"Harvested Weight at Harvest",
+         "description": "Harvested yield (kg [dm]/ha)",
+         "type":"float",
+         "units":"kg [dm]/ha",
+         "units_description":"kilogram * decimeter per hectare",
+         "data_resolution": {
+            "temporal_resolution": "",
+            "spatial_resolution": []
+         },
+         "tags":[]
+      },             
+      {
+         "id":"pythia-output-11",
+         "name":"GNAM",
+         "display_name":"Grain N at maturity",
+         "description": "Grain N at maturity (kg/ha)",
+         "type":"float",
+         "units":"kg/ha",
+         "units_description":"kilograms per hectare",
+         "data_resolution": {
+            "temporal_resolution": "",
+            "spatial_resolution": []
+         },
+         "tags":[]
+      },
+     {
+         "id":"pythia-output-12",
+         "name":"PRCP",
+         "display_name":"Precipitation",
+         "description": "Total season precipitation (mm), planting to harvest",
+         "type":"float",
+         "units":"mm",
+         "units_description":"total millimeters of precipitation",
+         "data_resolution": {
+            "temporal_resolution": "",
+            "spatial_resolution": []
+         },
+         "tags":[]
+      },
+      {
+         "id":"pythia-output-13",
+         "name":"VNAM",
+         "display_name":"Vegitative N at maturity",
+         "description": "Vegitative N at maturity (kg/ha)",
+         "type":"float",
+         "units":"kg/ha",
+         "units_description":"kilograms per hectare",
+         "data_resolution": {
+            "temporal_resolution": "",
+            "spatial_resolution": []
+         },
+         "tags":[]
+      },             
+      {
+         "id":"pythia-output-14",
+         "name":"VWAM",
+         "display_name":"Vegitative biomass at maturity",
+         "description": "Vegitative biomass at maturity (kg/ha)",
+         "type":"float",
+         "units":"kg/ha",
+         "units_description":"kilograms per hectare",
+         "data_resolution": {
+            "temporal_resolution": "",
+            "spatial_resolution": []
+         },
+         "tags":[]
+      }
+   ],
+   "tags":[
+      "agricultural","crops", "climate"
+   ]
+}

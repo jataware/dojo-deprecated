@@ -3,7 +3,7 @@ import requests
 import json
 import os
 from airflow import DAG
-from airflow.providers.docker.operators.docker import DockerOperator
+# from airflow.providers.docker.operators.docker import DockerOperator
 from operators.dojo_operators import DojoDockerOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
@@ -12,6 +12,7 @@ from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.utils.dates import days_ago
 from airflow.configuration import conf
 from airflow.models import Variable
+from jinja2 import Template
 
 import glob
 
@@ -44,6 +45,90 @@ dag = DAG(
 ###### Functions ########
 #########################
 
+def rehydrate(ti, **kwargs):
+    # get default dict
+    defaultDict = {}
+    dojo_url = kwargs['dag_run'].conf.get('dojo_url')
+    model_id = kwargs['dag_run'].conf.get('model_id')
+    run_id = kwargs['dag_run'].conf.get('run_id')
+    saveFolder =  f"/model_configs/{run_id}/"
+    print('saveFolder', saveFolder)
+    output_dir =kwargs['dag_run'].conf.get('model_output_directory')
+
+    req = requests.get(f"{dojo_url}/models/{model_id}")
+    respData = json.loads(req.content)
+    params = respData["parameters"]
+    print('params', params)
+
+    try:
+
+        for configFile in kwargs['dag_run'].conf.get('s3_config_files'):
+
+            fileName = configFile.get('fileName')
+            model_config_s3 = configFile.get('s3_url')
+            mountPath = configFile.get('path')
+            print('dojo_url', dojo_url, 'model_id', model_id, 'runid', run_id, 'modelconf', model_config_s3)
+
+            respTemplate = requests.get(model_config_s3)
+            dehydrated_config = respTemplate.content.decode('utf-8')
+            print(f"dehydrated_config = {dehydrated_config}")
+            for p in params:
+                defaultDict[p['name']] = p['default']
+
+            print(f'defaultDict: {defaultDict}')
+
+            # parameters the user sent in
+            hydrateData = kwargs['dag_run'].conf.get('params')
+
+            print(f'hydrateData: {hydrateData}')
+
+             # hydratedDict = copy.deepcopy(defaultDict)
+
+            # need to loop over defaultDict and update with hydrateData values
+            for key in hydrateData:
+                if key in defaultDict.keys():
+                    defaultDict[key] = hydrateData[key]
+
+            print(f'hydratedDict: {hydrateData}')
+
+            finalDict = {}
+            # Format hydratedDIct with proper quotes
+            for key in defaultDict:
+                print(key)
+                if type(defaultDict[key]) == str:
+                    finalDict[key] = '"' + defaultDict[key] + '"'
+                else:
+                    finalDict[key] = str(defaultDict[key])
+
+            print(f'finalDict: {finalDict}')
+            # Hydrate the config
+            cwd = os.getcwd()
+            print(f'cwd: {cwd}')
+
+            if os.path.exists(saveFolder):
+                print('here')
+                pass
+
+            else:
+                print('not here')
+                os.mkdir(saveFolder, mode=0o777)
+
+            os.chmod(saveFolder, mode=0o777)
+
+            # Template(dehydrated_config).stream(finalDict).dump(savePath)
+            dataToSave = Template(dehydrated_config).render(finalDict)
+            # savePath needs to be hard coded for ubuntu path with run id and model name or something.
+            saveFileName=saveFolder+fileName
+            print(saveFileName, saveFileName)
+            with open(saveFileName, "w+") as fh:
+                fh.write(dataToSave)
+            os.chmod(saveFileName, mode=0o777)
+
+    except Exception as e:
+        print(e)
+    print('done')
+
+
 def s3copy(**kwargs):
     s3 = S3Hook(aws_conn_id="aws_default")
     results_path = f"/results/{kwargs['dag_run'].conf.get('run_id')}"
@@ -72,6 +157,7 @@ def s3copy(**kwargs):
 def getMapper(**kwargs):
     dojo_url = kwargs['dag_run'].conf.get('dojo_url')
     model_id = kwargs['dag_run'].conf.get('model_id')
+    print('model_id', model_id)
     of = requests.get(f"{dojo_url}/dojo/outputfile/{model_id}").json()
     mapper = of[0]['transform']
     print("Mapper obtained:")
@@ -114,36 +200,67 @@ def RunExit(**kwargs):
                                 json=payload, 
                                 auth=('worldmodelers', 'world!')) #TODO: this auth should not be hardcoded
         print(f"Response from Uncharted: {response.text}")
-        return   
+        return
 
 
+def post_failed_to_dojo(**kwargs):
+
+    dojo_url = kwargs['dag_run'].conf.get('dojo_url')
+    run_id = kwargs['dag_run'].conf.get('run_id')
+    model_id = kwargs['dag_run'].conf.get('model_id')
+    print('runid', run_id, 'dojourl', dojo_url)
+    run = requests.get(f"{dojo_url}/runs/{run_id}").json()
+    print('run', run)
+
+    # TODO: this should be conditional; if the other tasks fail
+    # this should reflect the failure; job should always finish
+    run['attributes']['status'] = 'failed'
+
+    # TODO: handle additional output files
+    pth = f"https://jataware-world-modelers.s3.amazonaws.com/dmc_results/{run_id}/{run_id}_{model_id}.parquet.gzip"
+    run['data_paths'] = [pth]
+    run['attributes']['executed_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    response = requests.put(f"{dojo_url}/runs", json=run)
+    print(response.text)
+    return
+    
 ###########################
 ###### Create Tasks #######
 ###########################
 
+
 dmc_local_dir = os.environ.get("DMC_LOCAL_DIR")
 
 
+rehydrate_node = PythonOperator(task_id='rehydrate-task',
+                             python_callable=rehydrate,
+                             provide_context=True,
+                             dag=dag)
+
 s3_node = PythonOperator(task_id='s3push-task',
+                             trigger_rule='all_success',
                              python_callable=s3copy,
                              provide_context=True,
                              dag=dag)
 
 mapper_node = PythonOperator(task_id='mapper-task',
+                             trigger_rule='all_success',
                              python_callable=getMapper,
                              provide_context=True,
                              dag=dag)
 
 exit_node = PythonOperator(task_id='exit-task',
+                             trigger_rule='all_success',
                              python_callable=RunExit,
                              provide_context=True,
                              dag=dag)
 
 model_node = DojoDockerOperator(
     task_id='model-task',
+    trigger_rule='all_success',
     image="{{ dag_run.conf['model_image'] }}",
     container_name="run_{{ dag_run.conf['run_id'] }}",
-    volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:{{ dag_run.conf['model_output_directory'] }}"],
+    volumes="{{ dag_run.conf['volumes'] }}",
     docker_url=os.environ.get("DOCKER_URL", "unix:///var/run/docker.sock"),
     network_mode="bridge",
     command="{{ dag_run.conf['model_command'] }}",
@@ -153,6 +270,7 @@ model_node = DojoDockerOperator(
 
 transform_node = DojoDockerOperator(
     task_id='mixmasta-task',
+    trigger_rule='all_success',
     image="jataware/mixmasta:latest",
     container_name="run_{{ dag_run.conf['run_id'] }}",
     volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:/tmp",
@@ -164,4 +282,12 @@ transform_node = DojoDockerOperator(
     dag=dag
 )
 
-model_node >> mapper_node >> transform_node >> s3_node >> exit_node
+notify_failed_node = PythonOperator(task_id='failed-task',
+                             python_callable=post_failed_to_dojo,
+                             trigger_rule='one_failed',
+                             provide_context=True,
+                             dag=dag)
+
+rehydrate_node >> model_node >>  mapper_node >> transform_node >> s3_node
+s3_node >> notify_failed_node
+s3_node >> exit_node

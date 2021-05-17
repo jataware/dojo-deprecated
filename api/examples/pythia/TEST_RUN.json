@@ -1,0 +1,29 @@
+{
+   "id":"pythia_my_test_run_",
+   "model_name":"DSSAT-PYTHIA",
+   "model_id":"dssat_pythia-v0.1",
+   "created_at":"",
+   "data_paths":[
+   ],
+   "pre_gen_output_paths":[
+   ],
+   "default_run":false,
+   "parameters":[
+      {
+         "name":"management_practice",
+         "value":"rf_highN"
+      },
+      {
+         "name":"start_year",
+         "value":2009
+      },
+      {
+         "name":"fertilizer",
+         "value":50
+      }
+   ],
+   "attributes":{
+   },
+   "tags":[
+   ]
+}
