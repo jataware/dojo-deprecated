@@ -7,7 +7,7 @@ from typing import Any, Dict, Generator, List, Optional
 from elasticsearch import Elasticsearch
 from pydantic import BaseModel, Field
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status, Body
 from fastapi.logger import logger
 from validation import ModelSchema
 
@@ -29,9 +29,8 @@ def create_model(payload: ModelSchema.ModelMetadata):
         content=f"Created model with id = {model_id}",
     )
 
-@router.put("/models")
-def update_model(payload: ModelSchema.ModelMetadata):
-    model_id = payload.id
+@router.put("/models/{model_id}")
+def update_model(model_id: str, payload: ModelSchema.ModelMetadata):
     payload.created = datetime.now()
     body = payload.json()
     es.index(index="models", body=body, id=model_id)
@@ -39,6 +38,15 @@ def update_model(payload: ModelSchema.ModelMetadata):
         status_code=status.HTTP_201_CREATED,
         headers={"location": f"/api/models/{model_id}"},
         content=f"Updated model with id = {model_id}",
+    )
+
+@router.patch("/models/{model_id}")
+def modify_model(model_id: str, payload: dict = Body(...)):
+    es.update(index="models", body={"doc": payload}, id=model_id)
+    return Response(
+        status_code=status.HTTP_200_OK,
+        headers={"location": f"/api/models/{model_id}"},
+        content=f"Modified model with id = {model_id}",
     )
 
 

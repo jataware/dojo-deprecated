@@ -27,7 +27,7 @@ def search_by_model(model_id):
             }
         }
     }
-    return q    
+    return q
 
 @router.post("/dojo/directive")
 def create_directive(payload: DojoSchema.ModelDirective):
@@ -47,7 +47,7 @@ def create_directive(payload: DojoSchema.ModelDirective):
 def get_directive(model_id: str) -> DojoSchema.ModelDirective:
     results = es.search(index="directives", body=search_by_model(model_id))
     try:
-        directive = results["hits"]["hits"][0]["_source"]
+        directive = results["hits"]["hits"][-1]["_source"]
         return directive
     except:
         return Response(
@@ -58,10 +58,10 @@ def get_directive(model_id: str) -> DojoSchema.ModelDirective:
 @router.post("/dojo/config")
 def create_configs(payload: List[DojoSchema.ModelConfig]):
     """
-    Create one or more model `configs`. A `config` is a settings file which is used by the model to 
+    Create one or more model `configs`. A `config` is a settings file which is used by the model to
     set a specific parameter level. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
     maps directly to the name of a specific `parameter.
-    """    
+    """
     for p in payload:
         es.index(index="configs", body=p.json(), id=p.id)
     return Response(
@@ -79,15 +79,15 @@ def get_outputfiles(model_id: str) -> List[DojoSchema.ModelConfig]:
         return Response(
             status_code=status.HTTP_404_NOT_FOUND,
             content=f"Config(s) for model {model_id} not found."
-        )    
+        )
 
 @router.post("/dojo/outputfile")
 def create_outputfiles(payload: List[DojoSchema.ModelOutputFile]):
     """
     Create an `outputfile` for a model. Each `outputfile` represents a single file that is created upon each model
-    execution. Here we store key metadata about the `outputfile` which enables us to find it within the container and 
+    execution. Here we store key metadata about the `outputfile` which enables us to find it within the container and
     normalize it into a CauseMos compliant format.
-    """    
+    """
     for p in payload:
         es.index(index="outputfiles", body=p.json(), id=p.id)
     return Response(
@@ -105,4 +105,4 @@ def get_outputfiles(model_id: str) -> List[DojoSchema.ModelOutputFile]:
         return Response(
             status_code=status.HTTP_404_NOT_FOUND,
             content=f"Outputfile(s) for model {model_id} not found."
-        )    
+        )
