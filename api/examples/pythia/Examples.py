@@ -11,9 +11,8 @@ headers = {'Content-Type': 'application/json'}
 payload = open('pythia_short.json').read()
 resp = requests.post(f"{url}/models", data=payload)
 print(resp.text)
-
-
-#### Add Directive
+#
+# #### Add Directive
 directive = {
     "id": "pythia-directive-1",
     "model_id": "dssat_pythia-v0.1_short",
@@ -22,9 +21,9 @@ directive = {
 }
 resp = requests.post(f"{url}/dojo/directive", json=directive)
 print(resp.text)
-
-
-#### Add OutputFile
+#
+#
+# #### Add OutputFile
 mapper = json.loads(open('mapper.json').read())
 outputfile = {
     "id": "pythia-outputfile-1",
@@ -36,9 +35,8 @@ outputfile = {
 }
 resp = requests.post(f"{url}/dojo/outputfile", json=[outputfile])
 print(resp.text)
+#
 
-
-## Add config
-configData = json.loads(open('config_pythia.json').read())
-resp = requests.post(f"{url}/dojo/configs", json=configData)
-print(resp.text)
+# ## Add config
+# copy data from config_pythia.json into the dojo api create config endpoint at
+# http://localhost:8000/#/Dojo/create_configs_dojo_config_post
