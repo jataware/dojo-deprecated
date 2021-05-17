@@ -1,0 +1,9 @@
+[
+  {
+		"id": "configPythia",
+		"model_id": "dssat_pythia-v0.1_short",
+		"s3_url": "https://jataware-world-modelers.s3.amazonaws.com/dojo/configs/et_docker.json",
+		"path": "/userdata",
+		"fileName": "et_docker.json"
+	}
+]

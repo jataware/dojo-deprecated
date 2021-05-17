@@ -36,3 +36,9 @@ outputfile = {
 }
 resp = requests.post(f"{url}/dojo/outputfile", json=[outputfile])
 print(resp.text)
+
+
+## Add config
+configData = json.loads(open('config_pythia.json').read())
+resp = requests.post(f"{url}/dojo/configs", json=configData)
+print(resp.text)
