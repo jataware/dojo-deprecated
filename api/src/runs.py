@@ -103,23 +103,30 @@ def create_run(run: RunSchema.RunMetadata):
     # TODO: enable handling multiple output files
     # CURRENT: only handles first output file
     outputfiles = get_outputfiles(run.model_id)
-    print('outputfiles----------------------')
+    print('-----------outputfiles----------------------')
     print(outputfiles)
     print( 'param_dict')
     print(param_dict)
-    input_file = Template(outputfiles[0]['path']).render(param_dict)
+    print('paths',outputfiles[0]['path'])
+    try:
+        input_file = Template(outputfiles[0]['path']).render(param_dict)
+    except Exception as e:
+        print(e)
     logging.info(f"Input File is: {input_file}")
     # get config in s3
-    configs = get_configs(run.model_id)
-    print('configs')
-    print(configs)
+    try:
+        configs = get_configs(run.model_id)
+        print('configs')
+        print(configs)
 
-    configsData = configs
-    print(configsData, 'configsData')
+        configsData = configs
+        print(configsData, 'configsData')
+    except Exception as e:
+        configsData = []
+        print(e)
+
     volumeArray = ["/var/run/docker.sock:/var/run/docker.sock", dmc_local_dir + f"/results/{run.id}:{output_dir}"]
-
     model_config_s3_path_objects = []
-    print('test')
 
     # get volumes
     for configFile in configsData:
@@ -165,6 +172,7 @@ def create_run(run: RunSchema.RunMetadata):
     logging.info(f"Response from DMC: {json.dumps(response.json(), indent=4)}")
     
     run.created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print('runs', run, 'runict', run.dict(), 'id', run.id)
     es.index(index="runs", body=run.dict(), id=run.id)
     return Response(
         status_code=status.HTTP_201_CREATED,
