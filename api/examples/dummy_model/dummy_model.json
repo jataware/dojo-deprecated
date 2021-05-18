@@ -1,0 +1,103 @@
+{
+   "id":"dummy-model-v0.1",
+   "name":"dummy-model",
+   "version":"0.1",
+   "description":"The Jataware dummy model for testing.",
+   "image":"jataware/dummy-model:noentry",
+   "type":"model",
+   "status":"current",
+   "category":["testing"],
+   "maintainer":{
+      "name":"Jataware",
+      "email":"kyle@jataware.com",
+      "organization":"Jataware",
+      "website":"https://jataware.com"
+   },
+   "parameters":[
+      {
+         "id":"dummy-param-1",
+         "name":"rainfall",
+         "display_name": "rainfall",
+         "description":"Amount of rainfall",
+         "type":"float",
+         "data_type":"numerical",
+         "is_drilldown":true,
+         "min":-1,
+         "max":1,
+         "default":0.7,
+         "tags":[
+         ]
+      },
+     {
+         "id":"dummy-param-2",
+         "name":"temp",
+         "display_name": "temp",
+         "description":"Temperature",
+         "type":"float",
+         "data_type":"numerical",
+         "is_drilldown":true,
+         "min":-1,
+         "max":1,
+         "default":0.0,
+         "tags":[
+         ]
+      }
+   ],
+   "outputs":[
+      {
+         "id":"dummy-output-1",
+         "name":"latitude",
+         "display_name":"Latitude",
+         "description":"Fake latitude data",
+         "type":"float",
+         "units":"degrees",
+         "units_description":"unknown",
+         "data_resolution": {
+            "temporal_resolution": "annual",
+            "spatial_resolution": [18000,18000]
+         },
+         "tags":[
+         ]
+      },
+      {
+         "id":"dummy-output-2",
+         "name":"longitude",
+         "display_name":"Longitude",
+         "description":"Fake longitude data",
+         "type":"float",
+         "units":"degrees",
+         "units_description":"unknown",
+         "data_resolution": {
+            "temporal_resolution": "annual",
+            "spatial_resolution": [18000,18000]
+         },
+         "tags":[
+         ]
+      },
+      {
+         "id":"dummy-output-3",
+         "name":"date",
+         "display_name":"date",
+         "description":"Fake date data",
+         "type":"datetime",
+         "units":"datetime",
+         "units_description":"unknown",
+         "tags":[
+         ]
+       },
+     {
+       "id": "dummy-output-4",
+       "name": "value",
+       "display_name": "Value",
+       "description": "Fake value data",
+       "type": "float",
+       "units": "percent",
+       "units_description": "unknown",
+       "tags": [
+       ]
+     }
+   ],
+   "tags":[
+      "Testing"
+   ]
+}
