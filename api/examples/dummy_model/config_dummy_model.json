@@ -1,0 +1,16 @@
+[
+	{
+		"id": "configDummy",
+		"model_id": "dummy-model-v0.1",
+		"s3_url": "https://jataware-world-modelers.s3.amazonaws.com/dojo/configs/dummy-model-v0.1/parameters.json",
+		"path": "/model/configFiles/",
+		"fileName": "parameters.json"
+	},
+		{
+		"id": "configDummy2",
+		"model_id": "dummy-model-v0.1",
+		"s3_url": "https://jataware-world-modelers.s3.amazonaws.com/dojo/configs/dummy-model-v0.1/fakeDataType.json",
+		"path": "/model/configFiles/",
+		"fileName": "fakeDataType.json"
+	}
+]

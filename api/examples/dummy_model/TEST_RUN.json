@@ -1,0 +1,29 @@
+{
+   "id":"my_dummy_test_1",
+   "model_name":"dummy-model",
+   "model_id":"dummy-model-v0.1",
+   "created_at":"",
+   "data_paths":[
+   ],
+   "pre_gen_output_paths":[
+   ],
+   "default_run":false,
+   "parameters":[
+      {
+         "name":"temp",
+         "value":0.9
+      },
+      {
+         "name":"rainfall",
+         "value":0.6
+      },
+      {
+         "name": "color_hue",
+         "value": "red"
+      }
+   ],
+   "attributes":{
+   },
+   "tags":[
+   ]
+}

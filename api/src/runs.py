@@ -22,7 +22,7 @@ from typing_extensions import final
 from validation import RunSchema
 
 from src.models import get_model
-from src.dojo import get_directive, get_outputfiles
+from src.dojo import get_directive, get_outputfiles, get_configs
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +38,7 @@ dmc_url = settings.DMC_URL
 dmc_port = settings.DMC_PORT
 dmc_user = settings.DMC_USER
 dmc_pass = settings.DMC_PASSWORD
+dmc_local_dir = settings.DMC_LOCAL_DIR 
 dmc_base_url = f"http://{dmc_url}:{dmc_port}/api/v1"
 
 dojo_url = settings.DOJO_URL
@@ -78,14 +79,13 @@ def dispatch_run(run):
 
 @router.post("/runs")
 def create_run(run: RunSchema.RunMetadata):
-    print(run)
-    model = get_model(run.model_id)    
+    model = get_model(run.model_id)
 
     # handle model run command
     directive = get_directive(run.model_id)
-    print(directive)
     model_command = Template(directive.get('command'))
-    
+    output_dir = directive.get('output_directory')
+
     # get parameters
     params = run.parameters
     param_dict = {}
@@ -96,12 +96,39 @@ def create_run(run: RunSchema.RunMetadata):
     model_command = model_command.render(param_dict)
     logging.info(f"Model Command is: {model_command}")
 
-    # find output file path
-    # TODO: enable handling multiple output files
-    # CURRENT: only handles first output file
     outputfiles = get_outputfiles(run.model_id)
-    input_file = Template(outputfiles[0]['path']).render(param_dict)
+
+    try:
+        input_file = Template(outputfiles[0]['path']).render(param_dict)
+    except Exception as e:
+        print(e)
     logging.info(f"Input File is: {input_file}")
+    # get config in s3
+    try:
+        configs = get_configs(run.model_id)
+        configsData = configs
+    except Exception as e:
+        configsData = []
+        print(e)
+
+    volumeArray = ["/var/run/docker.sock:/var/run/docker.sock", dmc_local_dir + f"/results/{run.id}:{output_dir}"]
+    model_config_s3_path_objects = []
+
+    # get volumes
+    for configFile in configsData:
+        mountPath = configFile["path"]
+
+        fileName = configFile['fileName']
+        savePath = dmc_local_dir + f"/model_configs/{run.id}/{fileName}"
+        model_config_s3_path_objects.append(
+            {"s3_url": configFile['s3_url'], "savePath": savePath, "path": mountPath, "fileName": fileName})
+        volumeArray.append(dmc_local_dir + f"/model_configs/{run.id}:{mountPath}")
+
+    # remove redundant volume mounts
+    volumeArray= list(set(volumeArray))
+    print('volumnArrray', volumeArray)
+
+    # get s3 and file name/ paths
 
     run_conf = {
         "run_id":run.id,
@@ -110,8 +137,13 @@ def create_run(run: RunSchema.RunMetadata):
         "model_command":model_command,
         "model_output_directory":directive.get('output_directory'),
         "dojo_url": dojo_url,
+        "params": param_dict,
+        "s3_config_files": model_config_s3_path_objects,
+        "volumes": json.dumps(volumeArray),
         "mixmasta_cmd":f"causemosify --input_file=/tmp/{input_file} --mapper=/mappers/mapper_{run.model_id}.json --geo admin3 --output_file=/tmp/{run.id}_{run.model_id}"
-    }    
+    }
+
+    print('run_conf', run_conf)
 
     payload = {
         "dag_run_id": run.id,
