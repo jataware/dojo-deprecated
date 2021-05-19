@@ -36,7 +36,7 @@ outputfile = {
 }
 resp = requests.post(f"{url}/dojo/outputfile", json=[outputfile])
 print(resp.text)
-#
+
 #### Add config
 config = json.loads(open('config_dummy_model.json').read())
 resp = requests.post(f"{url}/dojo/config", json=config)

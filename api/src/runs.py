@@ -38,7 +38,7 @@ dmc_url = settings.DMC_URL
 dmc_port = settings.DMC_PORT
 dmc_user = settings.DMC_USER
 dmc_pass = settings.DMC_PASSWORD
-dmc_local_dir = settings.dmc_local_dir 
+dmc_local_dir = settings.DMC_LOCAL_DIR 
 dmc_base_url = f"http://{dmc_url}:{dmc_port}/api/v1"
 
 dojo_url = settings.DOJO_URL

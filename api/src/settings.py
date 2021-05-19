@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     DMC_PORT: int = 8080
     DMC_USER: str
     DMC_PASSWORD: str
-    dmc_local_dir: str
+    DMC_LOCAL_DIR: str
 
     DOJO_URL: str
 

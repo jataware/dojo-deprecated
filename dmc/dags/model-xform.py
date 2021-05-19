@@ -157,7 +157,8 @@ def RunExit(**kwargs):
     run['attributes']['status'] = 'success'
 
     # TODO: handle additional output files
-    pth = f"https://jataware-world-modelers.s3.amazonaws.com/dmc_results/{run_id}/{run_id}_{model_id}.parquet.gzip"
+    bucket_dir = os.getenv('BUCKET_DIR')
+    pth = f"https://jataware-world-modelers.s3.amazonaws.com/{bucket_dir}/{run_id}/{run_id}_{model_id}.parquet.gzip"
     run['data_paths'] = [pth]
     run['attributes']['executed_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     response = requests.put(f"{dojo_url}/runs", json=run)
@@ -194,13 +195,9 @@ def post_failed_to_dojo(**kwargs):
     # this should reflect the failure; job should always finish
     run['attributes']['status'] = 'failed'
 
-    # TODO: handle additional output files
-    pth = f"https://jataware-world-modelers.s3.amazonaws.com/dmc_results/{run_id}/{run_id}_{model_id}.parquet.gzip"
-    run['data_paths'] = [pth]
-    run['attributes']['executed_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     response = requests.put(f"{dojo_url}/runs", json=run)
     print(response.text)
-    # Notify Uncharted
+
     # Notify Uncharted
     if os.getenv('DMC_DEBUG') == 'true':
         print("Debug mode: no need to notify Uncharted")
