@@ -9,14 +9,15 @@ headers = {'Content-Type': 'application/json'}
 
 #### Create Model
 payload = open('dummy_model.json').read()
+print(payload)
 resp = requests.post(f"{url}/models", data=payload)
 print(resp.text)
-#
+# #
 # #### Add Directive
 directive = {
     "id": "dummy-directive-1",
     "model_id": "dummy-model-v0.1",
-    "command": "--temp={{temp}}",
+    "command": "python /model/main.py --temp={{temp}}",
     "output_directory": "/model/output"
 }
 resp = requests.post(f"{url}/dojo/directive", json=directive)
@@ -36,7 +37,8 @@ outputfile = {
 resp = requests.post(f"{url}/dojo/outputfile", json=[outputfile])
 print(resp.text)
 #
-##### Add config
+#### Add config
 config = json.loads(open('config_dummy_model.json').read())
 resp = requests.post(f"{url}/dojo/config", json=config)
 print(resp.text)
+

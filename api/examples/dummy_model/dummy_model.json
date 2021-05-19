@@ -3,10 +3,10 @@
    "name":"dummy-model",
    "version":"0.1",
    "description":"The Jataware dummy model for testing.",
-   "image":"jataware/dummy-model:noentry",
+   "image":"jataware/dummy-model:latest",
    "type":"model",
    "status":"current",
-   "category":["testing"],
+   "category":["Testing"],
    "maintainer":{
       "name":"Jataware",
       "email":"kyle@jataware.com",
@@ -41,7 +41,29 @@
          "default":0.0,
          "tags":[
          ]
-      }
+     },
+     {
+         "id":"dummy-param-3",
+         "name":"color_hue",
+         "display_name": "color_hue",
+         "description":"Color",
+         "type":"str",
+         "data_type":"nominal",
+         "is_drilldown":true,
+         "choices":[
+              "blue",
+              "red",
+              "yellow",
+              "green",
+              "purple",
+              "orange",
+              "black",
+              "white"
+           ],
+         "default":"blue",
+         "tags":[
+         ]
+     }
    ],
    "outputs":[
       {

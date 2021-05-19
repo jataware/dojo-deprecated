@@ -56,6 +56,8 @@
       "Description": "Fake value",
       "Type": "OTHER",
       "Data_type": "FLOAT",
+      "Primary_time": null,
+      "Primary_geo": null,
       "Units": null,
       "Timeformat": null,
       "Year": null,
@@ -64,11 +66,25 @@
       "Geo": null,
       "Unit_description": null,
       "New_col_name": null
+    },
+    "color_hue": {
+      "Description": "Fake value",
+      "Type": "STR",
+      "Data_type": "nominal",
+      "Primary_time": null,
+      "Primary_geo": null,
+      "Units": null,
+      "Timeformat": null,
+      "Year": null,
+      "Unit_description": null,
+      "New_col_name": null,
+      "Other_geo": null,
+      "Geo": null,
+      "Is_geo_pair": null
     }
   },
   "meta": {
-    "meta": {
       "ftype": "csv"
     }
-  }
+
 }

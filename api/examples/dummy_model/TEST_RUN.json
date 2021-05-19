@@ -16,6 +16,10 @@
       {
          "name":"rainfall",
          "value":0.6
+      },
+      {
+         "name": "color_hue",
+         "value": "red"
       }
    ],
    "attributes":{

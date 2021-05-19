@@ -139,7 +139,8 @@ def create_run(run: RunSchema.RunMetadata):
         volumeArray.append(dmc_local_dir + f"/model_configs/{run.id}:{mountPath}")
 
     print('volumnArrray', volumeArray)
-
+    # remove redundant volume mounts
+    volumeArray= list(set(volumeArray))
     # get s3 and file name/ paths
 
     print('model_config_s3_path_objects', model_config_s3_path_objects)
