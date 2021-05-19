@@ -79,16 +79,13 @@ def dispatch_run(run):
 
 @router.post("/runs")
 def create_run(run: RunSchema.RunMetadata):
-    print(run)
-    model = get_model(run.model_id)    
+    model = get_model(run.model_id)
 
     # handle model run command
     directive = get_directive(run.model_id)
-    print(directive)
     model_command = Template(directive.get('command'))
-
-    print(f'directive: {directive}')
     output_dir = directive.get('output_directory')
+
     # get parameters
     params = run.parameters
     param_dict = {}
@@ -99,15 +96,8 @@ def create_run(run: RunSchema.RunMetadata):
     model_command = model_command.render(param_dict)
     logging.info(f"Model Command is: {model_command}")
 
-    # find output file path
-    # TODO: enable handling multiple output files
-    # CURRENT: only handles first output file
     outputfiles = get_outputfiles(run.model_id)
-    print('-----------outputfiles----------------------')
-    print(outputfiles)
-    print( 'param_dict')
-    print(param_dict)
-    print('paths',outputfiles[0]['path'])
+
     try:
         input_file = Template(outputfiles[0]['path']).render(param_dict)
     except Exception as e:
@@ -116,11 +106,7 @@ def create_run(run: RunSchema.RunMetadata):
     # get config in s3
     try:
         configs = get_configs(run.model_id)
-        print('configs')
-        print(configs)
-
         configsData = configs
-        print(configsData, 'configsData')
     except Exception as e:
         configsData = []
         print(e)
@@ -138,12 +124,11 @@ def create_run(run: RunSchema.RunMetadata):
             {"s3_url": configFile['s3_url'], "savePath": savePath, "path": mountPath, "fileName": fileName})
         volumeArray.append(dmc_local_dir + f"/model_configs/{run.id}:{mountPath}")
 
-    print('volumnArrray', volumeArray)
     # remove redundant volume mounts
     volumeArray= list(set(volumeArray))
-    # get s3 and file name/ paths
+    print('volumnArrray', volumeArray)
 
-    print('model_config_s3_path_objects', model_config_s3_path_objects)
+    # get s3 and file name/ paths
 
     run_conf = {
         "run_id":run.id,
@@ -173,7 +158,6 @@ def create_run(run: RunSchema.RunMetadata):
     logging.info(f"Response from DMC: {json.dumps(response.json(), indent=4)}")
     
     run.created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    print('runs', run, 'runict', run.dict(), 'id', run.id)
     es.index(index="runs", body=run.dict(), id=run.id)
     return Response(
         status_code=status.HTTP_201_CREATED,

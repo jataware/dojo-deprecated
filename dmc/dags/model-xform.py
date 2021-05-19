@@ -52,13 +52,11 @@ def rehydrate(ti, **kwargs):
     model_id = kwargs['dag_run'].conf.get('model_id')
     run_id = kwargs['dag_run'].conf.get('run_id')
     saveFolder =  f"/model_configs/{run_id}/"
-    print('saveFolder', saveFolder)
     output_dir =kwargs['dag_run'].conf.get('model_output_directory')
 
     req = requests.get(f"{dojo_url}/models/{model_id}")
     respData = json.loads(req.content)
     params = respData["parameters"]
-    print('params', params)
 
     try:
 
@@ -67,20 +65,14 @@ def rehydrate(ti, **kwargs):
             fileName = configFile.get('fileName')
             model_config_s3 = configFile.get('s3_url')
             mountPath = configFile.get('path')
-            print('dojo_url', dojo_url, 'model_id', model_id, 'runid', run_id, 'modelconf', model_config_s3)
 
             respTemplate = requests.get(model_config_s3)
             dehydrated_config = respTemplate.content.decode('utf-8')
-            print(f"dehydrated_config = {dehydrated_config}")
             for p in params:
                 defaultDict[p['name']] = p['default']
 
-            print(f'defaultDict: {defaultDict}')
-
             # parameters the user sent in
             hydrateData = kwargs['dag_run'].conf.get('params')
-
-            print(f'hydrateData: {hydrateData}')
 
              # hydratedDict = copy.deepcopy(defaultDict)
 
@@ -89,12 +81,9 @@ def rehydrate(ti, **kwargs):
                 if key in defaultDict.keys():
                     defaultDict[key] = hydrateData[key]
 
-            print(f'hydratedDict: {hydrateData}')
-
             finalDict = {}
             # Format hydratedDIct with proper quotes
             for key in defaultDict:
-                print(key)
                 if type(defaultDict[key]) == str:
                     finalDict[key] = '"' + defaultDict[key] + '"'
                 else:
@@ -102,15 +91,11 @@ def rehydrate(ti, **kwargs):
 
             print(f'finalDict: {finalDict}')
             # Hydrate the config
-            cwd = os.getcwd()
-            print(f'cwd: {cwd}')
-
             if os.path.exists(saveFolder):
                 print('here')
                 pass
 
             else:
-                print('not here')
                 os.mkdir(saveFolder, mode=0o777)
 
             os.chmod(saveFolder, mode=0o777)
@@ -119,7 +104,6 @@ def rehydrate(ti, **kwargs):
             dataToSave = Template(dehydrated_config).render(finalDict)
             # savePath needs to be hard coded for ubuntu path with run id and model name or something.
             saveFileName=saveFolder+fileName
-            print(saveFileName, saveFileName)
             with open(saveFileName, "w+") as fh:
                 fh.write(dataToSave)
             os.chmod(saveFileName, mode=0o777)
@@ -132,7 +116,6 @@ def rehydrate(ti, **kwargs):
 def s3copy(**kwargs):
     s3 = S3Hook(aws_conn_id="aws_default")
     results_path = f"/results/{kwargs['dag_run'].conf.get('run_id')}"
-    print(f'results_path:{results_path}')
 
     for fpath in glob.glob(f'{results_path}/*[norm]*.parquet.gzip'):
         print(f'fpath:{fpath}')
@@ -157,11 +140,8 @@ def s3copy(**kwargs):
 def getMapper(**kwargs):
     dojo_url = kwargs['dag_run'].conf.get('dojo_url')
     model_id = kwargs['dag_run'].conf.get('model_id')
-    print('model_id', model_id)
     of = requests.get(f"{dojo_url}/dojo/outputfile/{model_id}").json()
     mapper = of[0]['transform']
-    print("Mapper obtained:")
-    print(mapper)
     with open(f'/mappers/mapper_{model_id}.json','w') as f:
         f.write(json.dumps(mapper))
 
@@ -195,7 +175,7 @@ def RunExit(**kwargs):
             "job_id":run_id,
             "run_name_prefix":f"dojo_run_{model_id}_"
             }
-        response = requests.post('https://causemos.uncharted.software/api/model-run', 
+        response = requests.post('https://causemos.uncharted.software/api/model-run/{run_id}/post-process',
                                 headers={'Content-Type': 'application/json'}, 
                                 json=payload, 
                                 auth=('worldmodelers', 'world!')) #TODO: this auth should not be hardcoded
@@ -208,9 +188,7 @@ def post_failed_to_dojo(**kwargs):
     dojo_url = kwargs['dag_run'].conf.get('dojo_url')
     run_id = kwargs['dag_run'].conf.get('run_id')
     model_id = kwargs['dag_run'].conf.get('model_id')
-    print('runid', run_id, 'dojourl', dojo_url)
     run = requests.get(f"{dojo_url}/runs/{run_id}").json()
-    print('run', run)
 
     # TODO: this should be conditional; if the other tasks fail
     # this should reflect the failure; job should always finish
@@ -222,8 +200,27 @@ def post_failed_to_dojo(**kwargs):
     run['attributes']['executed_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     response = requests.put(f"{dojo_url}/runs", json=run)
     print(response.text)
-    return
-    
+    # Notify Uncharted
+    # Notify Uncharted
+    if os.getenv('DMC_DEBUG') == 'true':
+        print("Debug mode: no need to notify Uncharted")
+        return
+    else:
+        print('Notifying Uncharted...')
+        payload = {
+            "model_id": model_id,
+            "cube_id": f"{model_id}_{run_id}",  # TODO: this should be set to an actual cube ID
+            "job_id": run_id,
+            "run_name_prefix": f"dojo_run_{model_id}_"
+        }
+        response = requests.post('https://causemos.uncharted.software/api/model-run/{run_id}/run-failed',
+                                 headers={'Content-Type': 'application/json'},
+                                 json=payload,
+                                 auth=('worldmodelers', 'world!'))  # TODO: this auth should not be hardcoded
+        print(f"Response from Uncharted: {response.text}")
+        return
+
+
 ###########################
 ###### Create Tasks #######
 ###########################
