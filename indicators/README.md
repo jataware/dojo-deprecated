@@ -12,7 +12,7 @@ Flags are more for testing. The Bulk Upload to S3 was taking a long time.
 
 -bulk_up: Upload tar.gz of all ISI data to S3
 
--convert_cm: Convert ISI datasets to causemos compliant and convert to gripped parquet
+-convert_cm: Convert ISI datasets to causemos compliant and convert to gzipped parquet
 
 -cm_s3: Upload gzipped causemosifed datasets to S3
 
