@@ -117,7 +117,7 @@ def s3copy(**kwargs):
     s3 = S3Hook(aws_conn_id="aws_default")
     results_path = f"/results/{kwargs['dag_run'].conf.get('run_id')}"
 
-    for fpath in glob.glob(f'{results_path}/*[norm]*.parquet.gzip'):
+    for fpath in glob.glob(f'{results_path}/*.parquet.gzip'):
         print(f'fpath:{fpath}')
         fn = fpath.split("/")[-1]
         print(f'fn:{fn}')
@@ -156,10 +156,18 @@ def RunExit(**kwargs):
     # this should reflect the failure; job should always finish
     run['attributes']['status'] = 'success'
 
+    # get pth array
+    pth=[]
+    for fpath in glob.glob(f'/results/{run_id}/*.parquet.gzip'):
+        print(f'fpath:{fpath}')
+        fn = fpath.split("/")[-1]
+        print(f'fn:{fn}')
+        bucket_dir = os.getenv('BUCKET_DIR')
+
+        pth.append(f"https://jataware-world-modelers.s3.amazonaws.com/{bucket_dir}/{run_id}/{fn}")
     # TODO: handle additional output files
-    bucket_dir = os.getenv('BUCKET_DIR')
-    pth = f"https://jataware-world-modelers.s3.amazonaws.com/{bucket_dir}/{run_id}/{run_id}_{model_id}.parquet.gzip"
-    run['data_paths'] = [pth]
+    print('pth array' ,pth)
+    run['data_paths'] = pth
     run['attributes']['executed_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     response = requests.put(f"{dojo_url}/runs", json=run)
     print(response.text)
