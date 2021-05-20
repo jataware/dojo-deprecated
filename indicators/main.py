@@ -26,7 +26,7 @@ export ISI_PWD=pwd
 
 # SET VARS
 parser = argparse.ArgumentParser(description='Parse News for a given query')
-parser.add_argument('-bulk_down', dest ='bulk_down', type=sorted, help='True=bulk download ISI DM datasets')
+parser.add_argument('-bulk_down', dest ='bulk_down', type=str, help='True=bulk download ISI DM datasets')
 parser.add_argument('-bulk_up', dest ='bulk_up', type=str, help='True=bulk upload tar.gz to S3')
 parser.add_argument('-convert_cm', dest ='convert_cm', type=str, help='True=bconvert to cmify')
 parser.add_argument('-cm_s3', dest ='cm_s3', type=str, help='True=upload all cmified files to S3')
