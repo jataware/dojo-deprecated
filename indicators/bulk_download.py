@@ -4,7 +4,7 @@ import tarfile
 import glob
 
 
-def bulk_download(isi_user, isi_pwd)
+def bulk_download(isi_user, isi_pwd):
 
     datamart_api_url = f"https://{isi_user}:{isi_pwd}@dsbox02.isi.edu:8888/datamart-api-wm"
 
