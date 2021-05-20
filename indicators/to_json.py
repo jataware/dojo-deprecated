@@ -178,16 +178,16 @@ def to_json(filename,isi_user, isi_pwd, i, end):
         json.dump(main_dict, fp, ensure_ascii=True, indent=1)
 
 
-# Verify all json files written
-dump = []
-jsawn = []
-for filename in sorted(glob.glob("datamart-dump/*.csv")):
-    dump.append(filename.split("/")[1].split(".")[0])
-for filename in sorted(glob.glob("jsons/*.json")):
-    jsawn.append(filename.split("/")[1].split(".")[0])
-one_not_two = set(dump) - set(jsawn)
+    # Verify all json files written
+    dump = []
+    jsawn = []
+    for filename in sorted(glob.glob("datamart-dump/*.csv")):
+        dump.append(filename.split("/")[1].split(".")[0])
+    for filename in sorted(glob.glob("jsons/*.json")):
+        jsawn.append(filename.split("/")[1].split(".")[0])
+    one_not_two = set(dump) - set(jsawn)
 
-if len(one_not_two) != 0:
-    print(f"{one_not_two} json files not written")
-else:
-    print("COMPLETE: all json files written to /jsons")
+    if len(one_not_two) != 0:
+        print(f"{one_not_two} json files not written")
+    else:
+        print("COMPLETE: all json files written to /jsons")
