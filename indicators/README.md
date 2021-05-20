@@ -1,6 +1,14 @@
 
 ## Quickstart
 
+Set ENV Variables
+```
+export AWS_ACCESS_KEY=KEY_HERE
+export AWS_SECRET_KEY=SECRET_HERE
+export ISI_USER=user
+export ISI_PWD=pwd
+```
+
 Run
 ```
 python3 main.py -bulk_down=True -bulk_up=False -convert_cm=True -cm_s3=True -jsoniy=True
