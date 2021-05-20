@@ -158,7 +158,7 @@ def RunExit(**kwargs):
 
     # get pth array
     pth=[]
-    for fpath in glob.glob(dmc_local_dir+f'/results/{run_id}/*.parquet.gzip'):
+    for fpath in glob.glob(f'/results/{run_id}/*.parquet.gzip'):
         print(f'fpath:{fpath}')
         fn = fpath.split("/")[-1]
         print(f'fn:{fn}')
