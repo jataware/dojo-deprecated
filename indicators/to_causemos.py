@@ -43,23 +43,3 @@ def causemosify(df_in):
     ]
 
     return df[CM_headers].copy()
-
-
-for file in sorted(glob.glob("datamart-dump/*.csv")):
-    try:
-        #Datamart df to cm
-        df_DM = pd.read_csv(file)
-
-        # Convert to Friend of Causemos
-        df_DM = pd.read_csv(file)
-        df = causemosify(df_DM)
-
-        # Convert to gzip parquet file
-        print("Causemosifing and gzipping into parquet")
-        print(file)
-        fn_gz = file.split("/")[1].split(".")[0]
-        gz_path = f'causemosified/{fn_gz}.parquet.gzip'
-        df.to_parquet(gz_path, compression="gzip")
-
-    except Exception as e:
-        print(e)
