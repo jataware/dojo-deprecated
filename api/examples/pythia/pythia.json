@@ -46,48 +46,6 @@
       },
       {
          "id":"pythia-param-3",
-         "name":"crop",
-         "display_name": "Crop",
-         "description":"Crop to run simulation",
-         "type":"str",
-         "data_type":"nominal",
-         "is_drilldown":true,
-         "choices":[
-            "maize",
-            "teff",
-            "wheat"
-         ],
-         "default":"maize",
-         "tags":[]
-      },
-      {
-         "id":"pythia-param-4",
-         "name":"sample",
-         "display_name": "Sample",
-         "description":"Used to subset the data. Applies the configuration the first x number of valid simulations. This may be different between runs.",
-         "type":"int",
-         "data_type":"numerical",
-         "is_drilldown":false,
-         "min":0,
-         "max":50,
-         "default":25,
-         "tags":[]
-      }, 
-      {
-         "id":"pythia-param-5",
-         "name":"rain",
-         "display_name": "Rain",
-         "description":"Rainfall, including moisture in snow, in one day mm",
-         "type":"float",
-         "data_type":"numerical",
-         "is_drilldown":true,
-         "min":0,
-         "max":200,
-         "default":10,
-         "tags":[]
-      }, 
-      {
-         "id":"pythia-param-6",
          "name":"start_year",
          "display_name": "Start Year",
          "description":"Four digit Year to start simulation",
@@ -100,7 +58,7 @@
          "tags":[]
       }, 
       {
-         "id":"pythia-param-7",
+         "id":"pythia-param-4",
          "name":"number_years",
          "display_name": "Number of Years",
          "description":"Number of years to run simulation",
@@ -111,7 +69,7 @@
          "max":33,
          "default":10,
          "tags":[]
-      }
+      }                           
    ],
    "outputs":[
       {
