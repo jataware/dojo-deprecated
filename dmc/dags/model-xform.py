@@ -16,6 +16,12 @@ from jinja2 import Template
 
 import glob
 
+
+### Get ENV variables for Causemos API
+causemos_user = os.getenv(CAUSEMOS_USER)
+causemos_pwd = os.getenv(CAUSEMOS_PWD)
+causemos_base_url = os.getenv(CAUSEMOS_BASE_URL)
+
 ############################
 ####### Generate DAG #######
 ############################
@@ -184,10 +190,10 @@ def RunExit(**kwargs):
             "job_id":run_id,
             "run_name_prefix":f"dojo_run_{model_id}_"
             }
-        response = requests.post('https://causemos.uncharted.software/api/model-run/{run_id}/post-process',
+        response = requests.post(f'{causemos_base_url}/{run_id}/post-process',
                                 headers={'Content-Type': 'application/json'}, 
                                 json=payload, 
-                                auth=('worldmodelers', 'world!')) #TODO: this auth should not be hardcoded
+                                auth=(causemos_user, causemos_pwd))
         print(f"Response from Uncharted: {response.text}")
         return
 
@@ -218,10 +224,10 @@ def post_failed_to_dojo(**kwargs):
             "job_id": run_id,
             "run_name_prefix": f"dojo_run_{model_id}_"
         }
-        response = requests.post('https://causemos.uncharted.software/api/model-run/{run_id}/run-failed',
+        response = requests.post(f'{causemos_base_url}/{run_id}/run-failed',
                                  headers={'Content-Type': 'application/json'},
                                  json=payload,
-                                 auth=('worldmodelers', 'world!'))  # TODO: this auth should not be hardcoded
+                                 auth=(causemos_user, causemos_pwd))
         print(f"Response from Uncharted: {response.text}")
         return
 
