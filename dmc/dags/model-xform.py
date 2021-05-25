@@ -18,9 +18,9 @@ import glob
 
 
 ### Get ENV variables for Causemos API
-causemos_user = os.getenv(CAUSEMOS_USER)
-causemos_pwd = os.getenv(CAUSEMOS_PWD)
-causemos_base_url = os.getenv(CAUSEMOS_BASE_URL)
+causemos_user = os.getenv('CAUSEMOS_USER')
+causemos_pwd = os.getenv('CAUSEMOS_PWD')
+causemos_base_url = os.getenv('CAUSEMOS_BASE_URL')
 
 ############################
 ####### Generate DAG #######
