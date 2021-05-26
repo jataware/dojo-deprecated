@@ -29,16 +29,22 @@ dmc_base_url = f"http://{dmc_url}:{dmc_port}/api/v1"
 def get_health():
 
     # DMC Status
-    url = f'{dmc_base_url}/health'
-    response = requests.get(url,auth=(dmc_user, dmc_pass))
-    dmc_status = response.json()['metadatabase']['status']
-    print(f'DMC: {dmc_status}')    
+    try:
+        url = f'{dmc_base_url}/health'
+        response = requests.get(url,auth=(dmc_user, dmc_pass))
+        dmc_status = response.json()['metadatabase']['status']
+        print(f'DMC: {dmc_status}')    
+    except:
+        dmc_status = "broken"
 
     # DOJO (actually ElasticSearch Health) Status
-    url = f'{dmc_base_url}/health'
-    dojo_status = es.cluster.health()['status']
-    print(f'Dojo: {dojo_status}') 
-
+    try:
+        url = f'{dmc_base_url}/health'
+        dojo_status = es.cluster.health()['status']
+        print(f'Dojo: {dojo_status}') 
+    except:
+        dojo_status = "broken"
+        
     status = {
              'dojo': 'ok' if dojo_status == 'yellow' or dojo_status == 'green' else "Failed Health Check",
              'dmc': 'ok' if dmc_status == 'healthy' else "Failed Health Check"
