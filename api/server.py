@@ -9,11 +9,12 @@ from datetime import datetime
 import uvicorn
 from fastapi import FastAPI
 from src.settings import settings
-from src import cubes, dojo, experiments, runs, models, indicators
+from src import cubes, dojo, experiments, runs, models, indicators, healthcheck
 
 logger = logging.getLogger(__name__)
 
 api = FastAPI(docs_url="/")
+api.include_router(healthcheck.router, tags=['Health Check'])
 api.include_router(models.router, tags=['Models'])
 api.include_router(dojo.router, tags=['Dojo'])
 api.include_router(runs.router, tags=['Runs'])
