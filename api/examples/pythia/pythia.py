@@ -7,14 +7,14 @@ url = 'http://localhost:8000'
 headers = {'Content-Type': 'application/json'}
 
 #### Create Model
-payload = open('pythia_short.json').read()
+payload = open('pythia.json').read()
 resp = requests.post(f"{url}/models", data=payload)
 print(resp.text)
 
 ##### Add Directive
 directive = {
     "id": "pythia-directive-1",
-    "model_id": "dssat_pythia-v0.1_short",
+    "model_id": "dssat_pythia-v0.1",
     "command": "--all /userdata/et_docker.json",
     "output_directory": "/userdata/out/eth_docker/test/"
 }
@@ -25,7 +25,7 @@ print(resp.text)
 mapper = json.loads(open('mapper.json').read())
 outputfile = {
     "id": "pythia-outputfile-1",
-    "model_id": "dssat_pythia-v0.1_short",
+    "model_id": "dssat_pythia-v0.1",
     "name": "DSSAT-PYTHIA",
     "file_type": "csv",
     "path": "pp.csv",

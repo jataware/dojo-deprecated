@@ -1,7 +1,7 @@
 {
-   "id":"pythia_my_test_run_1",
+   "id":"pythia_test_run_x",
    "model_name":"DSSAT-PYTHIA",
-   "model_id":"dssat_pythia-v0.1_short",
+   "model_id":"dssat_pythia-v0.1",
    "created_at":"",
    "data_paths":[
    ],
