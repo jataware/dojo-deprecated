@@ -6,7 +6,6 @@ git clone git@github.com:uncharted-causemos/docs.git
 jq -r 'del(.["properties"]["model_id"]["$ref"])' ./docs/datacubes/model-run.schema.json > _.json && mv _.json ./docs/datacubes/model-run.schema.json
 echo "Deleted External Reference"
 
-
 # Read only "schema" jsons, not examples
 files=`ls ./docs/datacubes/*schema*.json`
 
