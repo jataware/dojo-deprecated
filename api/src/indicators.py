@@ -17,10 +17,15 @@ router = APIRouter()
 
 es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
 
+# For created_at times in epoch milliseconds
+def current_milli_time():
+    return round(time.time() * 1000)
+
+
 @router.post("/indicators")
 def create_indicator(payload: IndicatorSchema.IndicatorMetadata):
     indicator_id = payload.id
-    payload.created = datetime.now()
+    payload.created_at = current_milli_time()
     body = payload.json()
     es.index(index="indicators", body=body, id=indicator_id)
     return Response(
@@ -32,7 +37,7 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadata):
 @router.put("/indicators")
 def update_indicator(payload: IndicatorSchema.IndicatorMetadata):
     indicator_id = payload.id
-    payload.created = datetime.now()
+    payload.created_at = current_milli_time()
     body = payload.json()
     es.index(index="indicators", body=body, id=indicator_id)
     return Response(

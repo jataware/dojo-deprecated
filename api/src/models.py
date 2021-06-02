@@ -17,10 +17,16 @@ router = APIRouter()
 
 es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
 
+
+# For created_at times in epoch milliseconds
+def current_milli_time():
+    return round(time.time() * 1000)
+
+
 @router.post("/models")
 def create_model(payload: ModelSchema.ModelMetadata):
     model_id = payload.id
-    payload.created = datetime.now()
+    payload.created_at = current_milli_time()
     body = payload.json()
     es.index(index="models", body=body, id=model_id)
     return Response(
@@ -31,7 +37,7 @@ def create_model(payload: ModelSchema.ModelMetadata):
 
 @router.put("/models/{model_id}")
 def update_model(model_id: str, payload: ModelSchema.ModelMetadata):
-    payload.created = datetime.now()
+    payload.created_at = current_milli_time()
     body = payload.json()
     es.index(index="models", body=body, id=model_id)
     return Response(

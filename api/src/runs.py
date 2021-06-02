@@ -34,6 +34,12 @@ router = APIRouter()
 
 es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
 
+
+# For created_at times in epoch milliseconds
+def current_milli_time():
+    return round(time.time() * 1000)
+
+
 dmc_url = settings.DMC_URL
 dmc_port = settings.DMC_PORT
 dmc_user = settings.DMC_USER
@@ -157,7 +163,7 @@ def create_run(run: RunSchema.RunMetadata):
 
     logging.info(f"Response from DMC: {json.dumps(response.json(), indent=4)}")
     
-    run.created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    run.created_at = current_milli_time()
     es.index(index="runs", body=run.dict(), id=run.id)
     return Response(
         status_code=status.HTTP_201_CREATED,
