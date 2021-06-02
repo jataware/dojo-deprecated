@@ -1,23 +1,18 @@
 #! /bin/sh 
 
-
-#for entry in "$Users/travishartman/Desktop/dojo_1jun_schema_updates/docs/datacubes"/*
-
-# ABSOLUTE PATH TO UNCHARTED SCHEMAS
-
 git clone git@github.com:uncharted-causemos/docs.git
-
-echo "ENSURE EXTERNAL REFERENCES ARE REMOVED"
 
 # One-off hack to delete unneeded ref
 jq -r 'del(.["properties"]["model_id"]["$ref"])' ./docs/datacubes/model-run.schema.json > _.json && mv _.json ./docs/datacubes/model-run.schema.json
+echo "Deleted External Reference"
 
+
+# Read only "schema" jsons, not examples
 files=`ls ./docs/datacubes/*schema*.json`
+
 for file in $files
 do
-   #echo $file
    fn=$file
-
    base_fn=${fn:17:$((${#fn} - 17 - 5))}
 
    #Indicator Schema
@@ -45,9 +40,3 @@ done
 
 # Delete cloned repo
 rm -rf docs
-
-
-
-
-
-
