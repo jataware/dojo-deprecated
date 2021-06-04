@@ -74,6 +74,8 @@ To set the log level, change the level for FastAPI in `logging.yaml`.
 
 ## Schema Validation
 
+This step only needs to be done after an Uncharted schema change. While the steps below will auto-build the pydantic schema files in the `validation/` folder, you may need to update the .py files in the `src/` directory with any schema class name changes.
+
 To retrieve and build pydantic .py files from the lastest schema jsons from Uncharted run:
 
 ```
