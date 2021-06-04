@@ -1,0 +1,24 @@
+{
+  "id": "maxhop_schema_6",
+  "model_name": "MaxHop",
+  "model_id": "maxhop-v0.2",
+  "created_at": 1234567890000,
+  "data_paths": ["https://jataware-world-modelers.s3.amazonaws.com/dmc_results_dev/maxhop_schema_6.parquet.gzip"],
+  "pre_gen_output_paths": [],
+  "is_default_run": false,
+   "tags": ["Agriculture"],
+  "parameters": [
+    {
+      "name": "country",
+      "value": "Ethiopia"
+    },
+    {
+      "name": "annualPrecipIncrease",
+      "value": 0.8
+    },
+    {
+      "name":"meanTempIncrease",
+      "value": -0.3
+    }
+  ]
+}
