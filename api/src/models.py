@@ -24,7 +24,7 @@ def current_milli_time():
 
 
 @router.post("/models")
-def create_model(payload: ModelSchema.ModelMetadata):
+def create_model(payload: ModelSchema.ModelMetadataSchema):
     model_id = payload.id
     payload.created_at = current_milli_time()
     body = payload.json()
@@ -36,7 +36,7 @@ def create_model(payload: ModelSchema.ModelMetadata):
     )
 
 @router.put("/models/{model_id}")
-def update_model(model_id: str, payload: ModelSchema.ModelMetadata):
+def update_model(model_id: str, payload: ModelSchema.ModelMetadataSchema):
     payload.created_at = current_milli_time()
     body = payload.json()
     es.index(index="models", body=body, id=model_id)
@@ -57,7 +57,7 @@ def modify_model(model_id: str, payload: dict = Body(...)):
 
 
 @router.get("/models")
-def search_models(query: str = Query(None)) -> List[ModelSchema.ModelMetadata]:
+def search_models(query: str = Query(None)) -> List[ModelSchema.ModelMetadataSchema]:
     if query:
         q = {
             "query": {

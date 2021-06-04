@@ -52,7 +52,7 @@ dojo_url = settings.DOJO_URL
 headers = {'Content-Type': 'application/json'}
 
 @router.get("/runs")
-def search_runs(query: str = Query(None)) -> List[RunSchema.RunMetadata]:
+def search_runs(query: str = Query(None)) -> List[RunSchema.ModelMetadataSchema]:
     if query:
         q = {
             "query": {
@@ -73,7 +73,7 @@ def search_runs(query: str = Query(None)) -> List[RunSchema.RunMetadata]:
         )
 
 @router.get("/runs/{run_id}")
-def get_run(run_id: str) -> RunSchema.RunMetadata:
+def get_run(run_id: str) -> RunSchema.ModelMetadataSchema:
     try:
         run = es.get(index="runs", id=run_id)["_source"]
     except:
@@ -84,7 +84,7 @@ def dispatch_run(run):
     return
 
 @router.post("/runs")
-def create_run(run: RunSchema.RunMetadata):
+def create_run(run: RunSchema.ModelMetadataSchema):
     model = get_model(run.model_id)
 
     # handle model run command
@@ -192,7 +192,7 @@ def get_run_logs(run_id: str):
     )
 
 @router.put("/runs")
-def update_run(payload: RunSchema.RunMetadata):
+def update_run(payload: RunSchema.ModelMetadataSchema):
     run_id = payload.id
     body = payload.json()
     es.index(index="runs", body=body, id=run_id)

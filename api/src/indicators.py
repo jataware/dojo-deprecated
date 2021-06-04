@@ -23,7 +23,7 @@ def current_milli_time():
 
 
 @router.post("/indicators")
-def create_indicator(payload: IndicatorSchema.IndicatorMetadata):
+def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
     indicator_id = payload.id
     payload.created_at = current_milli_time()
     body = payload.json()
@@ -35,7 +35,7 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadata):
     )
 
 @router.put("/indicators")
-def update_indicator(payload: IndicatorSchema.IndicatorMetadata):
+def update_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
     indicator_id = payload.id
     payload.created_at = current_milli_time()
     body = payload.json()
@@ -48,7 +48,7 @@ def update_indicator(payload: IndicatorSchema.IndicatorMetadata):
 
 
 @router.get("/indicators")
-def search_indicators(query: str = Query(None)) -> List[IndicatorSchema.IndicatorMetadata]:
+def search_indicators(query: str = Query(None)) -> List[IndicatorSchema.IndicatorMetadataSchema]:
     if query:
         q = {
             "size": 100,
