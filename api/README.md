@@ -70,7 +70,7 @@ python3 CreateMappings.py
 
 ## Running the examples
 
-For each example (`MaxHop` and `pythia`) there is a `run_<model>.json` file. Copy and paste the contents into Dojo's create `run/` endpoint (http://localhost:8000/#/Runs/create_run_runs_post) then navigate to airflow (localhost:8080) to monitor model execution.
+For each example (`MaxHop` and `pythia`) there is a `run_<model>.json` file. Copy and paste the contents into Dojo's create `run/` endpoint (http://localhost:8000/#/Runs/create_run_runs_post) then navigate to airflow (http://localhost:8080) to monitor model execution.
 
 ## Logging
 
