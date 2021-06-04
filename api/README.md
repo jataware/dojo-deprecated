@@ -44,17 +44,27 @@ This will turn on the API, Elasticsearch and Kibana, but the API will be in `rel
 
 ## Setup
 
-First, you should create the example model (MaxHop) with:
+There are two example models to run; from the `api` folder run:
+
+MaxHop Example:
 
 ```
-cd examples
-python3 Examples.py
+cd examples/maxhop
+python3 maxhop.py
 ```
+
+Pythia Example:
+
+```
+cd examples/pythia
+python3 pythia.py
+```
+
 
 Then you should create the `runs` index mapping for Elasticsearch with:
 
 ```
-cd es-mappings
+cd ~/api/es-mappings
 python3 CreateMappings.py
 ```
 
