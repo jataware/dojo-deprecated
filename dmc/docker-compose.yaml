@@ -51,12 +51,15 @@
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       #AIRFLOW__API__ENABLE_EXPERIMENTAL_API: 'true'
       AIRFLOW__API__AUTH_BACKEND: 'airflow.api.auth.backend.basic_auth'
-      DOCKER_URL: http://192.168.1.142:8375
+      DOCKER_URL: http://10.0.0.202:8375
       DMC_LOCAL_DIR: "${PWD}"
       BUCKET: jataware-world-modelers
       BUCKET_DIR: dmc_results_dev
       DMC_DEBUG: 'true'
       AIRFLOW_CONN_AWS_DEFAULT: aws://${AWS_ACCESS_KEY}:${AWS_SECRET_KEY}@
+      CAUSEMOS_BASE_URL: https://causemos.uncharted.software/api/maas/model-runs
+      CAUSEMOS_USER: worldmodelers
+      CAUSEMOS_PWD: world!
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
