@@ -14,7 +14,7 @@ This folder contains the files required to run [pythia](https://github.com/DSSAT
 
 - `pythia.json`: model, parameter, and output metadata that aligns with Uncharted's schema requirements.
 
-- `TEST_RUN.json`: For a specific model run, this file "hydrates" the dehydrated `config_pythia.json` with the user-desired values.
+- `run_pythia.json`: For a specific model run, this file "hydrates" the dehydrated `config_pythia.json` with the user-desired values.
 
 - `pythia.py`: Loads the model for execution in Dojo. Note that:
    - The model payload (`pythia.json`) must match the json file you have in this directory
@@ -34,4 +34,4 @@ This folder contains the files required to run [pythia](https://github.com/DSSAT
 	
 - Update `TEST_RUN.json` with desired model parameter values
 
-- Copy and paste `TEST_RUN.json` into [/runs](http://localhost:8000/#/Runs/create_run_runs_post) and execute model run.
+- Copy and paste `run_pythia.json` into [/runs](http://localhost:8000/#/Runs/create_run_runs_post) and execute model run.

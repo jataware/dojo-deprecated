@@ -110,13 +110,6 @@ def rehydrate(ti, **kwargs):
                 else:
                     finalDict[key] = str(defaultDict[key])
 
-
-
-                #if type(defaultDict[key]) == str:
-                #    finalDict[key] = '"' + defaultDict[key] + '"'
-                #else:
-                #    finalDict[key] = defaultDict[key]
-
             for key in finalDict:
                  print(f'finalDict: key: {key} value: {finalDict[key]}   type: {type(finalDict[key])}')
             
