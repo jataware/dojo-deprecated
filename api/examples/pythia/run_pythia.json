@@ -1,0 +1,29 @@
+{
+   "id":"pythia_test_X",
+   "model_name": "DSSAT-PYTHIA",
+   "model_id":"dssat_pythia-v0.1",
+   "created_at":1622852704115,
+   "data_paths": ["https://jataware-world-modelers.s3.amazonaws.com/dmc_results_dev/pythia_test_X.parquet.gzip"],
+   "pre_gen_output_paths": [],
+   "is_default_run":false,
+   "tags": ["Agriculture"],
+   "parameters":[
+      {
+         "name":"management_practice",
+         "value":"rf_highN"
+      },
+      {
+         "name":"start_year",
+         "value":2009
+      },
+      {
+         "name":"fertilizer",
+         "value":50
+      },
+      {
+         "name":"number_years",
+         "value":10
+      }
+   ],
+   "attributes":{}
+}
