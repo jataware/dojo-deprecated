@@ -19,8 +19,8 @@ import glob
 
 # Get latest version of mixmasta
 mixmasta_version = os.getenv('MIXMASTA_VERSION')
-
 print(f'mixmasta_version: {mixmasta_version}')
+
 ############################
 ####### Generate DAG #######
 ############################
@@ -62,9 +62,7 @@ def rehydrate(ti, **kwargs):
     req = requests.get(f"{dojo_url}/models/{model_id}")
     respData = json.loads(req.content)
     params = respData["parameters"]
-    
     print(f'params: {params}')
-
     
     #build "type" dict:
     type_dict = {}
@@ -254,7 +252,6 @@ def post_failed_to_dojo(**kwargs):
 ###########################
 ###### Create Tasks #######
 ###########################
-
 
 dmc_local_dir = os.environ.get("DMC_LOCAL_DIR")
 
