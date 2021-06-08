@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, Extra, Field
 
@@ -19,7 +19,7 @@ class Parameter(BaseModel):
         examples=["management_practice"],
         title="Parameter Name",
     )
-    value: str = Field(
+    value: Any = Field(
         ...,
         description="Set value of parameter during run",
         examples=["irrig"],
