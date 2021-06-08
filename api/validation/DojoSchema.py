@@ -115,6 +115,10 @@ class ModelSearchResult(BaseModel):
         title="Results",
         description="Array of result objects"
     )
+    scroll_id: Optional[str] = Field(
+        title="Scroll ID",
+        description="Provide this scroll ID to receive the next page of results"
+    )    
 
 class IndicatorSearchResult(BaseModel):
     hits: int = Field(
@@ -124,4 +128,8 @@ class IndicatorSearchResult(BaseModel):
     results: List[IndicatorSchema.IndicatorMetadataSchema] = Field(
         title="Results",
         description="Array of result objects"
+    )
+    scroll_id: Optional[str] = Field(
+        title="Scroll ID",
+        description="Provide this scroll ID to receive the next page of results"
     )

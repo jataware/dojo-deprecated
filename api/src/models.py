@@ -59,13 +59,11 @@ def modify_model(model_id: str, payload: dict = Body(...)):
 @router.get("/models", response_model=DojoSchema.ModelSearchResult)
 def search_indicators(
     query: str = Query(None),
-    from_: int = 0,
-    size_: int = 10
+    size: int = 10,
+    scroll_id: str = Query(None)
 ) -> DojoSchema.ModelSearchResult: 
     if query:
         q = {
-            "from": from_,
-            "size": size_,
             "query": {
                 "query_string": {
                     "query": query,
@@ -73,11 +71,26 @@ def search_indicators(
             },
         }
     else:
-        q = {"from": from_, "size": size_, "query": {"match_all": {}}}
-    results = es.search(index="models", body=q)
+        q = {"query": {"match_all": {}}}
+    if not scroll_id:
+        # we need to kick off the query
+        results = es.search(index="models", body=q, scroll='2m', size=size)
+    else:
+        # otherwise, we can use the scroll
+        results = es.scroll(scroll_id=scroll_id, scroll='2m')
+
+    # get count
+    count = es.count(index="models", body=q)
+
+    # if results are less than the page size (10) don't return a scroll_id
+    if len(results["hits"]["hits"]) < size:
+        scroll_id = None
+    else:
+        scroll_id = results.get('_scroll_id', None)
     return {
-        "hits": results['hits'].get('total',{}).get('value','unknown'),
-        "results": [i["_source"] for i in results["hits"]["hits"]],
+        "hits": count['count'],
+        "scroll_id": scroll_id,
+        "results": [i["_source"] for i in results["hits"]["hits"]]
     }
 
 
