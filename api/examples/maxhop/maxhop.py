@@ -3,12 +3,12 @@
 import requests
 import json
 
-url = 'http://localhost:8000'
-headers = {'Content-Type': 'application/json'}
+url = "http://localhost:8000"
+headers = {"Content-Type": "application/json"}
 
 
 #### Create Model
-payload = open('maxhop.json').read()
+payload = open("maxhop.json").read()
 resp = requests.post(f"{url}/models", data=payload)
 print(resp.text)
 
@@ -18,14 +18,14 @@ directive = {
     "id": "maxhop-directive-1",
     "model_id": "maxhop-v0.2",
     "command": "--country={{ country }} --annualPrecipIncrease={{ annualPrecipIncrease }} --meanTempIncrease={{ meanTempIncrease }} --format=GTiff",
-    "output_directory": "/usr/local/src/myscripts/output"
+    "output_directory": "/usr/local/src/myscripts/output",
 }
 resp = requests.post(f"{url}/dojo/directive", json=directive)
 print(resp.text)
 
 
 #### Add OutputFile
-mapper = json.loads(open('mapper.json').read())
+mapper = json.loads(open("mapper.json").read())
 outputfile = {
     "id": "maxhop-outputfile-1",
     "model_id": "maxhop-v0.2",

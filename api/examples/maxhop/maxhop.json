@@ -1,0 +1,216 @@
+{
+   "id":"maxhop-v0.2",
+   "name":"MaxHop",
+   "description":"The Jataware locust model predicts the probability of locust presence in Africa using a maximum entropy model over environmental data such as climate and soil texture. This model provides a command line interface which allows users to manipulate environmental input conditions against a pre-trained model to predict future locust distributions.",
+   "created_at":1234567890000,
+   "category":[
+      "Agricultural",
+      "Entomology"
+   ],
+   "maintainer":{
+      "name":"Kyle Marsh",
+      "email":"kyle@jataware.com",
+      "organization":"Jataware",
+      "website":"https://jataware.come"
+   },
+   "image":"marshhawk4/maxhop",
+   "is_stochastic":false,
+   "tags":[
+      "agriculture"
+   ],
+   "geography":{
+      "country":[
+         "Ethiopia",
+         "Algeria",
+         "Chad",
+         "Egypt",
+         "Eritrea",
+         "Ethiopia",
+         "Kenya",
+         "Libya",
+         "Mali",
+         "Mauritania",
+         "Morocco",
+         "Niger",
+         "S.Sudan",
+         "SaudiArabia",
+         "Somalia",
+         "Sudan"
+      ],
+      "admin1":[
+         
+      ],
+      "admin2":[
+         
+      ],
+      "admin3":[
+         
+      ]
+   },
+   "period":{
+      "gte":0,
+      "lte":1622842509036
+   },
+   "parameters":[
+      {
+         "name":"country",
+         "display_name":"Country",
+         "description":"Country of interest to run the model over",
+         "type":"str",
+         "unit_description":"country name",
+         "ontologies":{
+            "concepts":[
+               {
+                  "name":"wm/concept/humanitarian_assistance/food_aid",
+                  "score":0.785829484462738
+               }
+            ],
+            "processes":[
+               {
+                  "name":"wm/process/train/agriculture_training",
+                  "score":0.5917248129844666
+               }
+            ],
+            "properties":[
+               {
+                  "name":"wm/property/condition",
+                  "score":0.6441149115562439
+               }
+            ]
+         },
+         "is_drilldown":true,
+         "additional_options":{
+            
+         },
+         "data_type":"nominal",
+         "default":"Ethiopia",
+         "choices":[
+            "Ethiopia",
+            "Algeria",
+            "Chad",
+            "Egypt",
+            "Eritrea",
+            "Ethiopia",
+            "Kenya",
+            "Libya",
+            "Mali",
+            "Mauritania",
+            "Morocco",
+            "Niger",
+            "S.Sudan",
+            "SaudiArabia",
+            "Somalia",
+            "Sudan"
+         ]
+      },
+      {
+         "name":"annualPrecipIncrease",
+         "display_name":"annual precipitation increase",
+         "description":"Percentage precipitation increase",
+         "type":"float",
+         "ontologies":{
+            "concepts":[
+               {
+                  "name":"wm/concept/humanitarian_assistance/food_aid",
+                  "score":0.785829484462738
+               }
+            ],
+            "processes":[
+               {
+                  "name":"wm/process/train/agriculture_training",
+                  "score":0.5917248129844666
+               }
+            ],
+            "properties":[
+               {
+                  "name":"wm/property/condition",
+                  "score":0.6441149115562439
+               }
+            ]
+         },
+         "is_drilldown":false,
+         "additional_options":{
+            
+         },
+         "data_type":"numerical",
+         "default":"0",
+         "min":"-1",
+         "max":"1"
+      },
+      {
+         "name":"meanTempIncrease",
+         "display_name":"mean temperature increase",
+         "description":"Percentage temperature increase",
+         "type":"float",
+         "ontologies":{
+            "concepts":[
+               {
+                  "name":"wm/concept/humanitarian_assistance/food_aid",
+                  "score":0.785829484462738
+               }
+            ],
+            "processes":[
+               {
+                  "name":"wm/process/train/agriculture_training",
+                  "score":0.5917248129844666
+               }
+            ],
+            "properties":[
+               {
+                  "name":"wm/property/condition",
+                  "score":0.6441149115562439
+               }
+            ]
+         },
+         "is_drilldown":false,
+         "additional_options":{
+            
+         },
+         "data_type":"numerical",
+         "default":"0",
+         "min":"-1",
+         "max":"1"
+      }
+   ],
+   "outputs":[
+      {
+         "name":"Hopper Presence Prediction",
+         "display_name":"Locust [hopper stage] presence",
+         "description":"Probability of presence of locusts",
+         "type":"float",
+         "units":"percentage",
+         "units_description":"Percentage probability",
+         "is_primary":true,
+         "ontologies":{
+            "concepts":[
+               {
+                  "name":"wm/concept/humanitarian_assistance/food_aid",
+                  "score":0.785829484462738
+               }
+            ],
+            "processes":[
+               {
+                  "name":"wm/process/train/agriculture_training",
+                  "score":0.5917248129844666
+               }
+            ],
+            "properties":[
+               {
+                  "name":"wm/property/condition",
+                  "score":0.6441149115562439
+               }
+            ]
+         },
+         "additional_options":{
+            
+         },
+         "data_resolution":{
+            "temporal_resolution":"annual",
+            "spatial_resolution":[
+               18000,
+               18000
+            ]
+         }
+      }
+   ]
+}

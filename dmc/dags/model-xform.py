@@ -16,6 +16,9 @@ from jinja2 import Template
 
 import glob
 
+# Get latest version of mixmasta
+mixmasta_version = os.getenv('MIXMASTA_VERSION')
+print(f'mixmasta_version: {mixmasta_version}')
 
 ### Get ENV variables for Causemos API
 causemos_user = os.getenv('CAUSEMOS_USER')
@@ -63,7 +66,16 @@ def rehydrate(ti, **kwargs):
     req = requests.get(f"{dojo_url}/models/{model_id}")
     respData = json.loads(req.content)
     params = respData["parameters"]
+    print(f'params: {params}')
+    
+    #build "type" dict:
+    type_dict = {}
+    for param in params:
+        
+        type_dict[param["name"]] = param["type"]
 
+    print(f'type_dict: {type_dict}')  
+        
     try:
 
         for configFile in kwargs['dag_run'].conf.get('s3_config_files'):
@@ -80,22 +92,29 @@ def rehydrate(ti, **kwargs):
             # parameters the user sent in
             hydrateData = kwargs['dag_run'].conf.get('params')
 
-             # hydratedDict = copy.deepcopy(defaultDict)
-
             # need to loop over defaultDict and update with hydrateData values
             for key in hydrateData:
                 if key in defaultDict.keys():
                     defaultDict[key] = hydrateData[key]
 
             finalDict = {}
+            for key in defaultDict:
+                 print(f'DEFAULT: key: {key} value: {defaultDict[key]}   type: {type(defaultDict[key])}')
+            for key in hydrateData:
+                 print(f'hydrateData: key: {key} value: {hydrateData[key]}   type: {type(hydrateData[key])}')
+            
             # Format hydratedDIct with proper quotes
             for key in defaultDict:
-                if type(defaultDict[key]) == str:
+                
+                if type_dict[key] == "str":
                     finalDict[key] = '"' + defaultDict[key] + '"'
+                
                 else:
                     finalDict[key] = str(defaultDict[key])
 
-            print(f'finalDict: {finalDict}')
+            for key in finalDict:
+                 print(f'finalDict: key: {key} value: {finalDict[key]}   type: {type(finalDict[key])}')
+            
             # Hydrate the config
             if os.path.exists(saveFolder):
                 print('here')
@@ -108,6 +127,8 @@ def rehydrate(ti, **kwargs):
 
             # Template(dehydrated_config).stream(finalDict).dump(savePath)
             dataToSave = Template(dehydrated_config).render(finalDict)
+
+            print(f'dataToSave: {dataToSave}')
             # savePath needs to be hard coded for ubuntu path with run id and model name or something.
             saveFileName=saveFolder+fileName
             with open(saveFileName, "w+") as fh:
@@ -236,7 +257,6 @@ def post_failed_to_dojo(**kwargs):
 ###### Create Tasks #######
 ###########################
 
-
 dmc_local_dir = os.environ.get("DMC_LOCAL_DIR")
 
 
@@ -279,7 +299,7 @@ model_node = DojoDockerOperator(
 transform_node = DojoDockerOperator(
     task_id='mixmasta-task',
     trigger_rule='all_success',
-    image="jataware/mixmasta:latest",
+    image=f"jataware/mixmasta:{mixmasta_version}",
     container_name="run_{{ dag_run.conf['run_id'] }}",
     volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:/tmp",
              dmc_local_dir + "/mappers:/mappers"],

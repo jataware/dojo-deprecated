@@ -44,20 +44,46 @@ This will turn on the API, Elasticsearch and Kibana, but the API will be in `rel
 
 ## Setup
 
-First, you should create the example model (MaxHop) with:
+There are two example models to run; from the `api` folder run:
+
+MaxHop Example:
 
 ```
-cd examples
-python3 Examples.py
+cd examples/maxhop
+python3 maxhop.py
 ```
+
+Pythia Example:
+
+```
+cd examples/pythia
+python3 pythia.py
+```
+
 
 Then you should create the `runs` index mapping for Elasticsearch with:
 
 ```
-cd es-mappings
+cd ~/api/es-mappings
 python3 CreateMappings.py
 ```
+
+## Running the examples
+
+For each example (`MaxHop` and `pythia`) there is a `run_<model>.json` file. Copy and paste the contents into Dojo's create `run/` endpoint (http://localhost:8000/#/Runs/create_run_runs_post) then navigate to airflow (http://localhost:8080) to monitor model execution.
 
 ## Logging
 
 To set the log level, change the level for FastAPI in `logging.yaml`. 
+
+## Schema Validation
+
+This step only needs to be done after an Uncharted schema change. While the steps below will auto-build the pydantic schema files in the `validation/` folder, you may need to update the .py files in the `src/` directory with any schema class name changes.
+
+To retrieve and build pydantic .py files from the lastest schema jsons from Uncharted run:
+
+```
+chmod 755 json_to_pydantic.sh
+./json_to_pydantic.sh
+``` 
+This shell script clones the Uncharted Schema repo, builds the the pydantic schemas via `datamodel-codegen` (as described [here](https://pydantic-docs.helpmanual.io/datamodel_code_generator/)), then deletes the Uncharted Repo.  Note that an external `$ref` under `model_id` is removed from `model-run.schema.json` and proper conversion to pydantic schema should be verified.

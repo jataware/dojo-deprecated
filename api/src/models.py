@@ -9,18 +9,25 @@ from pydantic import BaseModel, Field
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status, Body
 from fastapi.logger import logger
-from validation import ModelSchema
+from validation import ModelSchema, DojoSchema
 
 from src.settings import settings
+from src.dojo import search_and_scroll
 
 router = APIRouter()
 
 es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
 
+
+# For created_at times in epoch milliseconds
+def current_milli_time():
+    return round(time.time() * 1000)
+
+
 @router.post("/models")
-def create_model(payload: ModelSchema.ModelMetadata):
+def create_model(payload: ModelSchema.ModelMetadataSchema):
     model_id = payload.id
-    payload.created = datetime.now()
+    payload.created_at = current_milli_time()
     body = payload.json()
     es.index(index="models", body=body, id=model_id)
     return Response(
@@ -29,9 +36,10 @@ def create_model(payload: ModelSchema.ModelMetadata):
         content=f"Created model with id = {model_id}",
     )
 
+
 @router.put("/models/{model_id}")
-def update_model(model_id: str, payload: ModelSchema.ModelMetadata):
-    payload.created = datetime.now()
+def update_model(model_id: str, payload: ModelSchema.ModelMetadataSchema):
+    payload.created_at = current_milli_time()
     body = payload.json()
     es.index(index="models", body=body, id=model_id)
     return Response(
@@ -39,6 +47,7 @@ def update_model(model_id: str, payload: ModelSchema.ModelMetadata):
         headers={"location": f"/api/models/{model_id}"},
         content=f"Updated model with id = {model_id}",
     )
+
 
 @router.patch("/models/{model_id}")
 def modify_model(model_id: str, payload: dict = Body(...)):
@@ -50,20 +59,13 @@ def modify_model(model_id: str, payload: dict = Body(...)):
     )
 
 
-@router.get("/models")
-def search_models(query: str = Query(None)) -> List[ModelSchema.ModelMetadata]:
-    if query:
-        q = {
-            "query": {
-                "query_string": {
-                    "query": query,
-                }
-            }
-        }
-    else:
-        q = {"query": {"match_all": {}}}
-    results = es.search(index="models", body=q)
-    return [i["_source"] for i in results["hits"]["hits"]]
+@router.get("/models", response_model=DojoSchema.ModelSearchResult)
+def search_models(
+    query: str = Query(None), size: int = 10, scroll_id: str = Query(None)
+) -> DojoSchema.ModelSearchResult:
+    return search_and_scroll(
+        index="models", size=size, query=query, scroll_id=scroll_id
+    )
 
 
 @router.get("/models/{model_id}")
