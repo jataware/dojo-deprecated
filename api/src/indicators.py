@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.logger import logger
 
-from validation import IndicatorSchema
+from validation import IndicatorSchema, DojoSchema
 from src.settings import settings
 
 router = APIRouter()
@@ -34,6 +34,7 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
         content=f"Created indicator with id = {indicator_id}",
     )
 
+
 @router.put("/indicators")
 def update_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
     indicator_id = payload.id
@@ -47,25 +48,33 @@ def update_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
     )
 
 
-@router.get("/indicators")
-def search_indicators(query: str = Query(None)) -> List[IndicatorSchema.IndicatorMetadataSchema]:
+@router.get("/indicators", response_model=DojoSchema.IndicatorSearchResult)
+def search_indicators(
+    query: str = Query(None),
+    from_: int = 0,
+    size_: int = 10
+) -> DojoSchema.IndicatorSearchResult: 
     if query:
         q = {
-            "size": 100,
+            "from": from_,
+            "size": size_,
             "query": {
                 "query_string": {
                     "query": query,
                 }
-            }
+            },
         }
     else:
-        q = {"size": 10000, "query": {"match_all": {}}}
+        q = {"from": from_, "size": size_, "query": {"match_all": {}}}
     results = es.search(index="indicators", body=q)
-    return [i["_source"] for i in results["hits"]["hits"]]
+    return {
+        "hits": results['hits'].get('total',{}).get('value','unknown'),
+        "results": [i["_source"] for i in results["hits"]["hits"]],
+    }
 
 
 @router.get("/indicators/{indicator_id}")
-def get_indicators(indicator_id: str) -> Indicator:
+def get_indicators(indicator_id: str) -> IndicatorSchema.IndicatorMetadataSchema:
     try:
         indicator = es.get(index="indicators", id=indicator_id)["_source"]
     except:

@@ -12,7 +12,7 @@ from shapely.geometry import LineString, Point, Polygon
 from toposort import CircularDependencyError, toposort_flatten
 from validation import api_types as types
 
-from validation import ModelSchema
+from validation import ModelSchema, IndicatorSchema
 
 class ParameterFormatter(BaseModel):
     """
@@ -105,3 +105,23 @@ class ModelConfig(BaseModel):
 
     class Config:
         extra = "allow"   
+
+class ModelSearchResult(BaseModel):
+    hits: int = Field(
+        title="Total hits for query",
+        example="113"
+    )    
+    results: List[ModelSchema.ModelMetadataSchema] = Field(
+        title="Results",
+        description="Array of result objects"
+    )
+
+class IndicatorSearchResult(BaseModel):
+    hits: int = Field(
+        title="Total hits for query",
+        example="113"
+    )    
+    results: List[IndicatorSchema.IndicatorMetadataSchema] = Field(
+        title="Results",
+        description="Array of result objects"
+    )

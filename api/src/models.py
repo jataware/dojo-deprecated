@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status, Body
 from fastapi.logger import logger
-from validation import ModelSchema
+from validation import ModelSchema, DojoSchema
 
 from src.settings import settings
 
@@ -56,20 +56,29 @@ def modify_model(model_id: str, payload: dict = Body(...)):
     )
 
 
-@router.get("/models")
-def search_models(query: str = Query(None)) -> List[ModelSchema.ModelMetadataSchema]:
+@router.get("/models", response_model=DojoSchema.ModelSearchResult)
+def search_indicators(
+    query: str = Query(None),
+    from_: int = 0,
+    size_: int = 10
+) -> DojoSchema.ModelSearchResult: 
     if query:
         q = {
+            "from": from_,
+            "size": size_,
             "query": {
                 "query_string": {
                     "query": query,
                 }
-            }
+            },
         }
     else:
-        q = {"query": {"match_all": {}}}
+        q = {"from": from_, "size": size_, "query": {"match_all": {}}}
     results = es.search(index="models", body=q)
-    return [i["_source"] for i in results["hits"]["hits"]]
+    return {
+        "hits": results['hits'].get('total',{}).get('value','unknown'),
+        "results": [i["_source"] for i in results["hits"]["hits"]],
+    }
 
 
 @router.get("/models/{model_id}")

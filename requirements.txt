@@ -8,3 +8,6 @@ coverage==4.5.4
 Sphinx==1.8.5
 twine==1.14.0
 datamodel-code-generator==0.11.6
+elasticsearch==7.12.0
+pandas==1.2.4
+boto3==1.17.89
