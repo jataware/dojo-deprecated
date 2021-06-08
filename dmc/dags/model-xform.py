@@ -205,15 +205,9 @@ def RunExit(**kwargs):
         return
     else:
         print('Notifying Uncharted...')
-        payload = {
-            "model_id":model_id,
-            "cube_id":f"{model_id}_{run_id}", #TODO: this should be set to an actual cube ID
-            "job_id":run_id,
-            "run_name_prefix":f"dojo_run_{model_id}_"
-            }
         response = requests.post(f'{causemos_base_url}/{run_id}/post-process',
                                 headers={'Content-Type': 'application/json'}, 
-                                json=payload, 
+                                json=run, 
                                 auth=(causemos_user, causemos_pwd))
         print(f"Response from Uncharted: {response.text}")
         return
@@ -239,15 +233,9 @@ def post_failed_to_dojo(**kwargs):
         return
     else:
         print('Notifying Uncharted...')
-        payload = {
-            "model_id": model_id,
-            "cube_id": f"{model_id}_{run_id}",  # TODO: this should be set to an actual cube ID
-            "job_id": run_id,
-            "run_name_prefix": f"dojo_run_{model_id}_"
-        }
         response = requests.post(f'{causemos_base_url}/{run_id}/run-failed',
                                  headers={'Content-Type': 'application/json'},
-                                 json=payload,
+                                 json=run,
                                  auth=(causemos_user, causemos_pwd))
         print(f"Response from Uncharted: {response.text}")
         return
