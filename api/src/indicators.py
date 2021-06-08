@@ -13,6 +13,8 @@ from fastapi.logger import logger
 from validation import IndicatorSchema, DojoSchema
 from src.settings import settings
 
+from src.dojo import search_and_scroll
+
 router = APIRouter()
 
 es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
@@ -50,40 +52,11 @@ def update_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
 
 @router.get("/indicators", response_model=DojoSchema.IndicatorSearchResult)
 def search_indicators(
-    query: str = Query(None),
-    size: int = 10,
-    scroll_id: str = Query(None)
-) -> DojoSchema.IndicatorSearchResult: 
-    if query:
-        q = {
-            "query": {
-                "query_string": {
-                    "query": query,
-                }
-            },
-        }
-    else:
-        q = {"query": {"match_all": {}}}
-    if not scroll_id:
-        # we need to kick off the query
-        results = es.search(index="indicators", body=q, scroll='2m', size=size)
-    else:
-        # otherwise, we can use the scroll
-        results = es.scroll(scroll_id=scroll_id, scroll='2m')
-
-    # get count
-    count = es.count(index="indicators", body=q)
-
-    # if results are less than the page size (10) don't return a scroll_id
-    if len(results["hits"]["hits"]) < size:
-        scroll_id = None
-    else:
-        scroll_id = results.get('_scroll_id', None)
-    return {
-        "hits": count['count'],
-        "scroll_id": scroll_id,
-        "results": [i["_source"] for i in results["hits"]["hits"]]
-    }
+    query: str = Query(None), size: int = 10, scroll_id: str = Query(None)
+) -> DojoSchema.IndicatorSearchResult:
+    return search_and_scroll(
+        index="indicators", size=size, query=query, scroll_id=scroll_id
+    )
 
 
 @router.get("/indicators/{indicator_id}")

@@ -65,7 +65,7 @@ if __name__ == "__main__":
         for file in sorted(glob.glob("s3_jsons/*.json")):
             files.append(file)
 
-        for file in files[1215:1220]:
+        for file in files:
             post_to_dojo(url, header, file)
 
         """

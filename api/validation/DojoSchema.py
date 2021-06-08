@@ -14,6 +14,7 @@ from validation import api_types as types
 
 from validation import ModelSchema, IndicatorSchema
 
+
 class ParameterFormatter(BaseModel):
     """
     A formatter for a model parameters that are date or time
@@ -23,20 +24,21 @@ class ParameterFormatter(BaseModel):
     model_id: str = Field(
         title="Model ID",
         description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
-        example="abcd-efg-1233"
+        example="abcd-efg-1233",
     )
     format: str = Field(
         title="Format String",
         description="The format of the model parameter using strftime",
-        example="%m/%d/%Y"
+        example="%m/%d/%Y",
     )
+
 
 class ModelOutputFile(BaseModel):
     id: str
     model_id: str = Field(
         title="Model ID",
         description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
-        example="abcd-efg-1233"
+        example="abcd-efg-1233",
     )
     name: str = Field(
         title="Output File Name",
@@ -51,7 +53,7 @@ class ModelOutputFile(BaseModel):
     file_type: str = Field(
         title="Output File Type",
         description="The type of the output file",
-        enum=["csv","geotiff","netcdf"],
+        enum=["csv", "geotiff", "netcdf"],
         example="csv",
     )
     transform: Dict = Field(
@@ -69,12 +71,12 @@ class ModelDirective(BaseModel):
     model_id: str = Field(
         title="Model ID",
         description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
-        example="abcd-efg-1233"
+        example="abcd-efg-1233",
     )
     command: str = Field(
         title="Model Container command",
         description="The model container command, templated using Jinja. Templated fields must correspond with the name of the model parameters.",
-        example="python3 dssat.py --management_practice = {{ management_practice }}"
+        example="python3 dssat.py --management_practice = {{ management_practice }}",
     )
     output_directory: str = Field(
         title="Model Output Directory",
@@ -85,51 +87,46 @@ class ModelDirective(BaseModel):
     class Config:
         extra = "allow"
 
+
 class ModelConfig(BaseModel):
     id: str
     model_id: str = Field(
         title="Model ID",
         description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
-        example="abcd-efg-1233"
-    )    
+        example="abcd-efg-1233",
+    )
     s3_url: str = Field(
         title="S3 URL",
         description="The S3 URL where the config file is located",
-        example="https://jataware-world-modelers.s3.amazonaws.com/dummy-model/config.json"
+        example="https://jataware-world-modelers.s3.amazonaws.com/dummy-model/config.json",
     )
     path: str = Field(
         title="File Path",
         description="The file path where the conf file must be mounted.",
-        example="/model/settings/config.json"        
+        example="/model/settings/config.json",
     )
 
     class Config:
-        extra = "allow"   
+        extra = "allow"
+
 
 class ModelSearchResult(BaseModel):
-    hits: int = Field(
-        title="Total hits for query",
-        example="113"
-    )    
+    hits: int = Field(title="Total hits for query", example="113")
     results: List[ModelSchema.ModelMetadataSchema] = Field(
-        title="Results",
-        description="Array of result objects"
+        title="Results", description="Array of result objects"
     )
     scroll_id: Optional[str] = Field(
         title="Scroll ID",
-        description="Provide this scroll ID to receive the next page of results"
-    )    
+        description="Provide this scroll ID to receive the next page of results",
+    )
+
 
 class IndicatorSearchResult(BaseModel):
-    hits: int = Field(
-        title="Total hits for query",
-        example="113"
-    )    
+    hits: int = Field(title="Total hits for query", example="113")
     results: List[IndicatorSchema.IndicatorMetadataSchema] = Field(
-        title="Results",
-        description="Array of result objects"
+        title="Results", description="Array of result objects"
     )
     scroll_id: Optional[str] = Field(
         title="Scroll ID",
-        description="Provide this scroll ID to receive the next page of results"
+        description="Provide this scroll ID to receive the next page of results",
     )

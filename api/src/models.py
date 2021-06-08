@@ -12,6 +12,7 @@ from fastapi.logger import logger
 from validation import ModelSchema, DojoSchema
 
 from src.settings import settings
+from src.dojo import search_and_scroll
 
 router = APIRouter()
 
@@ -35,6 +36,7 @@ def create_model(payload: ModelSchema.ModelMetadataSchema):
         content=f"Created model with id = {model_id}",
     )
 
+
 @router.put("/models/{model_id}")
 def update_model(model_id: str, payload: ModelSchema.ModelMetadataSchema):
     payload.created_at = current_milli_time()
@@ -45,6 +47,7 @@ def update_model(model_id: str, payload: ModelSchema.ModelMetadataSchema):
         headers={"location": f"/api/models/{model_id}"},
         content=f"Updated model with id = {model_id}",
     )
+
 
 @router.patch("/models/{model_id}")
 def modify_model(model_id: str, payload: dict = Body(...)):
@@ -57,41 +60,12 @@ def modify_model(model_id: str, payload: dict = Body(...)):
 
 
 @router.get("/models", response_model=DojoSchema.ModelSearchResult)
-def search_indicators(
-    query: str = Query(None),
-    size: int = 10,
-    scroll_id: str = Query(None)
-) -> DojoSchema.ModelSearchResult: 
-    if query:
-        q = {
-            "query": {
-                "query_string": {
-                    "query": query,
-                }
-            },
-        }
-    else:
-        q = {"query": {"match_all": {}}}
-    if not scroll_id:
-        # we need to kick off the query
-        results = es.search(index="models", body=q, scroll='2m', size=size)
-    else:
-        # otherwise, we can use the scroll
-        results = es.scroll(scroll_id=scroll_id, scroll='2m')
-
-    # get count
-    count = es.count(index="models", body=q)
-
-    # if results are less than the page size (10) don't return a scroll_id
-    if len(results["hits"]["hits"]) < size:
-        scroll_id = None
-    else:
-        scroll_id = results.get('_scroll_id', None)
-    return {
-        "hits": count['count'],
-        "scroll_id": scroll_id,
-        "results": [i["_source"] for i in results["hits"]["hits"]]
-    }
+def search_models(
+    query: str = Query(None), size: int = 10, scroll_id: str = Query(None)
+) -> DojoSchema.ModelSearchResult:
+    return search_and_scroll(
+        index="models", size=size, query=query, scroll_id=scroll_id
+    )
 
 
 @router.get("/models/{model_id}")
