@@ -181,7 +181,10 @@ def RunExit(**kwargs):
 
     # TODO: this should be conditional; if the other tasks fail
     # this should reflect the failure; job should always finish
-    run['attributes']['status'] = 'success'
+    if 'attributes' not in run:
+        run['attributes'] = {'status': 'success'}
+    else:
+        run['attributes']['status'] = 'success'
 
     # get pth array
     pth=[]
@@ -222,7 +225,10 @@ def post_failed_to_dojo(**kwargs):
 
     # TODO: this should be conditional; if the other tasks fail
     # this should reflect the failure; job should always finish
-    run['attributes']['status'] = 'failed'
+    if 'attributes' not in run:
+        run['attributes'] = {'status': 'success'}
+    else:
+        run['attributes']['status'] = 'success'
 
     response = requests.put(f"{dojo_url}/runs", json=run)
     print(response.text)
