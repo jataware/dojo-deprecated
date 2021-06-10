@@ -83,7 +83,15 @@ This step only needs to be done after an Uncharted schema change. While the step
 To retrieve and build pydantic .py files from the lastest schema jsons from Uncharted run:
 
 ```
+pip install datamodel-code-generator
+```
+
+```
 chmod 755 json_to_pydantic.sh
+```
+
+```
 ./json_to_pydantic.sh
 ``` 
+
 This shell script clones the Uncharted Schema repo, builds the the pydantic schemas via `datamodel-codegen` (as described [here](https://pydantic-docs.helpmanual.io/datamodel_code_generator/)), then deletes the Uncharted Repo.  Note that an external `$ref` under `model_id` is removed from `model-run.schema.json` and proper conversion to pydantic schema should be verified.
