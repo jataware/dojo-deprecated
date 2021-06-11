@@ -11,7 +11,7 @@
       "name":"Kyle Marsh",
       "email":"kyle@jataware.com",
       "organization":"Jataware",
-      "website":"https://jataware.come"
+      "website":"https://jataware.com"
    },
    "image":"marshhawk4/maxhop",
    "is_stochastic":false,
@@ -178,8 +178,8 @@
          "display_name":"Locust [hopper stage] presence",
          "description":"Probability of presence of locusts",
          "type":"float",
-         "units":"percentage",
-         "units_description":"Percentage probability",
+         "unit":"percentage",
+         "unit_description":"Percentage probability",
          "is_primary":true,
          "ontologies":{
             "concepts":[
