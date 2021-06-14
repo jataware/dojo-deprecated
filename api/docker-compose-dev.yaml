@@ -41,6 +41,13 @@ services:
     networks:
       - dojo
 
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    networks:
+      - dojo
+
 volumes:
   dojo_esdata:
     driver: local

@@ -1,15 +1,10 @@
 import logging
-import itertools
-import os
-import pathlib
-import sys
-import time
-from datetime import datetime
 
 import uvicorn
 from fastapi import FastAPI
+
+from src import clouseau, dojo, healthcheck, indicators, models, runs
 from src.settings import settings
-from src import dojo, runs, models, indicators, healthcheck
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +14,7 @@ api.include_router(models.router, tags=["Models"])
 api.include_router(dojo.router, tags=["Dojo"])
 api.include_router(runs.router, tags=["Runs"])
 api.include_router(indicators.router, tags=["Indicators"])
-
+api.include_router(clouseau.router, prefix="/clouseau", tags=["Clouseau"])
 
 def print_debug_routes() -> None:
     max_len = max(len(route.path) for route in api.routes)

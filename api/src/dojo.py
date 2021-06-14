@@ -129,10 +129,8 @@ def create_outputfiles(payload: List[DojoSchema.ModelOutputFile]):
 
 @router.get("/dojo/outputfile/{model_id}")
 def get_outputfiles(model_id: str) -> List[DojoSchema.ModelOutputFile]:
-    print("sssssssssssssssssssssssssssssssssssssssssssssssss")
     results = es.search(index="outputfiles", body=search_by_model(model_id))
     try:
-        print("correct", [i["_source"] for i in results["hits"]["hits"]])
         return [i["_source"] for i in results["hits"]["hits"]]
     except:
         return Response(
