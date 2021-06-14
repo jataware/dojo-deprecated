@@ -14,6 +14,9 @@ class Settings(BaseSettings):
 
     DOJO_URL: str
 
+    REDIS_HOST: str
+    REDIS_PORT: int = 6379
+
     UVICORN_RELOAD: bool = False
 
     class Config:

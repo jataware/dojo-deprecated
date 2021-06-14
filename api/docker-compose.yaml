@@ -3,10 +3,10 @@ services:
   api:
     build: .
     container_name: dojo-api
-    ports: 
+    ports:
       - 8000:80
-    expose: 
-      - "8000"      
+    expose:
+      - "8000"
     networks:
       - dojo
 
@@ -14,7 +14,7 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.11.2
     container_name: elasticsearch
     environment:
-      - "discovery.type=single-node"   
+      - "discovery.type=single-node"
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
@@ -37,6 +37,14 @@ services:
       ELASTICSEARCH_URL: http://elasticsearch:9200
     networks:
       - dojo
+
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    networks:
+      - dojo
+
 
 volumes:
   dojo_esdata:
