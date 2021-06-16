@@ -60,6 +60,7 @@ class EditItem(BaseModel):
 class ContainerInfo(BaseModel):
     id: str
     name: str
+    model_id: str
     image: str
     launched: str
     docker_host: str
@@ -160,6 +161,7 @@ async def container_info(cid: str, redis: aioredis.Redis = Depends(redis_pool)) 
     fields = [
         "id",
         "name",
+        "model_id",
         "image",
         "launched",
         "docker_host",
@@ -167,13 +169,14 @@ async def container_info(cid: str, redis: aioredis.Redis = Depends(redis_pool)) 
         "run_cwd",
     ]
     # meta
-    cid, name, image, launched, docker_host, run_command, run_cwd = await redis.hmget(key, *fields)
+    cid, name, model_id, image, launched, docker_host, run_command, run_cwd = await redis.hmget(key, *fields)
     edits = await container_edits(cid, redis)
     provisions = await container_provisions(cid, redis)
     history = await container_history(cid, redis)
     return ContainerInfo(
         id=cid,
         name=name,
+        model_id=model_id,
         image=image,
         launched=launched,
         docker_host=docker_host,
