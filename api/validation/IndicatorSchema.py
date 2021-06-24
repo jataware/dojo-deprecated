@@ -331,6 +331,11 @@ class IndicatorMetadataSchema(BaseModel):
     outputs: List[Output] = Field(
         ..., description='An array of dataset variables', title='Dataset Outputs'
     )
+    qualifier_outputs: Optional[QualifierOutput] = Field(
+        None,
+        description='The name of the output qualifier column in data file',
+        title='qualifier_output',
+    )
     tags: Optional[List[str]] = Field(
         None,
         description='The tags associated with the dataset.',
