@@ -18,6 +18,10 @@ class Type(Enum):
     datetime = 'datetime'
     lat = 'lat'
     lng = 'lng'
+    country = 'country'
+    admin1 = 'admin1'
+    admin2 = 'admin2'
+    admin3 = 'admin3'
 
 
 class Type1(Enum):
@@ -28,7 +32,10 @@ class Type1(Enum):
     datetime = 'datetime'
     lat = 'lat'
     lng = 'lng'
-
+    country = 'country'
+    admin1 = 'admin1'
+    admin2 = 'admin2'
+    admin3 = 'admin3'
 
 class Maintainer(BaseModel):
     class Config:
