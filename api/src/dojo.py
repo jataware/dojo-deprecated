@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any, Dict, Generator, List, Optional
 
 from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import NotFoundError
 from pydantic import BaseModel, Field
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
@@ -62,12 +63,21 @@ def create_directive(payload: DojoSchema.ModelDirective):
     the model container. The `directive` is templated out using Jinja, where each templated `{{ item }}`
     maps directly to the name of a specific `parameter.
     """
-    es.index(index="directives", body=payload.json(), id=payload.id)
-    return Response(
-        status_code=status.HTTP_201_CREATED,
-        headers={"location": f"/api/dojo/directives/{payload.id}"},
-        content=f"Created directive for model with id = {payload.id}",
-    )
+
+    try:
+        es.update(index="directives", body={"doc": payload.dict()}, id=payload.model_id)
+        return Response(
+            status_code=status.HTTP_200_OK,
+            headers={"location": f"/dojo/directive/{payload.model_id}"},
+            content=f"Created directive for model with id = {payload.model_id}",
+        )
+    except NotFoundError:
+        es.index(index="directives", body=payload.json(), id=payload.model_id)
+        return Response(
+            status_code=status.HTTP_201_CREATED,
+            headers={"location": f"/dojo/directive/{payload.model_id}"},
+            content=f"Created directive for model with id = {payload.model_id}",
+        )
 
 
 @router.get("/dojo/directive/{model_id}")
