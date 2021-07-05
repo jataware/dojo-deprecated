@@ -2,6 +2,12 @@
 
 git clone git@github.com:uncharted-causemos/docs.git
 
+cd docs
+
+git checkout schema-update
+
+cd ../
+
 # One-off hack to delete unneeded ref
 jq -r 'del(.["properties"]["model_id"]["$ref"])' ./docs/datacubes/model-run.schema.json > _.json && mv _.json ./docs/datacubes/model-run.schema.json
 echo "Deleted External Reference"

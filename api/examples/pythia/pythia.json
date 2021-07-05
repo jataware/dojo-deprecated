@@ -7,6 +7,10 @@
         "Economic",
         "Agricultural"
     ],
+    "data_paths": [
+        "https://jataware-world-modelers.s3.amazonaws.com/dev/indicators/parquet/4dfeabb6-a4e8-4237-a862-06ef19fc826d.parquet.gzip"
+      ],
+   "family_name": "DSSAT", 
    "maintainer":{
       "name":"Cheryl Porter",
       "email":"cporter@ufl.edu",
