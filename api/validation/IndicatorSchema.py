@@ -265,7 +265,7 @@ class IndicatorMetadataSchema(BaseModel):
         ..., description="An array of dataset variables", title="Dataset Outputs"
     )
     tags: Optional[List[str]] = Field(
-        None,
+        default_factory=list,
         description="The tags associated with the dataset.",
         examples=[["Agriculture"]],
         title="Search Tags",
@@ -276,5 +276,7 @@ class IndicatorMetadataSchema(BaseModel):
         title="Geography",
     )
     period: Optional[Period] = Field(
-        None, description="Data ranges covered by the dataset", title="Run time period"
+        None, 
+        description="Data ranges covered by the dataset", 
+        title="Run time period"
     )
