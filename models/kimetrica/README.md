@@ -11,5 +11,7 @@ You also need to have a correct `.env` file at the top level of the Kimetrica re
 The Kimetrica models can be executed with more or less the same kind of `luigi` command. For example, the following will run the malnutrition model:
 
 ```
-docker run jataware/kimetrica-darpa-models /bin/bash -c "set -a; source .env; luigi --module models.malnutrition_model.tasks models.malnutrition_model.tasks.MalnutritionInferenceGeoJSON --time 2015-01-01-2015-06-01 --rainfall-scenario-time 2015-05-01-2015-05-10 --country-level Ethiopia --geography /usr/src/app/models/geography/boundaries/ethiopia_2d.geojson --rainfall-scenario-geography /usr/src/app/models/geography/boundaries/ethiopia_2d.geojson --rainfall-scenario high --local-scheduler"
+docker run -v $PWD/output:/usr/src/output jataware/kimetrica-darpa-models /bin/bash -c "set -a; source .env; luigi --module models.malnutrition_model.tasks models.malnutrition_model.tasks.MalnutritionInferenceGeoJSON --time 2015-01-01-2015-06-01 --rainfall-scenario-time 2015-05-01-2015-05-10 --country-level Ethiopia --geography /usr/src/app/models/geography/boundaries/ethiopia_2d.geojson --rainfall-scenario-geography /usr/src/app/models/geography/boundaries/ethiopia_2d.geojson --rainfall-scenario high --local-scheduler"
 ```
+
+This will save the model output to `$PWD/output`. Each model output has a different name, and the Kimetrica team will have to indicate the naming convention for each model. They do seem to be appended with some `UUID` which may be potentially problematic.
