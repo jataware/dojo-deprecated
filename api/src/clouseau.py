@@ -42,6 +42,10 @@ class AsyncRedisPool:
 redis_pool: aioredis.Redis = AsyncRedisPool()
 
 
+class ResponseId(BaseModel):
+    id: str
+
+
 class FileRequestItem(BaseModel):
     model_id: str
     file_path: str
@@ -227,15 +231,15 @@ async def expire_container_info(cid: str, redis: aioredis.Redis = Depends(redis_
 
 
 @router.post("/file")
-async def put_request_info(item: FileRequestItem, redis: aioredis.Redis = Depends(redis_pool)) -> str:
+async def put_request_info(item: FileRequestItem, redis: aioredis.Redis = Depends(redis_pool)) -> ResponseId:
     TTL = 1800  # seconds
-    reqid = uuid4().hex
+    reqid = str(uuid4().hex)
     key = f"closeau:file:{reqid}"
 
     await redis.hmset_dict(key, item.dict())
     await redis.expire(key, TTL)
 
-    return reqid
+    return ResponseId(id=reqid)
 
 
 @router.get("/file/{reqid}")
