@@ -336,7 +336,9 @@ class IndicatorMetadataSchema(BaseModel):
         title="Data Path URLs",
     )
     outputs: List[Output] = Field(
-        ..., description="An array of dataset variables", title="Dataset Outputs"
+        ...,
+        description="An array of dataset variables", 
+        title="Dataset Outputs"
     )
     qualifier_outputs: Optional[List[QualifierOutput]] = Field(
         None,

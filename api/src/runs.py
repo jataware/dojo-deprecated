@@ -53,7 +53,7 @@ headers = {"Content-Type": "application/json"}
 
 
 @router.get("/runs")
-def search_runs(query: str = Query(None)) -> List[RunSchema.ModelMetadataSchema]:
+def search_runs(query: str = Query(None)) -> List[RunSchema.ModelRunSchema]:
     if query:
         q = {
             "query": {
@@ -75,7 +75,7 @@ def search_runs(query: str = Query(None)) -> List[RunSchema.ModelMetadataSchema]
 
 
 @router.get("/runs/{run_id}")
-def get_run(run_id: str) -> RunSchema.ModelMetadataSchema:
+def get_run(run_id: str) -> RunSchema.ModelRunSchema:
     try:
         run = es.get(index="runs", id=run_id)["_source"]
     except:
@@ -88,7 +88,7 @@ def dispatch_run(run):
 
 
 @router.post("/runs")
-def create_run(run: RunSchema.ModelMetadataSchema):
+def create_run(run: RunSchema.ModelRunSchema):
     model = get_model(run.model_id)
 
     # handle model run command
@@ -207,7 +207,7 @@ def get_run_logs(run_id: str):
 
 
 @router.put("/runs")
-def update_run(payload: RunSchema.ModelMetadataSchema):
+def update_run(payload: RunSchema.ModelRunSchema):
     run_id = payload.id
     body = payload.json()
     es.index(index="runs", body=body, id=run_id)
