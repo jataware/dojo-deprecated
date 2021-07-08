@@ -112,8 +112,9 @@ def create_run(run: RunSchema.ModelRunSchema):
         # TODO: we are only processing the first outputfile from a model at this time
         # we need to be able to process all model output files
         mixmasta_input_file = Template(outputfiles[0]["path"]).render(param_dict)
+        model_output_directory = outputfiles[0]["output_directory"]
     except Exception as e:
-        print(e)
+        logging.exception(e)
     logging.info(f"Mixmasta input file (model output file) is: {mixmasta_input_file}")
     # get config in s3
     try:
@@ -121,7 +122,7 @@ def create_run(run: RunSchema.ModelRunSchema):
         configsData = configs
     except Exception as e:
         configsData = []
-        print(e)
+        logging.exception(e)
 
     volumeArray = [
         "/var/run/docker.sock:/var/run/docker.sock",
@@ -156,7 +157,7 @@ def create_run(run: RunSchema.ModelRunSchema):
         "model_image": model.get("image"),
         "model_id": model.get("id"),
         "model_command": model_command,
-        "model_output_directory": directive.get("output_directory"),
+        "model_output_directory": model_output_directory,
         "dojo_url": dojo_url,
         "params": param_dict,
         "s3_config_files": model_config_s3_path_objects,
