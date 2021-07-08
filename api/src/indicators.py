@@ -52,7 +52,7 @@ def get_ontology(data):
                 ontology_dict[key] = datuh
 
             return ontology_dict
-            
+
         else:
             logger.debug(f"else response: {response}")
             return response
