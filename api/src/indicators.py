@@ -46,12 +46,13 @@ def get_ontology(data):
 
             # Capture UAZ ontology data
             ontology_dict = {}
-            for thing in ontologies["outputs"]:
-                key = thing["name"]
-                dat = thing["ontologies"]
-                ontology_dict[key] = dat
+            for ontology in ontologies["outputs"]:
+                key = ontology["name"]
+                datuh = ontology["ontologies"]
+                ontology_dict[key] = datuh
 
-                return ontology_dict
+            return ontology_dict
+            
         else:
             logger.debug(f"else response: {response}")
             return response
@@ -71,7 +72,6 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
     # UAZ API Does not return ontologies for "qualifier_outputs" so work on just "outputs" for now
     try:
         ontology_dict = get_ontology(data)
-
         for output in data["outputs"]:
             output["ontologies"] = ontology_dict[output["name"]]
 
