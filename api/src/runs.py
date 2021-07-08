@@ -109,10 +109,10 @@ def create_run(run: RunSchema.ModelRunSchema):
     outputfiles = get_outputfiles(run.model_id)
 
     try:
-        input_file = Template(outputfiles[0]["path"]).render(param_dict)
+        mixmasta_input_file = Template(outputfiles[0]["path"]).render(param_dict)
     except Exception as e:
         print(e)
-    logging.info(f"Input File is: {input_file}")
+    logging.info(f"Input File is: {mixmasta_input_file}")
     # get config in s3
     try:
         configs = get_configs(run.model_id)
@@ -159,7 +159,7 @@ def create_run(run: RunSchema.ModelRunSchema):
         "params": param_dict,
         "s3_config_files": model_config_s3_path_objects,
         "volumes": json.dumps(volumeArray),
-        "mixmasta_cmd": f"causemosify --input_file=/tmp/{input_file} --mapper=/mappers/mapper_{run.model_id}.json --geo admin3 --output_file=/tmp/{run.id}_{run.model_id}",
+        "mixmasta_cmd": f"causemosify --input_file=/tmp/{mixmasta_input_file} --mapper=/mappers/mapper_{run.model_id}.json --geo admin3 --output_file=/tmp/{run.id}_{run.model_id}",
     }
 
     print("run_conf", run_conf)
