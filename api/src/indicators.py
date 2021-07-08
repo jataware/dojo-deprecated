@@ -13,13 +13,13 @@ from pydantic import BaseModel, Field
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.logger import logger
-import logging
 
 
 from validation import IndicatorSchema, DojoSchema
 from src.settings import settings
 
 from src.dojo import search_and_scroll
+import os
 
 router = APIRouter()
 
@@ -32,9 +32,10 @@ def current_milli_time():
 
 def get_ontology(data):
     headers = {"accept": "application/json", "Content-Type": "application/json"}
-    url = f"http://linking.cs.arizona.edu/v1/groundIndicator?maxHits=10&threshold=0.7&compositional=true"
+    url = os.getenv("UAZ_URL")
 
     try:
+        logger.debug(f"Sending indicator to {url}")
         response = requests.put(url, json=data, headers=headers)
         logger.debug(f"response: {response}")
         logger.debug(f"response reason: {response.raw.reason}")
@@ -58,8 +59,8 @@ def get_ontology(data):
             return response
 
     except Exception as e:
-        logger.debug(f"get_ontology exception: {str(e)}")
-        logger.debug(f"get_ontology traceback: {traceback.format_exc()}")
+        logger.error(f"Encountered problems communicating with UAZ service: {e}")
+        logger.exception(e)
 
 
 @router.post("/indicators")
@@ -78,15 +79,16 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
         logger.debug(f"Data with UAZ: {data}")
 
     except Exception as e:
-        logger.debug(f"create_indicator exception: {str(e)}")
-        logger.debug(f"create traceback: {traceback.format_exc()}")
+        logger.error(f"Failed to generate indicator: {str(e)}")
+        logger.exception(e)
 
     try:
         body = json.dumps(data)
         es.index(index="indicators", body=body, id=indicator_id)
 
     except Exception as e:
-        logger.debug(f"elastic search traceback: {traceback.format_exc()}")
+        logger.error(f"Issue storing indicator to elasticsearch")
+        logger.exception(e)
 
     return Response(
         status_code=status.HTTP_201_CREATED,

@@ -10,6 +10,8 @@ services:
       - 8000:80
     expose:
       - "8000"
+    env_file:
+      - .env      
     networks:
       - dojo
 
