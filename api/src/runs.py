@@ -109,10 +109,12 @@ def create_run(run: RunSchema.ModelRunSchema):
     outputfiles = get_outputfiles(run.model_id)
 
     try:
+        # TODO: we are only processing the first outputfile from a model at this time
+        # we need to be able to process all model output files
         mixmasta_input_file = Template(outputfiles[0]["path"]).render(param_dict)
     except Exception as e:
         print(e)
-    logging.info(f"Input File is: {mixmasta_input_file}")
+    logging.info(f"Mixmasta input file (model output file) is: {mixmasta_input_file}")
     # get config in s3
     try:
         configs = get_configs(run.model_id)
