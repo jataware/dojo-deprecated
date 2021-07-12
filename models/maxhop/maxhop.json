@@ -3,6 +3,7 @@
    "name":"MaxHop",
    "description":"The Jataware locust model predicts the probability of locust presence in Africa using a maximum entropy model over environmental data such as climate and soil texture. This model provides a command line interface which allows users to manipulate environmental input conditions against a pre-trained model to predict future locust distributions.",
    "created_at":1234567890000,
+   "family_name": "MaxHop",
    "category":[
       "Agricultural",
       "Entomology"
