@@ -18,7 +18,6 @@ directive = {
     "id": "maxhop-directive-1",
     "model_id": "maxhop-v0.2",
     "command": "--country={{ country }} --annualPrecipIncrease={{ annualPrecipIncrease }} --meanTempIncrease={{ meanTempIncrease }} --format=GTiff",
-    "output_directory": "/usr/local/src/myscripts/output",
 }
 resp = requests.post(f"{url}/dojo/directive", json=directive)
 print(resp.text)
@@ -31,6 +30,7 @@ outputfile = {
     "model_id": "maxhop-v0.2",
     "name": "Hopper Presence Prediction",
     "file_type": "geotiff",
+    "output_directory": "/usr/local/src/myscripts/output",
     "path": "maxent_Ethiopia_precipChange={{ annualPrecipIncrease }}tempChange={{ meanTempIncrease }}.tif",
     "transform": mapper,
 }

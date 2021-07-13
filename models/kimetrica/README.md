@@ -6,6 +6,8 @@ To build this container you must clone the [Kimetrica repo](https://gitlab.com/k
 
 You also need to have a correct `.env` file at the top level of the Kimetrica repo which contains CKAN and other credentials. Kimetrica has provided this and it is baked into the pre-built version of this container.
 
+Currently this docker image is available on Dockerhub at `jataware/clouseau:claudine_ki_models` and can be fetched with `docker pull jataware/clouseau:claudine_ki_models`.
+
 ## Running a Kimetrica model
 
 The Kimetrica models can be executed with more or less the same kind of `luigi` command. For example, the following will run the malnutrition model:

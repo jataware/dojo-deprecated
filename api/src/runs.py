@@ -94,7 +94,6 @@ def create_run(run: RunSchema.ModelRunSchema):
     # handle model run command
     directive = get_directive(run.model_id)
     model_command = Template(directive.get("command"))
-    output_dir = directive.get("output_directory")
 
     # get parameters
     params = run.parameters
@@ -108,14 +107,35 @@ def create_run(run: RunSchema.ModelRunSchema):
 
     outputfiles = get_outputfiles(run.model_id)
 
-    try:
-        # TODO: we are only processing the first outputfile from a model at this time
-        # we need to be able to process all model output files
-        mixmasta_input_file = Template(outputfiles[0]["path"]).render(param_dict)
-        model_output_directory = outputfiles[0]["output_directory"]
-    except Exception as e:
-        logging.exception(e)
-    logging.info(f"Mixmasta input file (model output file) is: {mixmasta_input_file}")
+    
+    volumeArray = [
+        "/var/run/docker.sock:/var/run/docker.sock"
+    ]
+
+    mixmasta_inputs = []
+    for output in outputfiles:
+        try:
+            # rehydrate file path in 
+            mixmasta_input_file = Template(output["path"]).render(param_dict)
+
+            # get name of the mapper (will be based on output ID)
+            mapper_name = f"mapper_{output['id']}.json"
+
+            # build a volume mount for this output file's directory
+            output_dir_volume = dmc_local_dir + f"/results/{run.id}/{output['id']}:{output['output_directory']}"
+
+            # add it to the volumeArray
+            volumeArray.append(output_dir_volume)
+
+            # build mixmasta input object
+            mixmasta_input = {"input_file": f"/tmp/{output['id']}/{mixmasta_input_file}",
+                              "mapper": f"/mappers/{mapper_name}"}
+            
+            mixmasta_inputs.append(mixmasta_input)
+        except Exception as e:
+            logging.exception(e)
+        logging.info(f"Mixmasta input file (model output file) is: {mixmasta_input_file}")
+
     # get config in s3
     try:
         configs = get_configs(run.model_id)
@@ -124,10 +144,7 @@ def create_run(run: RunSchema.ModelRunSchema):
         configsData = []
         logging.exception(e)
 
-    volumeArray = [
-        "/var/run/docker.sock:/var/run/docker.sock",
-        dmc_local_dir + f"/results/{run.id}:{output_dir}",
-    ]
+
     model_config_s3_path_objects = []
 
     # get volumes
@@ -148,7 +165,7 @@ def create_run(run: RunSchema.ModelRunSchema):
 
     # remove redundant volume mounts
     volumeArray = list(set(volumeArray))
-    print("volumnArrray", volumeArray)
+    print("volumeArrray", volumeArray)
 
     # get s3 and file name/ paths
 
@@ -162,7 +179,7 @@ def create_run(run: RunSchema.ModelRunSchema):
         "params": param_dict,
         "s3_config_files": model_config_s3_path_objects,
         "volumes": json.dumps(volumeArray),
-        "mixmasta_cmd": f"causemosify --input_file=/tmp/{mixmasta_input_file} --mapper=/mappers/mapper_{run.model_id}.json --geo admin3 --output_file=/tmp/{run.id}_{run.model_id}",
+        "mixmasta_cmd": f"causemosify-multi --inputs={mixmasta_inputs} --geo=admin3 --output_file=/tmp/{run.id}_{run.model_id}",
     }
 
     print("run_conf", run_conf)
