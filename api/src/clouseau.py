@@ -7,39 +7,16 @@ from uuid import uuid4
 
 import aioredis
 import pydantic
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel
 
-from src.settings import settings
+from src.redisapi import redis_pool
 from src.utils import try_parse_int
 
 logger: Logger = logging.getLogger(__name__)
 router = APIRouter()
 
 EXPIRE_TTL = 86400 * 2  # seconds
-
-
-class AsyncRedisPool:
-    def __init__(self) -> None:
-        self._pool: Optional[aioredis.Redis] = None
-        self._lock = asyncio.Lock()
-
-    async def __call__(self) -> aioredis.Redis:
-        if self._pool is not None:
-            return self._pool
-
-        async with self._lock:
-            if self._pool is not None:
-                return self._pool
-            logger.debug("Creating Redis Pool")
-            host = settings.REDIS_HOST
-            port = settings.REDIS_PORT
-            pool = await aioredis.create_pool((host, port), encoding="utf-8")
-            self._pool = aioredis.Redis(pool)
-        return self._pool
-
-
-redis_pool: aioredis.Redis = AsyncRedisPool()
 
 
 class ResponseId(BaseModel):
@@ -86,7 +63,7 @@ class ContainerInfo(BaseModel):
 @router.get("/ping")
 async def ping_redis(redis: aioredis.Redis = Depends(redis_pool)) -> str:
     logger.debug("ping")
-    return str(await redis.ping())
+    return Response(content=str(await redis.ping()), media_type="plain/text")
 
 
 async def gather_non_nil(xs: List[Awaitable[Any]]) -> List[Any]:
