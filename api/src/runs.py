@@ -112,6 +112,7 @@ def create_run(run: RunSchema.ModelRunSchema):
         "/var/run/docker.sock:/var/run/docker.sock"
     ]
 
+    output_dirs = {}
     mixmasta_inputs = []
     for output in outputfiles:
         try:
@@ -122,13 +123,23 @@ def create_run(run: RunSchema.ModelRunSchema):
             mapper_name = f"mapper_{output['id']}.json"
 
             # build a volume mount for this output file's directory
-            output_dir_volume = dmc_local_dir + f"/results/{run.id}/{output['id']}:{output['output_directory']}"
+            output_dir = output['output_directory']
+            output_id = output['id']
+
+            # we have to be careful since we cannot mount the same directory (within the model container) more than once
+            # so if multiple output files reside in the same directory (which is common), we need to re-use that volume mount
+            # and therefore need to ensure mixmasta knows where to fetch the files
+            if output_dir not in output_dirs:
+                output_dirs[output_dir] = output_id
+
+            # use the lookup to build the path
+            output_dir_volume = dmc_local_dir + f"/results/{run.id}/{output_dirs[output_dir]}:{output_dir}"               
 
             # add it to the volumeArray
             volumeArray.append(output_dir_volume)
 
             # build mixmasta input object
-            mixmasta_input = {"input_file": f"/tmp/{output['id']}/{mixmasta_input_file}",
+            mixmasta_input = {"input_file": f"/tmp/{output_dirs[output_dir]}/{mixmasta_input_file}",
                               "mapper": f"/mappers/{mapper_name}"}
             
             mixmasta_inputs.append(mixmasta_input)
@@ -165,7 +176,6 @@ def create_run(run: RunSchema.ModelRunSchema):
 
     # remove redundant volume mounts
     volumeArray = list(set(volumeArray))
-    print("volumeArrray", volumeArray)
 
     # get s3 and file name/ paths
 
@@ -174,15 +184,15 @@ def create_run(run: RunSchema.ModelRunSchema):
         "model_image": model.get("image"),
         "model_id": model.get("id"),
         "model_command": model_command,
-        "model_output_directory": model_output_directory,
+        # "model_output_directory": model_output_directory,
         "dojo_url": dojo_url,
         "params": param_dict,
         "s3_config_files": model_config_s3_path_objects,
         "volumes": json.dumps(volumeArray),
-        "mixmasta_cmd": f"causemosify-multi --inputs={mixmasta_inputs} --geo=admin3 --output_file=/tmp/{run.id}_{run.model_id}",
+        "mixmasta_cmd": f"causemosify-multi --inputs='{json.dumps(mixmasta_inputs)}' --geo=admin3 --output-file=/tmp/{run.id}_{run.model_id}",
     }
 
-    print("run_conf", run_conf)
+    logging.debug(f"run_conf: {run_conf}")
 
     payload = {"dag_run_id": run.id, "conf": run_conf}
 

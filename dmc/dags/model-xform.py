@@ -167,10 +167,11 @@ def s3copy(**kwargs):
 def getMapper(**kwargs):
     dojo_url = kwargs['dag_run'].conf.get('dojo_url')
     model_id = kwargs['dag_run'].conf.get('model_id')
-    of = requests.get(f"{dojo_url}/dojo/outputfile/{model_id}").json()
-    mapper = of[0]['transform']
-    with open(f'/mappers/mapper_{model_id}.json','w') as f:
-        f.write(json.dumps(mapper))
+    ofs = requests.get(f"{dojo_url}/dojo/outputfile/{model_id}").json()
+    for of in ofs:
+        mapper = of['transform']
+        with open(f'/mappers/mapper_{of["id"]}.json','w') as f:
+            f.write(json.dumps(mapper))
 
 
 def RunExit(**kwargs):
