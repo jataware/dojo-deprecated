@@ -1,0 +1,56 @@
+{
+    "geo": [
+        {
+            "name": "y",
+            "display_name": "y",
+            "description": "location",
+            "type": "geo",
+            "geo_type": "latitude",
+            "primary_geo": true,
+            "is_geo_pair": "x"
+        },
+        {
+            "name": "x",
+            "display_name": "X",
+            "description": "location",
+            "type": "geo",
+            "geo_type": "longitude",
+            "primary_geo": true,
+            "is_geo_pair": "y"
+        }
+    ],
+    "date": [
+        {
+            "name": "month",
+            "display_name": "Month",
+            "description": "date",
+            "type": "date",
+            "date_type": "date",
+            "time_format": "%Y-%m-%d",
+            "primary_date": true
+        }
+    ],
+    "feature": [
+        {
+            "name": "unimproved_sanitation",
+            "display_name": "Unimproved Sanitation",
+            "description": "unimproved sanitation",
+            "type": "feature",
+            "feature_type": "float",
+            "units": "n/a",
+            "units_description": ""
+        },
+        {
+            "name": "unimproved_drinking_water",
+            "display_name": "Unimproved Drinking Water",
+            "description": "unimproved drinking water",
+            "type": "feature",
+            "feature_type": "float",
+            "units": "n/a",
+            "units_description": ""
+        }
+    ],
+    "meta": {
+        "ftype": "netcdf"
+    }
+}

@@ -1,0 +1,33 @@
+{
+    "id": "wash-testrun-1",
+    "model_name": "Water and Sanitation Model WASH",
+    "model_id": "efde67cb-d6f3-4bd4-aed0-25b9748534fd",
+    "created_at": 0,
+    "data_paths": [],
+    "pre_gen_output_paths": [],
+    "is_default_run": false,
+    "tags": ["health"],
+    "parameters": [
+      {
+        "name": "country",
+        "value": "Ethiopia"
+      },
+      {
+        "name": "country_geojson",
+        "value": "ethiopia"
+      },
+      {
+        "name":"date_range",
+        "value": "2017-08-01-2017-10-01"
+      },
+      {
+        "name":"travel_time_percent_change",
+        "value": 0
+      },
+      {
+        "name":"aridity_index_percent_change",
+        "value": 0
+      }
+    ],
+    "attributes":{}
+  }

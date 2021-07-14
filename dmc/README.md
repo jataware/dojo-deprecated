@@ -17,20 +17,20 @@ For Linux
 hostname -i
 ```
 
-Either `export` this to your environment or update `docker-compose.yaml` and change `DOCKER_URL` to
+This is your `local ip`. Update line 54 of `docker-compose.yaml` and change `DOCKER_URL` to
 ```
       DOCKER_URL: http://<local ip>:8375
-```
-
-You can validate docker api is working after `docker-compose` has started with
-```
-curl localhost:8375/containers/json
 ```
 
 The DMC can be run via `docker-compose` with:
 
 ```
 docker-compose up -d
+```
+
+You can validate docker api is working after `docker-compose` has started with
+```
+curl localhost:8375/containers/json
 ```
 
 You'll need to make the following permissions change:
