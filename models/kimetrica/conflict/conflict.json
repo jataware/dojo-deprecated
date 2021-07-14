@@ -65,7 +65,7 @@
             "name": "conflict_onset_forecast",
             "display_name": "Conflict Onset Forecast",
             "description": "Target variable for the conflict model which indicate 1, onset/presence of conflict; 0, otherwise. conflict is defined as an armed clash between two or more actors/groups such as government forces, identity groups, militias etc. the source of data is acled (the armed conflict location & event data project) collects real-time data on the locations, dates, actors, fatalities, and types of all reported political violence and protest events across many parts of the world. the variable is calculated at admin two and on monthly basis where we account a single instance of conflict as an onset regardless of the number of events occurred during one month of time. additionally, we introduced the idea of peaceful days to isolate the recurrent conflict from conflicts that happen rarely by allowing users to specify the number of peaceful days after a conflict. accordingly, conflict tends to drastically drops as the number of peaceful days increase.",
-            "type": "binary",
+            "type": "boolean",
             "unit": "n/a",
             "unit_description": "n/a",
             "is_primary": true,
