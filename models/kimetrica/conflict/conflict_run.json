@@ -1,0 +1,25 @@
+{
+    "id": "conflict-testrun-1",
+    "model_name": "Conflict Model",
+    "model_id": "9e896392-2639-4df6-b4b4-e1b1d4cf46ae",
+    "created_at": 0,
+    "data_paths": [],
+    "pre_gen_output_paths": [],
+    "is_default_run": false,
+    "tags": ["conflict"],
+    "parameters": [
+      {
+        "name": "peaceful_days",
+        "value": 40
+      },
+      {
+        "name": "youth_bulge_percentage_change",
+        "value": 0
+      },
+      {
+        "name":"drought_index_evaporative_stress_index",
+        "value": 0
+      }
+    ],
+    "attributes":{}
+  }
