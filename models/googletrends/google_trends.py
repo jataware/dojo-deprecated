@@ -15,7 +15,7 @@ print(resp.text)
 directive = {
   "id": "dojo/shorthand_templates/ca83b434-0f6a-4375-874c-bed9032bf779/f07f739babe071f4ef8c250865d6194c.template.txt",
   "model_id": "ca83b434-0f6a-4375-874c-bed9032bf779",
-  "command": "python3 trends.py --term=\"{{ search_term }}\" --country=\"{{ country }}\" --state=\"{{ admin }}\" --output=output/output.csv",
+  "command": "docker run redbeard14/google_trends --term=\"{{ search_term }}\" --country=\"{{ country }}\" --state=\"{{ admin }}\" --output=output/output.csv",
   "output_directory": "/output"
 }
 resp = requests.post(f"{url}/dojo/directive", json=directive)
@@ -28,7 +28,7 @@ outputfile = {
     "model_id": "ca83b434-0f6a-4375-874c-bed9032bf779",
     "name": "google_trends",
     "file_type": "csv",
-    "output_directory": "/",
+    "output_directory": "/outputfile",
     "path": "output.csv",
     "transform": mapper,
 }

@@ -14,7 +14,7 @@
     "organization": "Jataware",
     "website": "https://github.com/jataware/open-indicators/blob/master/google-trends/"
   },
-  "image": "jataware/dojo-publish:GoogleTrends-latest",
+  "image": "redbeard14/google_trends",
   "observed_data": null,
   "is_stochastic": false,
   "parameters": [
@@ -78,10 +78,24 @@
         "type": "int",
         "unit": "n/a",
         "unit_description": "",
-        "is_primary": true
+        "is_primary": true,
+        "ontologies": {"concepts": [],"processes": [],"properties": []}
     }
   ],
-  "qualifier_outputs": null,
+  "qualifier_outputs":[ 
+    {
+        "name": "description",
+        "display_name": "Description",
+        "description": "label of the keyword and geography selected.",
+        "type": "str",
+        "unit": "n/a",
+        "unit_description": "",
+        "related_features": [
+            "value"
+        ],
+        "ontologies": {"concepts": [],"processes": [],"properties": []}
+    }
+  ],
   "tags": null,
   "geography": {
     "country": null,
