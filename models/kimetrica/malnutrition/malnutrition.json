@@ -1,0 +1,159 @@
+{
+    "id": "425f58a4-bbba-44d3-83f3-aba353fc7c64",
+    "name": "Malnutrition Model",
+    "family_name": "Kimetrica Models",
+    "description": "The malnutrition model was developed to predict the monthly malnutrition for Global Acute Malnutrition (GAM) and Severe Acute Malnutrition (SAM). Having these predictions enables more timely and efficient intervention efforts to reduce the prevalence of malnutrition in countries such as South Sudan and Ethiopia. According to World Health Organization (WHO) guideline, GAM and SAM are defined as weight-for-height z-score below -2, and weight-for-height z-score below -3 for children under the age of 5, respectively. Therefore, by this definition, GAM includes all categories of malnutrition.\nThe model ingests the input values and predicts the malnutrition rates of GAM and SAM for the next time point (e.g., next month) and converting that to the number of cases. Please note it does not provide forecasting based on previous values of malnutrition rates in a time series; therefore, this is not a forecast model.",
+    "created_at": 1626225277164,
+    "category": [
+        "malnutrition",
+        "food-insecurity",
+        "GAM",
+        "SAM"
+    ],
+    "maintainer": {
+        "name": "Ahmad Mohassel",
+        "email": "ahmad.mohassel@kimetrica.com",
+        "organization": "Kimetrica",
+        "website": "https://gitlab.com/kimetrica/darpa/darpa/-/tree/master/models/malnutrition_model"
+    },
+    "image": "jataware/clouseau:claudine_ki_models",
+    "observed_data": null,
+    "is_stochastic": false,
+    "parameters": [
+        {
+            "unit": "N/A",
+            "default": "2017-01-01-2017-06-01",
+            "min": null,
+            "max": null,
+            "name": "rainfall_scenario_time_range",
+            "data_type": "freeform",
+            "description": "Rainfall scenario time range in YYYY-MM-DD-YYYY-MM-DD format. \nExample: 2015-05-01-2015-05-10\nChoose a time range from 2011-06-01 to 2019-04-01",
+            "id": "2015-05-01-2015-05-10-512748",
+            "unit_description": null,
+            "display_name": "rainfall scenario time range",
+            "type": "str",
+            "choices": []
+        },
+        {
+            "unit": "N/A",
+            "default": "2017-05-01-2017-05-02",
+            "min": null,
+            "max": null,
+            "name": "time_range",
+            "data_type": "freeform",
+            "description": "time range in YYYY-MM-DD-YYYY-MM-DD format. \nExample: 2015-05-01-2015-05-10\nChoose a time range from 2011-06-01 to 2019-04-01",
+            "id": "2015-01-01-2015-06-01-310632",
+            "unit_description": null,
+            "display_name": "time range",
+            "type": "str",
+            "choices": []
+        },
+        {
+            "unit": "N/A",
+            "default": "Ethiopia",
+            "min": null,
+            "max": null,
+            "name": "country",
+            "data_type": "nominal",
+            "description": "choose the country",
+            "id": "Ethiopia-664634",
+            "unit_description": null,
+            "display_name": "country",
+            "type": "str",
+            "choices": [
+                "Ethiopia",
+                "South Sudan"
+            ]
+        },
+        {
+            "unit": "N/A",
+            "default": "ethiopia",
+            "min": null,
+            "max": null,
+            "name": "geography",
+            "data_type": "nominal",
+            "description": "choose geography",
+            "id": "ethiopia-778574",
+            "unit_description": null,
+            "display_name": "geography",
+            "type": "str",
+            "choices": [
+                "south_sudan",
+                "ethiopia"
+            ]
+        },
+        {
+            "unit": "N/A",
+            "default": "ethiopia",
+            "min": null,
+            "max": null,
+            "name": "rainfall_geography",
+            "data_type": "nominal",
+            "description": "choose rainfall geography",
+            "id": "ethiopia-744673",
+            "unit_description": null,
+            "display_name": "rainfall geography",
+            "type": "str",
+            "choices": [
+                "ethiopia",
+                "south_sudan"
+            ]
+        },
+        {
+            "unit": "N/A",
+            "default": "normal",
+            "min": null,
+            "max": null,
+            "name": "rainfall_scenario",
+            "data_type": "nominal",
+            "description": "choose rainfall scenario",
+            "id": "high-75774",
+            "unit_description": null,
+            "display_name": "rainfall scenario",
+            "type": "str",
+            "choices": [
+                "low",
+                "high",
+                "mean",
+                "normal"
+            ]
+        }
+    ],
+    "outputs": [
+        {
+            "name": "gam_rate",
+            "display_name": "Gam Rate",
+            "description": "global acute malnutrition (gam) ",
+            "type": "float",
+            "unit": "n/a",
+            "unit_description": "",
+            "is_primary": true,
+            "ontologies": {"concepts": [], "processes": [], "properties": []}            
+        },
+        {
+            "name": "sam_rate",
+            "display_name": "Sam Rate",
+            "description": "severe acute malnutrition (sam)",
+            "type": "float",
+            "unit": "n/a",
+            "unit_description": "",
+            "is_primary": true,
+            "ontologies": {"concepts": [], "processes": [], "properties": []} 
+        }
+    ],
+    "qualifier_outputs": null,
+    "tags": null,
+    "geography": {
+        "country": [
+            "Ethiopia",
+            "South Sudan"
+        ],
+        "admin1": null,
+        "admin2": null,
+        "admin3": null,
+        "coordinates": []
+    },
+    "period": null,
+    "type": "model",
+    "stochastic": "false"
+}

@@ -1,0 +1,94 @@
+{
+    "id": "9e896392-2639-4df6-b4b4-e1b1d4cf46ae",
+    "name": "Conflict Model",
+    "family_name": "Kimetrica",
+    "description": "This model is a continuation of the baseline conflict model that was initiated with an objective of forecasting armed conflict over time and space. In this version, we introduced the idea of peaceful days to isolate the recurrent conflict from conflicts that happen rarely. This was the major improvement made besides expanding the scope of the model from Ethiopia to the entire Horn Africa region.\n\nAs mentioned, the unique feature of this model is that it enables users to specify the number of peaceful days after a conflict. Accordingly, conflict tends to drastically drops as the number of peaceful days increase. In other words, it is possible to decrease the possibility of recurrence of conflict by increasing the number of peaceful days (0 being \"as it is or without introduction of peaceful days\", 40 being \"default\"). Notable also that the model performance declines as the number of peaceful days increases particularly beyond 90 days as conflict tends to happen very rarely which makes it difficult for the model to capture the occurrences of extremely rare events.",
+    "created_at": 1626173155060,
+    "category": [
+        "Conflict"
+    ],
+    "maintainer": {
+        "name": "Yared Hurisa",
+        "email": "yhurisalemma@air.org",
+        "organization": "Kimetrica",
+        "website": "https://gitlab.com/kimetrica/darpa/darpa/-/tree/master/models/conflict_model"
+    },
+    "image": "jataware/clouseau:claudine_ki_models",
+    "observed_data": null,
+    "is_stochastic": false,
+    "parameters": [
+        {
+            "unit": "days",
+            "default": "40",
+            "min": "0",
+            "max": "90",
+            "name": "peaceful_days",
+            "data_type": "numerical",
+            "description": "Number/duration of peaceful days after a conflict ranging from 0 to 90. 0 days means the data as it is where there is maximum number actual conflict events in a month of time. 40 peaceful days represent the default value where conflict tends to rarely happen after the threshold. As the number of peaceful days increase, the occurrence of conflict drastically drops and die-out over time.\n\nWe find that the increase in the number of days without conflict strengths societies to maintain peace particularly after certain number of days perhaps due to the increased capacity of institutions to create peace within the communities.",
+            "id": "40-11476",
+            "unit_description": "number of peaceful days",
+            "display_name": "Peaceful Days",
+            "type": "int",
+            "choices": []
+        },
+        {
+            "unit": "Percent",
+            "default": "0",
+            "min": "-1",
+            "max": "1",
+            "name": "youth_bulge_percentage_change",
+            "data_type": "numerical",
+            "description": "Proportion of youthful (15-35 years of age). The indicator increases for values between 0 and 1 and decreases between (-1 and 0) while 0 represents the actual value of the proportion of youthful population. \n\nThe assumption is that an increase in youth bulge increases the likelihood of conflict due to lack of employment and lack of resources to carry the population.",
+            "id": "0-868958",
+            "unit_description": "Percent of youth",
+            "display_name": "Youth bulge percentage change",
+            "type": "float",
+            "choices": []
+        },
+        {
+            "unit": "Percent",
+            "default": "0",
+            "min": "-1",
+            "max": "1",
+            "name": "drought_index_evaporative_stress_index",
+            "data_type": "numerical",
+            "description": "The Evaporative Stress Index (Drought Index) describes temporal anomalies in evapotranspiration (ET), highlighting areas with anomalously high or low rates of water use across the land surface. The indicator serve as a proxy for the occurrence of drought due to water shortage. \n\nThe literature indicate that drought increase the likelihood of conflict especially in farming and pastoral communities due to stress in the environment as well as lack of pasture and water.",
+            "id": "0-311316",
+            "unit_description": "Drought Index Percentage change",
+            "display_name": "Drought index (Evaporative stress index)",
+            "type": "float",
+            "choices": []
+        }
+    ],
+    "outputs": [
+        {
+            "name": "conflict_onset_forecast",
+            "display_name": "Conflict Onset Forecast",
+            "description": "Target variable for the conflict model which indicate 1, onset/presence of conflict; 0, otherwise. conflict is defined as an armed clash between two or more actors/groups such as government forces, identity groups, militias etc. the source of data is acled (the armed conflict location & event data project) collects real-time data on the locations, dates, actors, fatalities, and types of all reported political violence and protest events across many parts of the world. the variable is calculated at admin two and on monthly basis where we account a single instance of conflict as an onset regardless of the number of events occurred during one month of time. additionally, we introduced the idea of peaceful days to isolate the recurrent conflict from conflicts that happen rarely by allowing users to specify the number of peaceful days after a conflict. accordingly, conflict tends to drastically drops as the number of peaceful days increase.",
+            "type": "boolean",
+            "unit": "n/a",
+            "unit_description": "n/a",
+            "is_primary": true,
+            "ontologies": {"concepts": [], "processes": [], "properties": []}
+          }        
+    ],
+    "qualifier_outputs": null,
+    "tags": null,
+    "geography": {
+        "country": [
+            "Djibouti",
+            "Ethiopia",
+            "Kenya",
+            "South Sudan",
+            "Sudan",
+            "Somalia"
+        ],
+        "admin1": null,
+        "admin2": null,
+        "admin3": null,
+        "coordinates": []
+    },
+    "period": null,
+    "type": "model",
+    "stochastic": "false"
+}
