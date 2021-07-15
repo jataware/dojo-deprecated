@@ -13,12 +13,16 @@ Then run Dojo/DMC as you normally would.
 
 Next run:
 
+'''
 cd api/es-mappings
 python3 CreateMappings.py
+'''
 
 Then,
 
+'''
 cd ~models/googletrends
 python3 google_trends.py
+'''
 
 Submit a model run `google_trends_run.json` with desired search term and geographic area(s) reflected in the `parameters` dictionary.
