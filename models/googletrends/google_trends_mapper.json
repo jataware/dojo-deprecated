@@ -1,0 +1,62 @@
+{
+    "geo":
+    [
+        {
+            "name": "country",
+            "display_name": "country",
+            "description": "country selected for keyword trend analysis.",
+            "type": "country",
+            "geo_type": "country",
+            "primary_geo": true
+        },
+        {
+            "name": "state",
+            "display_name": "state",
+            "description": "state/admin1 selected for keyword trend analysis.",
+            "type": "admin1",
+            "geo_type": "country",
+            "primary_geo": false
+        }
+
+    ],
+    "date":
+    [
+        {
+            "name": "timestamp",
+            "display_name": "timestamp",
+            "description": "Date of google trends data in epoch time (seconds)",
+            "type": "date",
+            "date_type": "epoch",
+            "primary_date": true
+        }
+    ],
+    "feature":
+    [
+        {
+            "name": "value",
+            "display_name": "Value",
+            "description": "a normalized score on how 'popular' your keyword is for your chosen geopolitical area versus other searches at a particular time.",
+            "type": "feature",
+            "feature_type": "int",
+            "units": "n/a",
+            "units_description": ""
+        },
+        {
+            "name": "description",
+            "display_name": "Description",
+            "description": "label of the keyword and geography selected.",
+            "type": "feature",
+            "feature_type": "string",
+            "units": "n/a",
+            "units_description": "",
+            "qualifies":
+            [
+                "value"
+            ]
+        }
+    ],
+    "meta":
+    {
+        "ftype": "csv"
+    }
+}
