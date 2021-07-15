@@ -13,16 +13,16 @@ Then run Dojo/DMC as you normally would.
 
 Next run:
 
-'''
-cd api/es-mappings
-python3 CreateMappings.py
-'''
+    cd api/es-mappings
+    python3 CreateMappings.py
 
 Then,
 
-'''
-cd ~models/googletrends
-python3 google_trends.py
-'''
+    cd ~models/googletrends
+    python3 google_trends.py
 
+
+At: `http://localhost:8000/#/Runs/create_run_runs_post`: 
 Submit a model run `google_trends_run.json` with desired search term and geographic area(s) reflected in the `parameters` dictionary.
+
+Inspect the DAG at `http://localhost:8080/` to monitor model run progress.
