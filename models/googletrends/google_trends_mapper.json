@@ -10,9 +10,9 @@
             "primary_geo": true
         },
         {
-            "name": "state",
-            "display_name": "state",
-            "description": "state/admin1 selected for keyword trend analysis.",
+            "name": "admin1",
+            "display_name": "admin1",
+            "description": "Admin1 selected for keyword trend analysis.",
             "type": "admin1",
             "geo_type": "country",
             "primary_geo": false
@@ -42,9 +42,22 @@
             "units_description": ""
         },
         {
-            "name": "description",
-            "display_name": "Description",
-            "description": "label of the keyword and geography selected.",
+            "name": "search_term",
+            "display_name": "Search Term",
+            "description": "Search term associated with trend analysis.",
+            "type": "feature",
+            "feature_type": "string",
+            "units": "n/a",
+            "units_description": "",
+            "qualifies":
+            [
+                "value"
+            ]
+        },
+        {
+            "name": "feature",
+            "display_name": "feature",
+            "description": "Label for trend level",
             "type": "feature",
             "feature_type": "string",
             "units": "n/a",
