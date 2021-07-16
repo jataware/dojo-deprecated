@@ -79,14 +79,14 @@ Now that both systems are running and you've registered a model, send the exampl
 
 ## Concurrency and parallel model runs
 
-Concurrency in airflow is handled by two DAG level configurations. These are set in `dmc/dags/model-xform.py` in the DAG instantiation (lines 45 to 50):
+Concurrency in airflow is handled by two DAG level configurations. These are set in `docker-compose.yaml` on lines 64 and 65 and then read by the DAG (`model-xform.py` lines 48-49):
 
-1. `concurrency`: the number of task instances allowed to run concurrently across all active runs of the DAG this is set on. Defaults to core.dag_concurrency if not set
-2. `max_active_runs`: maximum number of active runs for this DAG. The scheduler will not create new active DAG runs once this limit is hit. Defaults to core.max_active_runs_per_dag if not set
+1. `DAG_MAX_ACTIVE_RUNS`: maximum number of active runs for this DAG. The scheduler will not create new active DAG runs once this limit is hit. Defaults to core.max_active_runs_per_dag if not set
+2. `DAG_CONCURRENCY`: the number of task instances allowed to run concurrently across all active runs of the DAG this is set on. Defaults to core.dag_concurrency if not set
 
-Setting the `max_active_runs` parameter is arguably more important than concurrency. It is currently set to `3`. This means that `3` model runs can be executed in parallel. 
+Setting the `DAG_MAX_ACTIVE_RUNS` parameter is arguably more important than concurrency. It is currently set to `3`. This means that `3` model runs can be executed in parallel. 
 
-Within each model run there are a number of tasks (fetch model config, run model, run mixmasta, write to S3, etc). Since none of these inter-model run tasks are running in parallel, the `concurrency` argument is less important: it limits the total tasks that can run across the DAG. 
+Within each model run there are a number of tasks (fetch model config, run model, run mixmasta, write to S3, etc). Since none of these inter-model run tasks are running in parallel, the `DAG_CONCURRENCY` argument is less important: it limits the total tasks that can run across the DAG. 
 
 
 ## Airflow REST API

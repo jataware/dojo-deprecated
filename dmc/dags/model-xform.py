@@ -24,6 +24,8 @@ print(f'mixmasta_version: {mixmasta_version}')
 causemos_user = os.getenv('CAUSEMOS_USER')
 causemos_pwd = os.getenv('CAUSEMOS_PWD')
 causemos_base_url = os.getenv('CAUSEMOS_BASE_URL')
+active_runs = int(os.getenv('DAG_MAX_ACTIVE_RUNS'))
+concurrency = int(os.getenv('DAG_CONCURRENCY'))
 
 ############################
 ####### Generate DAG #######
@@ -45,8 +47,8 @@ dag = DAG(
     'model_xform',
     default_args=default_args,
     schedule_interval=None,
-    max_active_runs=3,
-    concurrency=10
+    max_active_runs=active_runs,
+    concurrency=concurrency
 )
 
 
