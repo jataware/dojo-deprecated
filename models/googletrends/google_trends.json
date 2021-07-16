@@ -14,7 +14,7 @@
     "organization": "Jataware",
     "website": "https://github.com/jataware/open-indicators/blob/master/google-trends/"
   },
-  "image": "jataware/google_trends:0.1",
+  "image": "jataware/google_trends:0.2",
   "observed_data": null,
   "is_stochastic": false,
   "parameters": [
