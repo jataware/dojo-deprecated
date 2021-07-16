@@ -6,16 +6,14 @@
             "display_name": "country",
             "description": "country selected for keyword trend analysis.",
             "type": "country",
-            "geo_type": "country",
-            "primary_geo": true
+            "geo_type": "country"
         },
         {
-            "name": "state",
-            "display_name": "state",
-            "description": "state/admin1 selected for keyword trend analysis.",
-            "type": "admin1",
-            "geo_type": "country",
-            "primary_geo": false
+            "name": "admin1",
+            "display_name": "admin1",
+            "description": "Admin1 selected for keyword trend analysis.",
+            "type": "geo",
+            "geo_type": "state/territory"
         }
 
     ],
@@ -33,8 +31,8 @@
     "feature":
     [
         {
-            "name": "value",
-            "display_name": "Value",
+            "name": "trend_level",
+            "display_name": "Trend Level",
             "description": "a normalized score on how 'popular' your keyword is for your chosen geopolitical area versus other searches at a particular time.",
             "type": "feature",
             "feature_type": "int",
@@ -42,16 +40,16 @@
             "units_description": ""
         },
         {
-            "name": "description",
-            "display_name": "Description",
-            "description": "label of the keyword and geography selected.",
+            "name": "search_term",
+            "display_name": "Search Term",
+            "description": "Search term associated with trend analysis.",
             "type": "feature",
             "feature_type": "string",
             "units": "n/a",
             "units_description": "",
             "qualifies":
             [
-                "value"
+                "trend_level"
             ]
         }
     ],

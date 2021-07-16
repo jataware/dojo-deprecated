@@ -2,7 +2,7 @@
   "id": "ca83b434-0f6a-4375-874c-bed9032bf779",
   "name": "Google Trends",
   "family_name": "Jataware",
-  "description": "Google Trends searches for keywords and returns trend data for a specified geographic area. The trend data is derived from the popularity of search queries from the Google search engine.",
+  "description": "Google Trends searches for keywords and returns trend data for a specified geographic area. The trend data is derived from the popularity of search queries from the Google search engine. Note: A search with no results returns a single row csv file with the NaN values.",
   "created_at": 1626309077629,
   "category": [
     "trends",
@@ -14,7 +14,7 @@
     "organization": "Jataware",
     "website": "https://github.com/jataware/open-indicators/blob/master/google-trends/"
   },
-  "image": "redbeard14/google_trends",
+  "image": "jataware/google_trends:0.2",
   "observed_data": null,
   "is_stochastic": false,
   "parameters": [
@@ -84,9 +84,9 @@
   ],
   "qualifier_outputs":[ 
     {
-        "name": "description",
-        "display_name": "Description",
-        "description": "label of the keyword and geography selected.",
+        "name": "search_term",
+        "display_name": "Search Term",
+        "description": "The serach term associated with the trend analysis",
         "type": "str",
         "unit": "n/a",
         "unit_description": "",
