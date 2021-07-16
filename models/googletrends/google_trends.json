@@ -38,7 +38,7 @@
     {
       "name": "country",
       "display_name": "Country",
-      "description": "The country of interest to return the trend data. The spelling and formatting must match the reference iso-codes.csv file found at: https://github.com/jataware/open-indicators/blob/master/google-trends/iso-codes.csv",
+      "description": "The country of interest to return the trend data. The spelling and formatting must match the reference country_admin1.csv file found at: https://github.com/jataware/open-indicators/blob/master/google-trends/country_admin1.csv",
       "type": "str",
       "unit": "n/a",
       "unit_description": null,
@@ -53,9 +53,9 @@
       "id": "UnitedStatesofAmerica-300669"
     },
     {
-      "name": "admin",
-      "display_name": "admin1",
-      "description": "The admin1/state/territory of interest to return the trend data; must be part of the country/admin0 selected for country. The spelling and formatting must match the reference iso-codes.csv file found at: https://github.com/jataware/open-indicators/blob/master/google-trends/iso-codes.csv",
+      "name": "admin1",
+      "display_name": "admin area level 1",
+      "description": "The admin1/state/territory of interest to return the trend data; must be part of the country/admin0 selected for country. The spelling and formatting must match the reference country_admin1.csv file found at: https://github.com/jataware/open-indicators/blob/master/google-trends/country_admin1.csv",
       "type": "str",
       "unit": "n/a",
       "unit_description": null,
