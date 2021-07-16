@@ -2,7 +2,12 @@
 
 The Domain Model Controller (DMC), is an implementation of Airflow designed to support black box model execution, normalization, and storage.
 
-Please see `Known Issues` before running.
+## Contents
+
+1. [Setup](#setup)
+2. [Running a Model](#running-a-model)
+3. [Concurrency and parallel model runs](#concurrency-and-parallel-model-runs)
+4. [Airflow REST API](#airflow-rest-api)
 
 ## Setup
 
