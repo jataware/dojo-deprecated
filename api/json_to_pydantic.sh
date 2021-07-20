@@ -4,7 +4,7 @@ git clone git@github.com:uncharted-causemos/docs.git
 
 cd docs
 
-git checkout schema-update
+#git checkout schema-update
 
 cd ../
 
