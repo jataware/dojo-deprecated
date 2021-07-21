@@ -38,9 +38,10 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
     body = payload.json()
     data = json.loads(body)
 
-    # UAZ API Does not return ontologies for "qualifier_outputs" so work on just "outputs" for now
+    # TODO: UAZ API Does not return ontologies for "qualifier_outputs" so work on just "outputs" for now
     try:
         ontology_dict = get_ontology(data, type="indicator")
+        logger.info(f"Sent indicator to UAZ")
         for output in data["outputs"]:
             output["ontologies"] = ontology_dict[output["name"]]
 

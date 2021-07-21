@@ -14,7 +14,7 @@ def get_ontology(data, type="indicator"):
     """
     headers = {"accept": "application/json", "Content-Type": "application/json"}
     url = os.getenv("UAZ_URL")
-    params = "?maxHits=10&threshold=0.7&compositional=true"
+    params = "?maxHits=10&threshold=0.6&compositional=true"
 
     # Send to either /groundIndicator or /groundModel
     if type == "indicator":

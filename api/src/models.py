@@ -34,9 +34,10 @@ def update_ontologies(model):
     '''
     # TODO: UAZ API Does not return ontologies for "qualifier_outputs" so work on just "outputs" for now
     try:
-        model = json.loads(model)
+        # Duplicate category to tags to ensure UAZ mapper works
+        model['tags'] = model.get('category',['model'])
         ontology_dict = get_ontology(model, type="model")
-        logger.info(ontology_dict)
+        logger.info(f"Sent model to UAZ.")
         for output in model["outputs"]:
             output["ontologies"] = ontology_dict[output["name"]]
         logger.debug(f"Model with UAZ: {model}")
@@ -53,7 +54,7 @@ def create_model(payload: ModelSchema.ModelMetadataSchema):
     model_id = payload.id
     payload.created_at = current_milli_time()
     body = payload.json()
-    model = update_ontologies(body)
+    model = update_ontologies(json.loads(body))
     es.index(index="models", body=model, id=model_id)
     return Response(
         status_code=status.HTTP_201_CREATED,
@@ -66,7 +67,8 @@ def create_model(payload: ModelSchema.ModelMetadataSchema):
 def update_model(model_id: str, payload: ModelSchema.ModelMetadataSchema):
     payload.created_at = current_milli_time()
     body = payload.json()
-    es.index(index="models", body=body, id=model_id)
+    model = update_ontologies(json.loads(body))
+    es.index(index="models", body=model, id=model_id)
     return Response(
         status_code=status.HTTP_201_CREATED,
         headers={"location": f"/api/models/{model_id}"},
