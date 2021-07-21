@@ -23,7 +23,7 @@ def get_ontology(data, type="indicator"):
         type_ = "groundModel"
     
     # Build final URL to route to UAZ
-    url_ = f"{url}/{type_}/{params}"
+    url_ = f"{url}/{type_}{params}"
 
     try:
         logger.debug(f"Sending data to {url}")
