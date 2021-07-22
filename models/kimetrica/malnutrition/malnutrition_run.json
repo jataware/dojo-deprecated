@@ -1,0 +1,39 @@
+{
+    "id": "malnutrition-testrun-1",
+    "model_name": "Malnutrition Model",
+    "model_id": "425f58a4-bbba-44d3-83f3-aba353fc7c64",
+    "created_at": 0,
+    "data_paths": [],
+    "pre_gen_output_paths": [],
+    "is_default_run": false,
+    "tags": [
+        "health"
+    ],
+    "parameters": [
+        {
+            "name": "rainfall_scenario_time_range",
+            "value": "2015-05-01-2015-05-10"
+        },
+        {
+            "name": "time_range",
+            "value": "2015-01-01-2015-06-01"
+        },
+        {
+            "name": "country",
+            "value": "Ethiopia"
+        },
+        {
+            "name": "geography",
+            "value": "ethiopia"
+        },
+        {
+            "name": "rainfall_geography",
+            "value": "ethiopia"
+        },
+        {
+            "name": "rainfall_scenario",
+            "value": "high"
+        }
+    ],
+    "attributes": {}
+}

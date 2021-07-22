@@ -16,7 +16,6 @@ directive = {
     "id": "pythia-directive-1",
     "model_id": "dssat_pythia-v0.1",
     "command": "--all /userdata/et_docker.json",
-    "output_directory": "/userdata/out/eth_docker/test/",
 }
 resp = requests.post(f"{url}/dojo/directive", json=directive)
 print(resp.text)
@@ -28,6 +27,7 @@ outputfile = {
     "model_id": "dssat_pythia-v0.1",
     "name": "DSSAT-PYTHIA",
     "file_type": "csv",
+    "output_directory": "/userdata/out/eth_docker/test/",    
     "path": "pp.csv",
     "transform": mapper,
 }

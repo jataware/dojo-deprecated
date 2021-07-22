@@ -1,0 +1,110 @@
+{
+  "id": "ca83b434-0f6a-4375-874c-bed9032bf779",
+  "name": "Google Trends",
+  "family_name": "Jataware",
+  "description": "Google Trends searches for keywords and returns trend data for a specified geographic area. The trend data is derived from the popularity of search queries from the Google search engine. Note: A search with no results returns a single row csv file with the NaN values.",
+  "created_at": 1626309077629,
+  "category": [
+    "trends",
+    "google_search"
+  ],
+  "maintainer": {
+    "name": "Brandon Rose",
+    "email": "brandon@jataware.com",
+    "organization": "Jataware",
+    "website": "https://github.com/jataware/open-indicators/blob/master/google-trends/"
+  },
+  "image": "jataware/google_trends:0.2",
+  "observed_data": null,
+  "is_stochastic": false,
+  "parameters": [
+    {
+      "name": "search_term",
+      "display_name": "search term",
+      "description": "The search term or keyword of interest for obtaining a historical google search trend. Think of the search term the same as a search term with Google.",
+      "type": "str",
+      "unit": "n/a",
+      "unit_description": null,
+      "ontologies": null,
+      "is_drilldown": null,
+      "additional_options": null,
+      "data_type": "freeform",
+      "default": "world modelers",
+      "choices": [],
+      "min": null,
+      "max": null,
+      "id": "soccergame-660167"
+    },
+    {
+      "name": "country",
+      "display_name": "Country",
+      "description": "The country of interest to return the trend data. The spelling and formatting must match the reference country_admin1.csv file found at: https://github.com/jataware/open-indicators/blob/master/google-trends/country_admin1.csv",
+      "type": "str",
+      "unit": "n/a",
+      "unit_description": null,
+      "ontologies": null,
+      "is_drilldown": null,
+      "additional_options": null,
+      "data_type": "freeform",
+      "default": "United States of America",
+      "choices": [],
+      "min": null,
+      "max": null,
+      "id": "UnitedStatesofAmerica-300669"
+    },
+    {
+      "name": "admin1",
+      "display_name": "admin area level 1",
+      "description": "The admin1/state/territory of interest to return the trend data; must be part of the country/admin0 selected for country. The spelling and formatting must match the reference country_admin1.csv file found at: https://github.com/jataware/open-indicators/blob/master/google-trends/country_admin1.csv",
+      "type": "str",
+      "unit": "n/a",
+      "unit_description": null,
+      "ontologies": null,
+      "is_drilldown": null,
+      "additional_options": null,
+      "data_type": "freeform",
+      "default": "Virginia",
+      "choices": [],
+      "min": null,
+      "max": null,
+      "id": "Oregon-805706"
+    }
+  ],
+  "outputs": [
+    {
+        "name": "value",
+        "display_name": "value",
+        "description": "A normalized score on how 'popular' your keyword is for your chosen geopolitical area versus other searches at a particular time.",
+        "type": "int",
+        "unit": "n/a",
+        "unit_description": "",
+        "is_primary": true,
+        "ontologies": {"concepts": [],"processes": [],"properties": []}
+    }
+  ],
+  "qualifier_outputs":[ 
+    {
+        "name": "search_term",
+        "display_name": "Search Term",
+        "description": "The serach term associated with the trend analysis",
+        "type": "str",
+        "unit": "n/a",
+        "unit_description": "",
+        "related_features": [
+            "value"
+        ],
+        "ontologies": {"concepts": [],"processes": [],"properties": []}
+    }
+  ],
+  "tags": null,
+  "geography": {
+    "country": null,
+    "admin1": null,
+    "admin2": null,
+    "admin3": null,
+    "coordinates": []
+  },
+  "period": null,
+  "type": "model",
+  "stochastic": "false"
+}

@@ -45,6 +45,11 @@ class ModelOutputFile(BaseModel):
         description="The name of the output file",
         example="Yield Forecast",
     )
+    output_directory: str = Field(
+        title="Model Output Directory",
+        description="The location of the model outputs within the model container. This will be mounted in order to retriee output files.",
+        example="/results",
+    )    
     path: str = Field(
         title="Output File Path",
         description="The relative file path of the output file within the model's `output_directory`",
@@ -77,11 +82,6 @@ class ModelDirective(BaseModel):
         title="Model Container command",
         description="The model container command, templated using Jinja. Templated fields must correspond with the name of the model parameters.",
         example="python3 dssat.py --management_practice = {{ management_practice }}",
-    )
-    output_directory: str = Field(
-        title="Model Output Directory",
-        description="The location of the model outputs within the model container. This will be mounted in order to retriee output files.",
-        example="/results",
     )
 
     class Config:

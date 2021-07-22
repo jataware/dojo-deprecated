@@ -24,6 +24,8 @@ print(f'mixmasta_version: {mixmasta_version}')
 causemos_user = os.getenv('CAUSEMOS_USER')
 causemos_pwd = os.getenv('CAUSEMOS_PWD')
 causemos_base_url = os.getenv('CAUSEMOS_BASE_URL')
+active_runs = int(os.getenv('DAG_MAX_ACTIVE_RUNS'))
+concurrency = int(os.getenv('DAG_CONCURRENCY'))
 
 ############################
 ####### Generate DAG #######
@@ -45,8 +47,8 @@ dag = DAG(
     'model_xform',
     default_args=default_args,
     schedule_interval=None,
-    max_active_runs=1,
-    concurrency=10
+    max_active_runs=active_runs,
+    concurrency=concurrency
 )
 
 
@@ -167,10 +169,11 @@ def s3copy(**kwargs):
 def getMapper(**kwargs):
     dojo_url = kwargs['dag_run'].conf.get('dojo_url')
     model_id = kwargs['dag_run'].conf.get('model_id')
-    of = requests.get(f"{dojo_url}/dojo/outputfile/{model_id}").json()
-    mapper = of[0]['transform']
-    with open(f'/mappers/mapper_{model_id}.json','w') as f:
-        f.write(json.dumps(mapper))
+    ofs = requests.get(f"{dojo_url}/dojo/outputfile/{model_id}").json()
+    for of in ofs:
+        mapper = of['transform']
+        with open(f'/mappers/mapper_{of["id"]}.json','w') as f:
+            f.write(json.dumps(mapper))
 
 
 def RunExit(**kwargs):

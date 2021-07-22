@@ -1,0 +1,155 @@
+{
+  "id": "efde67cb-d6f3-4bd4-aed0-25b9748534fd",
+  "name": "Water and Sanitation Model WASH",
+  "family_name": "Kimetrica",
+  "description": "  Access to improved sanitation and source of drinking water is essential in reducing cases of stunting and diarrhea.\nOther benefits of access to improved sources of water and sanitation are: time saving, school attendance, and\nreduction in violence and stress.  According to WHO, 2.2 billion people lack access to safely managed drinking water\nservices and 4.2 billion people lack safely managed sanitation services.\nWater and sanitation data is reported at predefined geographic areas, mostly admin level 2.\nHeterogeneity within the geographic region is typically hidden from the policy makers.\nThe objective of the water and sanitation model is to predict the percentage of households\nthat have access to unimproved sanitation and source of drinking water at pixel level.\nOur hypothesis is that areas where people don't have access to improved sanitation and\nsource of drinking water share spectral traits that make them distinguishable from areas with\nimproved sanitation and source of drinking water when viewed from above.\n\nNote: This model can be run for the countries of Ethiopia, Djibouti, and South Sudan. Model for Djibouti was trained using data from both Ethiopia and Djibouti.",
+  "created_at": 1625855098063,
+  "category": [
+    "sanitation",
+    "drinking_water",
+    "water",
+    "hygiene"
+  ],
+  "maintainer": {
+    "name": "Peter Mburu",
+    "email": "peter.mburu@kimetrica.com",
+    "organization": "Kimetrica",
+    "website": "https://gitlab.com/kimetrica/darpa/darpa/-/tree/master/models/water_sanitation_model"
+  },
+  "image": "jataware/clouseau:claudine_ki_models",
+  "observed_data": null,
+  "is_stochastic": false,
+  "parameters": [
+    {
+      "name": "country_geojson",
+      "display_name": "country geojson",
+      "description": "geojson national boundary file of the country selected.",
+      "type": "str",
+      "unit": null,
+      "unit_description": null,
+      "ontologies": null,
+      "is_drilldown": null,
+      "additional_options": null,
+      "data_type": "freeform",
+      "default": "ethiopia",
+      "choices": [
+        "ethiopia",
+        "south_sudan",
+        "djibouti"
+      ],
+      "min": null,
+      "max": null,
+      "id": "ethiopia-625480"
+    },
+    {
+      "name": "country",
+      "display_name": "country",
+      "description": "Country to run the model.",
+      "type": "str",
+      "unit": null,
+      "unit_description": null,
+      "ontologies": null,
+      "is_drilldown": null,
+      "additional_options": null,
+      "data_type": "freeform",
+      "default": "Ethiopia",
+      "choices": [
+        "Ethiopia",
+        "South Sudan",
+        "Djibouti"
+      ],
+      "min": null,
+      "max": null,
+      "id": "Ethiopia-358845"
+    },
+    {
+      "name": "date_range",
+      "display_name": "Date Range",
+      "description": "Date range to run the model. \n\nFormat: YYYY-MM-DD-YYYY-MM-DD where the first date is the year-month-day to start the run and the second date is the year-month-day to end the model.\n\nExample: 2017-08-01-2017-10-01 would start August 1st, 2017 and end October 10th, 2017.",
+      "type": "str",
+      "unit": null,
+      "unit_description": null,
+      "ontologies": null,
+      "is_drilldown": null,
+      "additional_options": null,
+      "data_type": "freeform",
+      "default": "2017-08-01-2017-10-01",
+      "choices": [],
+      "min": null,
+      "max": null,
+      "id": "2017-08-01-2017-10-01-865840"
+    },
+    {
+      "name": "travel_time_percent_change",
+      "display_name": "Travel Time Percent Change",
+      "description": "Positive values indicate an increase in travel time and negative values indicate a decrease in travel time.\n\nTravel Time: minutes required to reach the nearest town using all modes of transportation except for air travel.\n\nFor example: In heavy rainfall unpaved road networks will have an increase in travel time; or paving an unpaved road network would decrease the travel time.  \n\nReference Kimetrica's accessibility model for more information on how to properly reflect increase/decrease in percent travel time:\n\nhttps://gitlab.com/kimetrica/darpa/darpa/-/tree/master/models/accessibility_model",
+      "type": "float",
+      "unit": "percent",
+      "unit_description": "percent change in travel time",
+      "ontologies": null,
+      "is_drilldown": null,
+      "additional_options": null,
+      "data_type": "numerical",
+      "default": "0",
+      "choices": [],
+      "min": -1,
+      "max": 2,
+      "id": "0-574491"
+    },
+    {
+      "name": "aridity_index_percent_change",
+      "display_name": "aridity index percent change",
+      "description": "Percentage change in aridity index. Positive values increase the aridity index and negative values reduce the aridity index.\n \nThe Aridity Index (AI) is a simple but convenient numerical indicator of aridity based on long-term climatic water deficits and is calculated as the ratio P/PET. The less the values the drier the area.\n\nFor example: From external references, input the predicted increase or decrease in rainfall. If Ethiopia is predicted to have an increase of rainfall of 5%, enter 0.05.",
+      "type": "float",
+      "unit": "percent",
+      "unit_description": "percent change in aridity",
+      "ontologies": null,
+      "is_drilldown": null,
+      "additional_options": null,
+      "data_type": "numerical",
+      "default": "0",
+      "choices": [],
+      "min": -1,
+      "max": 1,
+      "id": "0-25220"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "unimproved_drinking_water",
+      "display_name": "Unimproved Drinking Water",
+      "description": "Percentage of households with unimproved drinking water. We used JMP standards to calculate the percentage of households with an unimproved source of drinking water. According to JMP, improved drinking water sources are those which, by nature of their design and construction, have the potential to deliver safe water. They include: tap water in the dwelling yard, tap water in public standposts, boreholes/tubewells, protected wells and springs, rainwater, packaged water and delivered water.",
+      "type": "float",
+      "unit": "percentage",
+      "unit_description": "Percentage of households",
+      "is_primary": true,
+      "ontologies": {"concepts": [], "processes": [], "properties": []}
+    },
+    {
+      "name": "unimproved_sanitation",
+      "display_name": "Unimproved Sanitation",
+      "description": "Percentage of households with unimproved sanitation. We used  WHO/UNICEF Joint Monitoring Programme for Water Supply, Sanitation and Hygiene (JMP) standards to calculate percentage of households with unimproved sanitation from LSMS survey. JMP defines improved sanitation facilities as those designed to hygienically separate excreta from human contact and not shared with other households. They include: flush/pour flush to piped sewer system/septic tank/pit latrine, ventilated improved pit latrine, and pit latrine with slab.",
+      "type": "float",
+      "unit": "percentage",
+      "unit_description": "Percentage of households",
+      "is_primary": true,
+      "ontologies": {"concepts": [], "processes": [], "properties": []}
+    }    
+  ],
+  "qualifier_outputs": null,
+  "tags": null,
+  "geography": {
+    "country": [
+      "Ethiopia",
+      "South Sudan",
+      "Djibouti"
+    ],
+    "admin1": null,
+    "admin2": null,
+    "admin3": null,
+    "coordinates": []
+  },
+  "period": null,
+  "type": "model",
+  "stochastic": "false"
+}

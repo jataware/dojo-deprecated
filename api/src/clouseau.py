@@ -3,12 +3,14 @@ import logging
 from logging import Logger
 from operator import attrgetter
 from typing import Any, Awaitable, Callable, Dict, List, Optional
+from uuid import uuid4
 
 import aioredis
-from fastapi import APIRouter, Depends
+import pydantic
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel
 
-from src.settings import settings
+from src.redisapi import redis_pool
 from src.utils import try_parse_int
 
 logger: Logger = logging.getLogger(__name__)
@@ -17,27 +19,14 @@ router = APIRouter()
 EXPIRE_TTL = 86400 * 2  # seconds
 
 
-class AsyncRedisPool:
-    def __init__(self) -> None:
-        self._pool: Optional[aioredis.Redis] = None
-        self._lock = asyncio.Lock()
-
-    async def __call__(self) -> aioredis.Redis:
-        if self._pool is not None:
-            return self._pool
-
-        async with self._lock:
-            if self._pool is not None:
-                return self._pool
-            logger.debug("Creating Redis Pool")
-            host = settings.REDIS_HOST
-            port = settings.REDIS_PORT
-            pool = await aioredis.create_pool((host, port), encoding="utf-8")
-            self._pool = aioredis.Redis(pool)
-        return self._pool
+class ResponseId(BaseModel):
+    id: str
 
 
-redis_pool: aioredis.Redis = AsyncRedisPool()
+class FileRequestItem(BaseModel):
+    model_id: str
+    file_path: str
+    request_path: str
 
 
 class ProvisionItem(BaseModel):
@@ -74,7 +63,7 @@ class ContainerInfo(BaseModel):
 @router.get("/ping")
 async def ping_redis(redis: aioredis.Redis = Depends(redis_pool)) -> str:
     logger.debug("ping")
-    return str(await redis.ping())
+    return Response(content=str(await redis.ping()), media_type="plain/text")
 
 
 async def gather_non_nil(xs: List[Awaitable[Any]]) -> List[Any]:
@@ -216,3 +205,26 @@ async def expire_container_info(cid: str, redis: aioredis.Redis = Depends(redis_
             break
 
     return count
+
+
+@router.post("/file")
+async def put_request_info(item: FileRequestItem, redis: aioredis.Redis = Depends(redis_pool)) -> ResponseId:
+    TTL = 1800  # seconds
+    reqid = str(uuid4().hex)
+    key = f"closeau:file:{reqid}"
+
+    await redis.hmset_dict(key, item.dict())
+    await redis.expire(key, TTL)
+
+    return ResponseId(id=reqid)
+
+
+@router.get("/file/{reqid}")
+async def get_file_request_info(reqid: str, redis: aioredis.Redis = Depends(redis_pool)) -> FileRequestItem:
+    key = f"closeau:file:{reqid}"
+    fields = ["model_id", "file_path", "request_path"]
+    model_id, file_path, request_path = await redis.hmget(key, *fields)
+    try:
+        return FileRequestItem(model_id=model_id, file_path=file_path, request_path=request_path)
+    except pydantic.error_wrappers.ValidationError as pye:
+        raise HTTPException(status_code=500, detail=str(pye))

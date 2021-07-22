@@ -1,0 +1,123 @@
+{
+  "geo": [
+    {
+      "name": "LONGITUDE",
+      "display_name": "LONGITUDE",
+      "description": "location",
+      "type": "geo",
+      "geo_type": "longitude",
+      "primary_geo": true,
+      "is_geo_pair": "LATITUDE"
+    },
+    {
+      "name": "LATITUDE",
+      "display_name": "Latitude",
+      "description": "location",
+      "type": "geo",
+      "geo_type": "latitude",
+      "primary_geo": true,
+      "is_geo_pair": "LONGITUDE"
+    }
+  ],
+  "date": [
+    {
+      "name": "HDAT",
+      "display_name": "Hdat",
+      "description": "harvest date",
+      "type": "date",
+      "date_type": "date",
+      "time_format": "%Y%j",
+      "primary_date": true
+    },
+    {
+      "name": "PDAT",
+      "display_name": "Pdat",
+      "description": "planting date",
+      "type": "date",
+      "date_type": "date",
+      "qualifies": [
+        "HWAH"
+      ],
+      "time_format": "%Y%j"
+    },
+    {
+      "name": "MDAT",
+      "display_name": "Mdat",
+      "description": "physiological maturity date (yrdoy)",
+      "type": "date",
+      "date_type": "date",
+      "qualifies": [
+        "HWAH"
+      ],
+      "time_format": "%Y%j"
+    }
+  ],
+  "feature": [
+    {
+      "name": "HARVEST_AREA",
+      "display_name": "Harvest Area",
+      "description": "harvest area",
+      "type": "feature",
+      "feature_type": "float",
+      "units": "ha",
+      "units_description": "hectares"
+    },
+    {
+      "name": "CWAM",
+      "display_name": "Cwam",
+      "description": "tops weight at maturity (kg [dm]/ha)",
+      "type": "feature",
+      "feature_type": "float",
+      "units": "kg [dm]/ha",
+      "units_description": "kilogram * decimeter per hectare"
+    },
+    {
+      "name": "HWAH",
+      "display_name": "Hwah",
+      "description": "harvested yield at harvest (kg [dm]/ha)",
+      "type": "feature",
+      "feature_type": "float",
+      "units": "kg [dm]/ha",
+      "units_description": "kilogram * decimeter per hectare"
+    },
+    {
+      "name": "GNAM",
+      "display_name": "Gnam",
+      "description": "grain n at maturity (kg/ha)",
+      "type": "feature",
+      "feature_type": "float",
+      "units": "kg [dm]/ha",
+      "units_description": "kilogram * decimeter per hectare"
+    },
+    {
+      "name": "PRCP",
+      "display_name": "Prcp",
+      "description": "total season precipitation (mm), planting to harvest",
+      "type": "feature",
+      "feature_type": "float",
+      "units": "mm",
+      "units_description": "millimeters"
+    },
+    {
+      "name": "VNAM",
+      "display_name": "Vnam",
+      "description": "vegitative n at maturity (kg/ha)",
+      "type": "feature",
+      "feature_type": "float",
+      "units": "kg/ha",
+      "units_description": "kilograms per hectare"
+    },
+    {
+      "name": "VWAM",
+      "display_name": "Vwam",
+      "description": "vegitative biomass at maturity (kg/ha)",
+      "type": "feature",
+      "feature_type": "float",
+      "units": "kg/ha",
+      "units_description": "kilograms per hectare"
+    }
+  ],
+  "meta": {
+    "ftype": "csv"
+  }
+}

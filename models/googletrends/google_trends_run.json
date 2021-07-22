@@ -1,0 +1,25 @@
+{
+    "id": "google_trends",
+    "model_name": "Google Trends",
+    "model_id": "ca83b434-0f6a-4375-874c-bed9032bf779",
+    "created_at": 0,
+    "data_paths": [],
+    "pre_gen_output_paths": [],
+    "is_default_run": false,
+    "tags": [],
+    "parameters": [
+      {
+        "name": "search_term",
+        "value": "teff"
+      },
+      {
+        "name":"country",
+        "value": "Ethiopia"
+      },
+      {
+        "name":"admin1",
+        "value": "Oromia Region"
+      }
+    ],
+    "attributes":{}
+  }

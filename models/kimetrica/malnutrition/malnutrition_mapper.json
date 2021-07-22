@@ -1,0 +1,72 @@
+{
+    "geo": [
+        {
+            "name": "County",
+            "display_name": "County",
+            "description": "county",
+            "type": "geo",
+            "geo_type": "municipality/town"
+        },
+        {
+            "name": "admin2",
+            "display_name": "Admin2",
+            "description": "admin area 2",
+            "type": "geo",
+            "geo_type": "county/district"
+        },
+        {
+            "name": "admin1",
+            "display_name": "Admin1",
+            "description": "admin area 1",
+            "type": "geo",
+            "geo_type": "state/territory"
+        }
+    ],
+    "date": [
+        {
+            "name": "Time",
+            "display_name": "Time",
+            "description": "date",
+            "type": "date",
+            "date_type": "date",
+            "time_format": "%Y-%m-%dT%H:%M:%S",
+            "primary_date": true
+        }
+    ],
+    "feature": [
+        {
+            "name": "gam_rate",
+            "display_name": "Gam Rate",
+            "description": "global acute malnutrition (gam) ",
+            "type": "feature",
+            "feature_type": "float",
+            "units": "n/a",
+            "units_description": ""
+        },
+        {
+            "name": "sam_rate",
+            "display_name": "Sam Rate",
+            "description": "severe acute malnutrition (sam)",
+            "type": "feature",
+            "feature_type": "float",
+            "units": "n/a",
+            "units_description": ""
+        },
+        {
+            "name": "rainfall_scenario",
+            "display_name": "Rainfall Scenario",
+            "description": "rainfall scenario",
+            "type": "feature",
+            "feature_type": "string",
+            "units": "n/a",
+            "units_description": "",
+            "qualifies": [
+                "gam_rate",
+                "sam_rate"
+            ]
+        }
+    ],
+    "meta": {
+        "ftype": "csv"
+    }
+}

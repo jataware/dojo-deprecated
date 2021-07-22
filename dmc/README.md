@@ -2,7 +2,12 @@
 
 The Domain Model Controller (DMC), is an implementation of Airflow designed to support black box model execution, normalization, and storage.
 
-Please see `Known Issues` before running.
+## Contents
+
+1. [Setup](#setup)
+2. [Running a Model](#running-a-model)
+3. [Concurrency and parallel model runs](#concurrency-and-parallel-model-runs)
+4. [Airflow REST API](#airflow-rest-api)
 
 ## Setup
 
@@ -17,20 +22,20 @@ For Linux
 hostname -i
 ```
 
-Either `export` this to your environment or update `docker-compose.yaml` and change `DOCKER_URL` to
+This is your `local ip`. Update line 54 of `docker-compose.yaml` and change `DOCKER_URL` to
 ```
       DOCKER_URL: http://<local ip>:8375
-```
-
-You can validate docker api is working after `docker-compose` has started with
-```
-curl localhost:8375/containers/json
 ```
 
 The DMC can be run via `docker-compose` with:
 
 ```
 docker-compose up -d
+```
+
+You can validate docker api is working after `docker-compose` has started with
+```
+curl localhost:8375/containers/json
 ```
 
 You'll need to make the following permissions change:
@@ -65,50 +70,31 @@ Set the `DMC_DEBUG` environment variable in the `docker-compose.yaml` to `'false
 
 This should run the Airflow UI at `http://localhost:8080/home`.
 
-## Run Airflow DAG
+## Running a Model
 
-- Launch Airflow:
+To run a model, navigate to the top of this repository. `cd models` and pick a model of interest. Register that model. Typically you run `modelname.py`. This assumes Dojo and DMC are both running. 
 
-  Go to: `http://34.204.189.38:8080/home`
-  Contact a repo contributor for login credentials.
+Note: DMC and Dojo both require Redis; these `docker-compose` Redis instances may port collide so it could be necessary to resolve this by:
 
-- After logging in, choose your desired DAG (currently `model_xform`)
-- Trigger the DAG with the "play button"
-- Copy in your configuration json (see below)
-- Click `Trigger`
-- Click `Graph View` to monitor progress. For each node you can view the logs by double-clicking the node and then choosing `logs`
+1. `api/src/settings.py`: change `REDIS_PORT` to `6380`
+2. `api/docker-compose.yaml`: change line 47 to `6380:6379`
+3. Delete any lingering or old Elasticsearch volumes associated with Dojo API (unless they have something you wish to save--in that case back them up).
 
-### Example Model-to-S3 DAG
+Now that both systems are running and you've registered a model, send the example run `modelname_run.json` to the `/runs` Dojo endpoint. You can track the run via the DAG explorer in Airflow.
 
-The config json below will trigger the `model_xform.py` DAG to:
+## Concurrency and parallel model runs
 
-1. Run the maxhop model
+Concurrency in airflow is handled by two DAG level configurations. These are set in `docker-compose.yaml` on lines 64 and 65 and then read by the DAG (`model-xform.py` lines 48-49):
 
-2. Via mixmasta, transform the maxhop geotiff output file to a geocoded .csv
+1. `DAG_MAX_ACTIVE_RUNS`: maximum number of active runs for this DAG. The scheduler will not create new active DAG runs once this limit is hit. Defaults to core.max_active_runs_per_dag if not set
+2. `DAG_CONCURRENCY`: the number of task instances allowed to run concurrently across all active runs of the DAG this is set on. Defaults to core.dag_concurrency if not set
 
-3. Upload the csv file to S3:world-modelers-jataware/{run_id}/ bucket
+Setting the `DAG_MAX_ACTIVE_RUNS` parameter is arguably more important than concurrency. It is currently set to `3`. This means that `3` model runs can be executed in parallel. 
 
-To trigger the DAG, add the following configuration json:
-
-```
-{
-   "run_id":"maxhop_test1",
-   "model_image":"marshhawk4/maxhop",
-   "model_command":"--country=Ethiopia --annualPrecipIncrease=.4 --meanTempIncrease=-.3 --format=GTiff",
-   "model_output_directory":"/usr/local/src/myscripts/output",
-   "xfrm_command":"-xform geotiff -input_file /tmp/maxent_Ethiopia_precipChange=0.4tempChange=-0.3.tif -geo admin2 -x longitude -y latitude -output_file /tmp/maxhop_transformed.csv -feature_name probability -band 1"
-}
-```
-
-For the model run: the `model_output_directory` references the directory **within the Docker container**.
-For mixmasta: the DAG looks for the file to be transferred in the mounted `/tmp` folder and will write the transformed csv to the mounted `/tmp` folder.
-
-### Multiple S3 File upload.
-
-See the DAG `mulitpleFiles.py` for an example of uploading several csv files to the S3 bucket.
+Within each model run there are a number of tasks (fetch model config, run model, run mixmasta, write to S3, etc). Since none of these inter-model run tasks are running in parallel, the `DAG_CONCURRENCY` argument is less important: it limits the total tasks that can run across the DAG. 
 
 
-### Airflow REST API
+## Airflow REST API
 
 This is enabled on line 52 of `docker-compose.yaml`. The API reference can be found [here](http://apache-airflow-docs.s3-website.eu-central-1.amazonaws.com/docs/apache-airflow/latest/stable-rest-api-ref.html#operation/get_config). You can run commands like:
 
@@ -118,8 +104,3 @@ curl 'localhost:8080/api/v1/dags' \
 -H 'Content-Type: application/json' \
 --user "jataware:wileyhippo"
 ```
-
-
-### Known Issues
-
-There seems to be a problem with permissions on Mac with the `/var/run/docker.sock` file which prohibits Airflow from kicking off Docker runs. Therefore this should be run on Ubuntu only for the time being.

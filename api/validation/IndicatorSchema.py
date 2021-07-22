@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from enum import Enum
 from typing import List, Optional
-
 from pydantic import BaseModel, Extra, Field
 
 
@@ -337,7 +336,9 @@ class IndicatorMetadataSchema(BaseModel):
         title="Data Path URLs",
     )
     outputs: List[Output] = Field(
-        ..., description="An array of dataset variables", title="Dataset Outputs"
+        ...,
+        description="An array of dataset variables", 
+        title="Dataset Outputs"
     )
     qualifier_outputs: Optional[List[QualifierOutput]] = Field(
         None,
@@ -345,7 +346,7 @@ class IndicatorMetadataSchema(BaseModel):
         title="Dataset Qualifier Outputs",
     )
     tags: Optional[List[str]] = Field(
-        None,
+        default_factory=list,
         description="The tags associated with the dataset.",
         examples=[["Agriculture"]],
         title="Search Tags",

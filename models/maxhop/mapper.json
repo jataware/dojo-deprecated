@@ -1,0 +1,51 @@
+{
+    "geo": [
+        {
+            "name": "latitude",
+            "display_name": "latitude",
+            "description": "location",
+            "type": "geo",
+            "geo_type": "latitude",
+            "primary_geo": true,
+            "is_geo_pair": "longitude"
+        },
+        {
+            "name": "longitude",
+            "display_name": "Longitude",
+            "description": "location",
+            "type": "geo",
+            "geo_type": "longitude",
+            "primary_geo": true,
+            "is_geo_pair": "latitude"
+        }
+    ],
+    "date": [
+        {
+            "name": "date",
+            "display_name": "Date",
+            "description": "date",
+            "type": "date",
+            "date_type": "date",
+            "time_format": "%m/%d/%Y",
+            "primary_date": true
+        }
+    ],
+    "feature": [
+        {
+            "name": "Hopper Presence Prediction",
+            "display_name": "Hopper Presence Prediction",
+            "description": "hopper presence prediction",
+            "type": "feature",
+            "feature_type": "float",
+            "units": "n/a",
+            "units_description": ""
+        }
+    ],
+    "meta": {
+        "ftype": "geotiff",
+        "feature_name": "Hopper Presence Prediction",
+        "band": "1",
+        "null_val": "-9999",
+        "date": "01/01/2021"
+    }
+}
