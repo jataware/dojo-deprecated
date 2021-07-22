@@ -3,9 +3,10 @@ import json
 import os
 from fastapi.logger import logger
 
+
 def get_ontology(data, type="indicator"):
     """
-    A function to submit either indicators or models to the UAZ 
+    A function to submit either indicators or models to the UAZ
     ontology mapping service
 
     Params:
@@ -14,14 +15,16 @@ def get_ontology(data, type="indicator"):
     """
     headers = {"accept": "application/json", "Content-Type": "application/json"}
     url = os.getenv("UAZ_URL")
-    params = "?maxHits=10&threshold=0.6&compositional=true"
+    uaz_threshold = os.getenv("UAZ_THRESHOLD")
+    uaz_hits = os.getenv("UAZ_HITS")
+    params = f"?maxHits={uaz_hits}&threshold={uaz_threshold}&compositional=true"
 
     # Send to either /groundIndicator or /groundModel
     if type == "indicator":
         type_ = "groundIndicator"
     elif type == "model":
         type_ = "groundModel"
-    
+
     # Build final URL to route to UAZ
     url_ = f"{url}/{type_}{params}"
 
@@ -40,8 +43,7 @@ def get_ontology(data, type="indicator"):
             ontology_dict = {}
             for ontology in ontologies["outputs"]:
                 key = ontology["name"]
-                datuh = ontology["ontologies"]
-                ontology_dict[key] = datuh
+                ontology_dict[key] = ontology["ontologies"]
 
             return ontology_dict
 

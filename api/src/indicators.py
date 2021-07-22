@@ -20,6 +20,7 @@ from src.settings import settings
 
 from src.dojo import search_and_scroll
 from src.ontologies import get_ontology
+from src.notify import notify_causemos
 import os
 
 router = APIRouter()
@@ -54,6 +55,9 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
     try:
         body = json.dumps(data)
         es.index(index="indicators", body=body, id=indicator_id)
+
+        # Notify Causemos that an indicator was created
+        notify_causemos(data)
 
     except Exception as e:
         logger.error(f"Issue storing indicator to elasticsearch")
