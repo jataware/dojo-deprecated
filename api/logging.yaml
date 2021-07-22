@@ -25,12 +25,12 @@ handlers:
 
 loggers:
   "":
-    level: DEBUG
+    level: INFO
     handlers:
       - console
     propagate: False
   fastapi:
-    level: DEBUG
+    level: INFO
     handlers:
       - console
     propagate: False
