@@ -3,7 +3,8 @@ import json
 import os
 from fastapi.logger import logger
 
-def get_ontology(data, type="indicator"):
+
+def get_ontologies(data, type="indicator"):
     """
     A function to submit either indicators or models to the UAZ 
     ontology mapping service
@@ -14,7 +15,9 @@ def get_ontology(data, type="indicator"):
     """
     headers = {"accept": "application/json", "Content-Type": "application/json"}
     url = os.getenv("UAZ_URL")
-    params = "?maxHits=10&threshold=0.6&compositional=true"
+    uaz_threshold = os.getenv("UAZ_THRESHOLD")
+    uaz_hits = os.getenv("UAZ_HITS")
+    params = f"?maxHits={uaz_hits}&threshold={uaz_threshold}&compositional=true"
 
     # Send to either /groundIndicator or /groundModel
     if type == "indicator":
@@ -34,17 +37,19 @@ def get_ontology(data, type="indicator"):
         # Ensure good response and not an empty response
         if response.status_code == 200:
             resp_str = response.content.decode("utf8")
-            ontologies = json.loads(resp_str)
-
-            # Capture UAZ ontology data
-            ontology_dict = {}
-            for ontology in ontologies["outputs"]:
-                key = ontology["name"]
-                datuh = ontology["ontologies"]
-                ontology_dict[key] = datuh
-
-            return ontology_dict
-
+            uaz_ontologies = json.loads(resp_str)
+            
+            try:
+                if type == "indicator":
+                    return indicator_ontologies(data, uaz_ontologies)
+                else:
+                    return model_ontologies(data, uaz_ontologies)
+            except:
+                # If no-go on UAZ, still return partial so it's written to ES
+                logger.error(f"Failed to generate ontologies for indicator: {str(e)}")
+                logger.exception(e)
+                return data
+                
         else:
             logger.debug(f"else response: {response}")
             return response
@@ -52,3 +57,65 @@ def get_ontology(data, type="indicator"):
     except Exception as e:
         logger.error(f"Encountered problems communicating with UAZ service: {e}")
         logger.exception(e)
+
+
+def indicator_ontologies(data, ontologies):
+    """
+    A function to map UAZ ontologies back into 
+    the submitted "partial" indicator object
+
+    Params:
+        - data: the indicator object
+        - ontologies: object from UAZ endpoint
+    """    
+    ontology_dict = {"outputs": {}, "qualifier_outputs": {}}
+    
+    # Reorganize UAZ response
+    for ontology in ontologies["outputs"]:
+        ontology_dict["outputs"][ontology["name"]] = ontology["ontologies"]
+
+    for ontology in ontologies["qualifier_outputs"]:
+        ontology_dict["qualifier_outputs"][ontology["name"]] =  ontology["ontologies"]
+    
+    # Map back into partial indicator object to build complete indicator
+    for output in data["outputs"]:
+        output["ontologies"] = ontology_dict["outputs"][output["name"]]
+    
+    for qualifier_output in data["qualifier_outputs"]:
+        qualifier_output["ontologies"] = ontology_dict["qualifier_outputs"][qualifier_output["name"]]
+
+    return data
+
+
+def model_ontologies(data, ontologies):
+    """
+    A function to map UAZ ontologies back into 
+    the submitted "partial" model object
+
+    Params:
+        - data: the indicator object
+        - ontologies: object from UAZ endpoint
+    """    
+    ontology_dict = {"parameters": {}, "outputs": {}, "qualifier_outputs": {}}
+    
+    # Reorganize UAZ response
+    for ontology in ontologies["outputs"]:
+        ontology_dict["outputs"][ontology["name"]] = ontology["ontologies"]
+
+    for ontology in ontologies["qualifier_outputs"]:
+        ontology_dict["qualifier_outputs"][ontology["name"]] =  ontology["ontologies"]
+
+    for ontology in ontologies["parameters"]:
+        ontology_dict["parameters"][ontology["name"]] =  ontology["ontologies"]        
+    
+    # Map back into partial indicator object to build complete indicator
+    for parameter in data["parameters"]:
+        parameter["ontologies"] = ontology_dict["parameters"][parameter["name"]]
+
+    for output in data["outputs"]:
+        output["ontologies"] = ontology_dict["outputs"][output["name"]]
+    
+    for qualifier_output in data["qualifier_outputs"]:
+        qualifier_output["ontologies"] = ontology_dict["qualifier_outputs"][qualifier_output["name"]]
+
+    return data
