@@ -20,6 +20,8 @@ from src.settings import settings
 
 from src.dojo import search_and_scroll
 from src.ontologies import get_ontologies
+from src.notify import notify_causemos
+
 import os
 
 router = APIRouter()
@@ -41,6 +43,9 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
     logger.info(f"Sent indicator to UAZ")
     es.index(index="indicators", body=data, id=indicator_id)
 
+    # Notify Causemos that an indicator was created
+    notify_causemos(data)
+    
     return Response(
         status_code=status.HTTP_201_CREATED,
         headers={"location": f"/api/indicators/{indicator_id}"},
