@@ -15,7 +15,7 @@ from validation import ModelSchema, DojoSchema
 from src.settings import settings
 from src.dojo import search_and_scroll
 from src.ontologies import get_ontologies
-from src.causemos import notify_causemos
+from src.causemos import notify_causemos, submit_run
 
 router = APIRouter()
 
@@ -96,6 +96,9 @@ def register_model(model_id: str):
 
     # Notify Causemos that a model was created
     notify_causemos(model, type="model")
+
+    # Send CauseMos a default run
+    submit_run(model)
 
     return Response(
         status_code=status.HTTP_201_CREATED,
