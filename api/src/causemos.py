@@ -21,7 +21,7 @@ def notify_causemos(data, type="indicator"):
     if type == "indicator":
         endpoint = "indicators/post-process"
     elif type == "model":
-        endpoint - "datacubes"
+        endpoint = "datacubes"
 
     url = f'{os.getenv("CAUSEMOS_IND_URL")}/{endpoint}'
     causemos_user = os.getenv("CAUSEMOS_USER")
@@ -72,8 +72,8 @@ def submit_run(model):
     for param in model.get("parameters",[]):
         params[param['name']] = param['default']
 
-    payload = {"model_id": model["id"],
-               "model_name": model["name"],
+    payload = {"id": model["id"],
+               "name": model["name"],
                "parameters": params,
                "is_default_run": True}
 
@@ -83,7 +83,7 @@ def submit_run(model):
             logger.info("CauseMos debug mode: no need to submit default model run to Uncharted")
             return
         else:
-            logger.info(f"Submitting default model run to CauseMos.")
+            logger.info(f"Submitting default model run to CauseMos with payload: {payload}")
             response = requests.post(
                 url,
                 headers={"Content-Type": "application/json"},
