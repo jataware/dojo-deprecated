@@ -20,7 +20,7 @@ from src.settings import settings
 
 from src.dojo import search_and_scroll
 from src.ontologies import get_ontologies
-from src.notify import notify_causemos
+from src.causemos import notify_causemos
 
 import os
 
@@ -44,7 +44,7 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
     es.index(index="indicators", body=data, id=indicator_id)
 
     # Notify Causemos that an indicator was created
-    notify_causemos(data)
+    notify_causemos(data, type="indicator")
     
     return Response(
         status_code=status.HTTP_201_CREATED,

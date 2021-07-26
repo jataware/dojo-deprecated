@@ -15,6 +15,7 @@ from validation import ModelSchema, DojoSchema
 from src.settings import settings
 from src.dojo import search_and_scroll
 from src.ontologies import get_ontologies
+from src.causemos import notify_causemos
 
 router = APIRouter()
 
@@ -83,3 +84,20 @@ def get_model(model_id: str) -> Model:
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return model
+
+
+@router.post("/models/register/{model_id}")
+def register_model(model_id: str):
+    """
+    This endpoint finalizes the registration of a model by notifying 
+    Uncharted and submitting to them a default run for the model.
+    """
+    model = es.get(index="models", id=model_id)["_source"]
+
+    # Notify Causemos that a model was created
+    notify_causemos(model, type="model")
+
+    return Response(
+        status_code=status.HTTP_201_CREATED,
+        content=f"Registered model to CauseMos with id = {model_id}"
+    )
