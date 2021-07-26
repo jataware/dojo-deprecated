@@ -14,7 +14,7 @@ from validation import ModelSchema, DojoSchema
 
 from src.settings import settings
 from src.dojo import search_and_scroll
-from src.ontologies import get_ontology
+from src.ontologies import get_ontologies
 
 router = APIRouter()
 
@@ -26,36 +26,16 @@ def current_milli_time():
     return round(time.time() * 1000)
 
 
-def update_ontologies(model):
-    '''
-    This is a function cribbed from indicators.py to send data to UAZ
-    Here we send a dictionary of a model to UAZ
-    It is returned with the outputs ontology-mapped
-    '''
-    # TODO: UAZ API Does not return ontologies for "qualifier_outputs" so work on just "outputs" for now
-    try:
-        # Duplicate category to tags to ensure UAZ mapper works
-        model['tags'] = model.get('category',['model'])
-        ontology_dict = get_ontology(model, type="model")
-        logger.info(f"Sent model to UAZ.")
-        for output in model["outputs"]:
-            output["ontologies"] = ontology_dict[output["name"]]
-        logger.debug(f"Model with UAZ: {model}")
-        return model
-
-    except Exception as e:
-        logger.error(f"Failed to generate ontologies for model: {str(e)}")
-        logger.exception(e)
-        return model
-
-
 @router.post("/models")
 def create_model(payload: ModelSchema.ModelMetadataSchema):
     model_id = payload.id
     payload.created_at = current_milli_time()
     body = payload.json()
-    model = update_ontologies(json.loads(body))
+    
+    model = get_ontologies(json.loads(body), type="model")
+    logger.info(f"Sent model to UAZ")
     es.index(index="models", body=model, id=model_id)
+
     return Response(
         status_code=status.HTTP_201_CREATED,
         headers={"location": f"/api/models/{model_id}"},
@@ -67,7 +47,7 @@ def create_model(payload: ModelSchema.ModelMetadataSchema):
 def update_model(model_id: str, payload: ModelSchema.ModelMetadataSchema):
     payload.created_at = current_milli_time()
     body = payload.json()
-    model = update_ontologies(json.loads(body))
+    model = get_ontologies(json.loads(body))
     es.index(index="models", body=model, id=model_id)
     return Response(
         status_code=status.HTTP_201_CREATED,
@@ -78,7 +58,7 @@ def update_model(model_id: str, payload: ModelSchema.ModelMetadataSchema):
 
 @router.patch("/models/{model_id}")
 def modify_model(model_id: str, payload: dict = Body(...)):
-    model = update_ontologies(payload)
+    model = get_ontologies(payload)
     es.update(index="models", body={"doc": model}, id=model_id)
     return Response(
         status_code=status.HTTP_200_OK,
