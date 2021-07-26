@@ -44,7 +44,7 @@ def get_ontologies(data, type="indicator"):
                     return indicator_ontologies(data, uaz_ontologies)
                 else:
                     return model_ontologies(data, uaz_ontologies)
-            except:
+            except Exception as e:
                 # If no-go on UAZ, still return partial so it's written to ES
                 logger.error(f"Failed to generate ontologies for indicator: {str(e)}")
                 logger.exception(e)
@@ -81,8 +81,9 @@ def indicator_ontologies(data, ontologies):
     for output in data["outputs"]:
         output["ontologies"] = ontology_dict["outputs"][output["name"]]
     
-    for qualifier_output in data["qualifier_outputs"]:
-        qualifier_output["ontologies"] = ontology_dict["qualifier_outputs"][qualifier_output["name"]]
+    if data.get("qualifier_outputs", None):    
+        for qualifier_output in data["qualifier_outputs"]:
+            qualifier_output["ontologies"] = ontology_dict["qualifier_outputs"][qualifier_output["name"]]
 
     return data
 
@@ -112,10 +113,11 @@ def model_ontologies(data, ontologies):
     for parameter in data["parameters"]:
         parameter["ontologies"] = ontology_dict["parameters"][parameter["name"]]
 
-    for output in data["outputs"]:
+    for output in data.get("outputs", []):
         output["ontologies"] = ontology_dict["outputs"][output["name"]]
     
-    for qualifier_output in data["qualifier_outputs"]:
-        qualifier_output["ontologies"] = ontology_dict["qualifier_outputs"][qualifier_output["name"]]
+    if data.get("qualifier_outputs", None):
+        for qualifier_output in data["qualifier_outputs"]:
+            qualifier_output["ontologies"] = ontology_dict["qualifier_outputs"][qualifier_output["name"]]
 
     return data
