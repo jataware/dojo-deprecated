@@ -73,7 +73,7 @@ def submit_run(model):
         params[param['name']] = param['default']
 
     payload = {"model_id": model["id"],
-               "model_namename": model["name"],
+               "model_name": model["name"],
                "is_default_run": True,
                "parameters": params}
 
