@@ -19,7 +19,9 @@ from validation import IndicatorSchema, DojoSchema
 from src.settings import settings
 
 from src.dojo import search_and_scroll
-from src.ontologies import get_ontology
+from src.ontologies import get_ontologies
+from src.causemos import notify_causemos
+
 import os
 
 router = APIRouter()
@@ -36,29 +38,14 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
     indicator_id = payload.id
     payload.created_at = current_milli_time()
     body = payload.json()
-    data = json.loads(body)
 
-    # TODO: UAZ API Does not return ontologies for "qualifier_outputs" so work on just "outputs" for now
-    try:
-        ontology_dict = get_ontology(data, type="indicator")
-        logger.info(f"Sent indicator to UAZ")
-        for output in data["outputs"]:
-            output["ontologies"] = ontology_dict[output["name"]]
+    data = get_ontologies(json.loads(body), type="indicator")
+    logger.info(f"Sent indicator to UAZ")
+    es.index(index="indicators", body=data, id=indicator_id)
 
-        logger.debug(f"Data with UAZ: {data}")
-
-    except Exception as e:
-        logger.error(f"Failed to generate indicator: {str(e)}")
-        logger.exception(e)
-
-    try:
-        body = json.dumps(data)
-        es.index(index="indicators", body=body, id=indicator_id)
-
-    except Exception as e:
-        logger.error(f"Issue storing indicator to elasticsearch")
-        logger.exception(e)
-
+    # Notify Causemos that an indicator was created
+    notify_causemos(data, type="indicator")
+    
     return Response(
         status_code=status.HTTP_201_CREATED,
         headers={"location": f"/api/indicators/{indicator_id}"},

@@ -37,10 +37,12 @@ This will build the API container and run the server on `http://localhost:8000/`
 To run the API for development purposes use:
 
 ```
-docker-compose -f docker-compose-dev.yaml up --build -d
+docker-compose -f docker-compose-dev.yaml up -d
 ```
 
 This will turn on the API, Elasticsearch and Kibana, but the API will be in `reload` mode and any changes made to the local repository will be reflected in the container to facilitate development.
+
+You should also ensure that `CAUSEMOS_DEBUG` in `.env` is set to `true` as this will bypass notifying Uncharted that indicators were created. In production, this should be set to `false` so that Uncharted gets notified whenever a new indicator is created.
 
 ## Setup
 
