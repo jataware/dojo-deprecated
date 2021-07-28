@@ -11,23 +11,23 @@ The Domain Model Controller (DMC), is an implementation of Airflow designed to s
 
 ## Setup
 
-First you will need to determine your local machine IPv4
+This assumes you are already running the Dojo API locally. First, you must set environment variables for the AWS access and secret keys in order to be able to push results to S3:
 
-For OSX
 ```
-ipconfig getifaddr en0
-```
-For Linux
-```
-hostname -i
+export AWS_ACCESS_KEY=youraccesskey
+export AWS_SECRET_KEY=yoursecretkey
 ```
 
-This is your `local ip`. Update line 54 of `docker-compose.yaml` and change `DOCKER_URL` to
+> **Note**: you must **URL encode** your access and secret keys before setting the environment variables
+
+Then run: 
+
 ```
-      DOCKER_URL: http://<local ip>:8375
+set -a
+source .env
 ```
 
-The DMC can be run via `docker-compose` with:
+Now, DMC can be run via `docker-compose` with:
 
 ```
 docker-compose up -d
@@ -57,16 +57,7 @@ _AIRFLOW_WWW_USER_PASSWORD: wileyhippo
 
 > Note: these should be changed for production; the above credentials are the default.
 
-You must also set environment variables for the AWS access and secret keys in order to be able to push results to S3:
-
-```
-export AWS_ACCESS_KEY=youraccesskey
-export AWS_SECRET_KEY=yoursecretkey
-```
-
-> **Note**: you must **URL encode** your access and secret keys before setting the environment variables
-
-Set the `DMC_DEBUG` environment variable in the `docker-compose.yaml` to `'false'` if you are running in production, otherwise leave it as `'true'`. If `'false'`, a notification is sent to Uncharted to let them know the model run as completed. We **don't** want to do this when developing the application.
+Set the `DMC_DEBUG` environment variable in the `.env` to `'false'` if you are running in production, otherwise leave it as `'true'`. If `'false'`, a notification is sent to Uncharted to let them know the model run as completed. We **don't** want to do this when developing the application.
 
 This should run the Airflow UI at `http://localhost:8080/home`.
 
