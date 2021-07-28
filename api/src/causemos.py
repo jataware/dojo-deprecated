@@ -72,10 +72,10 @@ def submit_run(model):
     for param in model.get("parameters",[]):
         params[param['name']] = param['default']
 
-    payload = {"id": model["id"],
-               "name": model["name"],
-               "parameters": params,
-               "is_default_run": True}
+    payload = {"model_id": model["id"],
+               "model_name": model["name"],
+               "is_default_run": True,
+               "parameters": params}
 
     try:
         # Notify Uncharted
