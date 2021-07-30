@@ -91,12 +91,19 @@ def register_model(model_id: str):
     This endpoint finalizes the registration of a model by notifying 
     Uncharted and submitting to them a default run for the model.
     """
+    logger.info("Updating model with latest ontologies.")
     model = es.get(index="models", id=model_id)["_source"]
+    model = get_ontologies(model)
+    model_obj = ModelSchema.ModelMetadataSchema.parse_obj(model)
+    update_model(model_id=model_id, payload=model_obj)
+
 
     # Notify Causemos that a model was created
+    logger.info("Notifying CauseMos of model registration")
     notify_causemos(model, type="model")
 
     # Send CauseMos a default run
+    logger.info("Submitting defualt run to CauseMos")
     submit_run(model)
 
     return Response(
