@@ -59,8 +59,7 @@ def update_model(model_id: str, payload: ModelSchema.ModelMetadataSchema):
 
 @router.patch("/models/{model_id}")
 def modify_model(model_id: str, payload: dict = Body(...)):
-    model = get_ontologies(payload)
-    es.update(index="models", body={"doc": model}, id=model_id)
+    es.update(index="models", body={"doc": payload}, id=model_id)
     return Response(
         status_code=status.HTTP_200_OK,
         headers={"location": f"/api/models/{model_id}"},
