@@ -51,16 +51,18 @@
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       #AIRFLOW__API__ENABLE_EXPERIMENTAL_API: 'true'
       AIRFLOW__API__AUTH_BACKEND: 'airflow.api.auth.backend.basic_auth'
-      DOCKER_URL: http://10.0.0.202:8375
+      DOCKER_URL: http://${DOCKER_URL}:${DOCKER_PORT}
       DMC_LOCAL_DIR: "${PWD}"
-      BUCKET: jataware-world-modelers
-      BUCKET_DIR: dmc_results_dev
-      DMC_DEBUG: 'true'
+      BUCKET: ${BUCKET}
+      BUCKET_DIR: ${BUCKET_DIR}
+      DMC_DEBUG: '${DMC_DEBUG}'
       AIRFLOW_CONN_AWS_DEFAULT: aws://${AWS_ACCESS_KEY}:${AWS_SECRET_KEY}@
-      MIXMASTA_VERSION: "multi-file"
-      CAUSEMOS_BASE_URL: https://causemos.uncharted.software/api/maas/model-runs
-      CAUSEMOS_USER: worldmodelers
-      CAUSEMOS_PWD: world!
+      MIXMASTA_VERSION: "${MIXMASTA_VERSION}"
+      CAUSEMOS_BASE_URL: ${CAUSEMOS_BASE_URL}
+      CAUSEMOS_USER: ${CAUSEMOS_USER}
+      CAUSEMOS_PWD: ${CAUSEMOS_PWD}
+      DAG_MAX_ACTIVE_RUNS: 3
+      DAG_CONCURRENCY: 10
 
     volumes:
       - ./dags:/opt/airflow/dags
@@ -79,13 +81,6 @@
         condition: service_healthy
 
   services:
-    socat:
-      image: alpine/socat
-      ports:
-        - 8375:8375
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-      command: tcp-listen:8375,fork,reuseaddr unix-connect:/var/run/docker.sock
 
     postgres:
       image: postgres:13
@@ -117,8 +112,8 @@
       command: webserver
       ports:
         - 8080:8080
-      expose: 
-        - "8080"        
+      expose:
+        - "8080"
       healthcheck:
         test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
         interval: 10s
@@ -143,8 +138,8 @@
         <<: *airflow-common-env
         _AIRFLOW_DB_UPGRADE: 'true'
         _AIRFLOW_WWW_USER_CREATE: 'true'
-        _AIRFLOW_WWW_USER_USERNAME: jataware
-        _AIRFLOW_WWW_USER_PASSWORD: wileyhippo
+        _AIRFLOW_WWW_USER_USERNAME: ${DMC_USER}
+        _AIRFLOW_WWW_USER_PASSWORD: ${DMC_PASSWORD}
 
     flower:
       <<: *airflow-common

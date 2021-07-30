@@ -59,8 +59,7 @@ def update_model(model_id: str, payload: ModelSchema.ModelMetadataSchema):
 
 @router.patch("/models/{model_id}")
 def modify_model(model_id: str, payload: dict = Body(...)):
-    model = get_ontologies(payload)
-    es.update(index="models", body={"doc": model}, id=model_id)
+    es.update(index="models", body={"doc": payload}, id=model_id)
     return Response(
         status_code=status.HTTP_200_OK,
         headers={"location": f"/api/models/{model_id}"},
@@ -92,12 +91,19 @@ def register_model(model_id: str):
     This endpoint finalizes the registration of a model by notifying 
     Uncharted and submitting to them a default run for the model.
     """
+    logger.info("Updating model with latest ontologies.")
     model = es.get(index="models", id=model_id)["_source"]
+    model = get_ontologies(model)
+    model_obj = ModelSchema.ModelMetadataSchema.parse_obj(model)
+    update_model(model_id=model_id, payload=model_obj)
+
 
     # Notify Causemos that a model was created
+    logger.info("Notifying CauseMos of model registration")
     notify_causemos(model, type="model")
 
     # Send CauseMos a default run
+    logger.info("Submitting defualt run to CauseMos")
     submit_run(model)
 
     return Response(

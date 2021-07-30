@@ -35,7 +35,8 @@ def get_health():
         response = requests.get(url, auth=(dmc_user, dmc_pass))
         dmc_status = response.json()["metadatabase"]["status"]
         print(f"DMC: {dmc_status}")
-    except:
+    except Exception as e:
+        logger.exception(e)
         dmc_status = "broken"
 
     # DOJO (actually ElasticSearch Health) Status
@@ -43,7 +44,8 @@ def get_health():
         url = f"{dmc_base_url}/health"
         dojo_status = es.cluster.health()["status"]
         print(f"Dojo: {dojo_status}")
-    except:
+    except Exception as e:
+        logger.exception(e)
         dojo_status = "broken"
 
     status = {

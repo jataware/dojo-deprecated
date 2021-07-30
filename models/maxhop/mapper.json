@@ -43,9 +43,13 @@
     ],
     "meta": {
         "ftype": "geotiff",
+        "date": "01/01/2021",
         "feature_name": "Hopper Presence Prediction",
-        "band": "1",
+        "band": 1,
         "null_val": "-9999",
-        "date": "01/01/2021"
-    }
+        "band_name": "Hopper Presence Prediction_",
+        "bands": {
+            "1": "Hopper Presence Prediction_"
+        }
+    }    
 }
