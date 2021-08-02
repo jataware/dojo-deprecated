@@ -160,9 +160,12 @@ def create_run(run: RunSchema.ModelRunSchema):
 
     # get volumes
     for configFile in configsData:
-        mountPath = configFile["path"]
-
-        fileName = configFile["path"].split("/")[-1]
+        if 'fileName' in configFile:
+            mountPath = configFile["path"]
+            fileName = configFile["fileName"]
+        else:
+            mountPath = '/'.join(configFile["path"].split("/")[:-1])
+            fileName = configFile["path"].split("/")[-1]
         savePath = dmc_local_dir + f"/model_configs/{run.id}/{fileName}"
         model_config_s3_path_objects.append(
             {
