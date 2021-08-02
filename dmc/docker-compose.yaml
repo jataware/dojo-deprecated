@@ -81,7 +81,14 @@
         condition: service_healthy
 
   services:
-
+    socat:
+      image: alpine/socat
+      ports:
+        - 8375:8375
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+      command: tcp-listen:8375,fork,reuseaddr unix-connect:/var/run/docker.sock
+      
     postgres:
       image: postgres:13
       environment:
