@@ -70,6 +70,7 @@ def submit_run(model):
 
     params = []
     for param in model.get("parameters",[]):
+        param_obj = {}
         param_obj['name'] = param['name']
         param_obj['value'] = param['default']
         params.append(param_obj)
