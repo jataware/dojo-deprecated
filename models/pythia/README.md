@@ -3,7 +3,7 @@ This folder contains the files required to run [pythia](https://github.com/DSSAT
 
 ## File Descriptions:
 
-- `Dockerfile`: builds Docker image to run `pythia`. This version of the Dockerfile is large (compressed 6.4GB) as it pre-loads all required model input data into the [jataware/pythia](https://hub.docker.com/repository/docker/jataware/pythia) image.
+- `Dockerfile`: builds Docker image to run `pythia`. Assumes `claudine` and `sshd` directories from Clouseau are in the same directory.
 
 
 - `config_pythia.json`: Assigns location of the dehydrated config file on S3. A dehydrated config is a shell that allows the user to "hydrate" the config file on the fly with user-specified model parameter values.

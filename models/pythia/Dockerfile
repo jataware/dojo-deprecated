@@ -1,60 +1,121 @@
-FROM dssat/dssat-csm
+########## DO GO STUFF #########
+FROM golang:stretch AS build
+WORKDIR /src
+ENV CGO_ENABLED=0
+COPY ./claudine .
 
-RUN apt-get update && apt-get install -y apt-utils && apt-get install -y curl xz-utils
+WORKDIR /src/embedded/
+RUN GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /out/claudine main.go
 
-COPY . /app/pythia
-RUN ln -sf /bin/bash /bin/sh && \
+WORKDIR /src/preexec/
+RUN GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /out/c main.go
+##############################
 
-# install pre-reqs for pyenv installed pythons
-apt-get install -y build-essential libssl-dev zlib1g-dev libbz2-dev \
-libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
-xz-utils tk-dev libffi-dev liblzma-dev python-openssl git libspatialindex-dev && \
+from debian:buster-slim
 
-# setup pyenv
-curl https://pyenv.run | bash && \                          
-echo 'export PATH="/root/.pyenv/bin:/root/.local/bin:$PATH"' >> ~/.bashrc && \
-echo 'eval "$(pyenv init -)"' >> ~/.bashrc && \
-echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc && \
-export PATH="/root/.pyenv/bin:/root/.local/bin:$PATH" && \
-eval "$(pyenv init -)" && \
-eval "$(pyenv virtualenv-init i)" && \
+# Gotta love base issues
+RUN sed -i "s/^exit 101$/exit 0/" /usr/sbin/policy-rc.d && \
+apt update && \
+apt install -y --no-install-recommends sudo git curl build-essential gfortran cmake \
+python3 python3-pip \
+r-base libcurl4-openssl-dev libgdal-dev libudunits2-dev libssl-dev
 
-# install python 3.7.9
-pyenv install 3.7.9 && \
-pyenv rehash && \
-pyenv virtualenv 3.7.9 pythia-3.7.9 && \
-pyenv activate pythia-3.7.9 && \
-pip install --upgrade pip && \
-pip install pipenv && \
+###### DO CLAUDINE STUFF ######
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+ENV DEBIAN_FRONTEND noninteractive
 
-# install dependencies
-cd /app/pythia && \
-pipenv install && \
-echo "#!/bin/bash" > /app/pythia.sh && \
-echo "" >> /app/pythia.sh && \
-echo 'export PATH="/root/.pyenv/bin:/root/.local/bin:$PATH"' >> /app/pythia.sh && \
-echo 'export PYENV_VIRTUALENV_DISABLE_PROMPT=1' >> /app/pythia.sh && \
-echo 'eval "$(pyenv init -)"' >> /app/pythia.sh && \
-echo 'eval "$(pyenv virtualenv-init -)"' >> /app/pythia.sh && \
-echo "pyenv activate pythia-3.7.9" >> /app/pythia.sh && \
-echo "python /app/pythia/pythia.py \$@" >> /app/pythia.sh && \
-echo "pyenv deactivate" && \
-chmod 755 /app/pythia.sh
+USER root
 
-# GET DATA:
-RUN mkdir /userdata
-RUN mkdir /data
-WORKDIR /userdata
-RUN curl -O --progress-bar https://world-modelers.s3.amazonaws.com/data/basedata-20191003.tar.xz
-RUN curl -O --progress-bar https://world-modelers.s3.amazonaws.com/data/ethdata-20191003.tar.xz
-RUN curl -O --progress-bar https://world-modelers.s3.amazonaws.com/data/ssddata-20191003.tar.xz
-#RUN curl -O --progress-bar https://raw.githubusercontent.com/WorldModelers/ModelService/master/DSSAT-Integration/et_docker.json
-RUN mkdir /data/base && mkdir /data/ETH && mkdir /data/SSD
-RUN tar xJvf /userdata/basedata-20191003.tar.xz -C /data/base
-RUN tar xJvf /userdata/ethdata-20191003.tar.xz  -C /data/ETH
-RUN tar xJvf /userdata/ssddata-20191003.tar.xz -C /data/SSD
-RUN rm /userdata/basedata-20191003.tar.xz && rm /userdata/ethdata-20191003.tar.xz && rm /userdata/ssddata-20191003.tar.xz
+RUN apt-get update && apt-get clean && apt-get install -y \
+    sudo \
+    wget \
+    curl \
+    git \
+    zip \
+    gpg-agent \
+    openssh-server
+
+# RUN mkdir /var/run/sshd
+RUN mkdir -p /var/log/claudine && chmod 777 /var/log/claudine
+RUN echo 'root:root' |chpasswd
+RUN ssh-keygen -A
+RUN sed -ri 's/^#?PermitRootLogin\s+.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config
+
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN echo "clouseau ALL=NOPASSWD:ALL" >> /etc/sudoers.d/50-clouseau
+
+RUN useradd --user-group --create-home clouseau && \
+    usermod -s /bin/bash clouseau && \
+    echo "clouseau:clouseau" | chpasswd clouseau && \
+    echo 'Defaults    env_keep += "DEBIAN_FRONTEND"' >> /etc/sudoers.d/env_keep && \
+    mkdir /home/clouseau/.ssh /home/clouseau/.tools && \
+    mkdir -p /home/clouseau/.local/bin && \
+    echo "\n\
+if [ -n \$BASH ] && [ -r ~/.bashrc ]; then\n\
+    . ~/.bashrc\n\
+fi\n" >> /home/clouseau/.bash_profile
+
+COPY --from=build /out/claudine /home/clouseau/.tools/claudine
+COPY --from=build /out/c /home/clouseau/.tools/c
+COPY sshd/assets/default-settings.yaml /home/clouseau/.tools/default-settings.yaml
+
+COPY sshd/assets/10-bash-hooks.sh /etc/profile.d/10-bash-hooks.sh
+COPY sshd/assets/.bash-preexec /home/clouseau/.bash-preexec
+COPY sshd/assets/.bashrc /home/clouseau/.bashrc
+COPY sshd/assets/.hooks /home/clouseau/.hooks
+
+COPY sshd/entrypoint.sh /usr/local/bin/entrypoint.sh
+##############################
+
+# # Add the default clouseau user
+# RUN useradd --home-dir /home/clouseau --groups sudo --no-log-init --create-home --user-group --shell /bin/bash clouseau && \
+RUN mkdir /userdata && mkdir /data && \
+chown clouseau /opt && chown clouseau /data && chown clouseau /userdata
+RUN echo 'clouseau ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 
-ENTRYPOINT ["/app/pythia.sh"]
-CMD ["-h"]
+# Add the root level scripts
+RUN curl --create-dirs -o /usr/local/bin/load_kenya https://data.agmip.org/darpa/load_kenya.sh && \
+curl --create-dirs -o /usr/local/bin/load_ethiopia https://data.agmip.org/darpa/load_ethiopia.sh && \
+curl --create-dirs -o /usr/local/bin/pipeline https://data.agmip.org/darpa/pipeline.sh && \
+chmod 755 /usr/local/bin/load_kenya && chown clouseau /usr/local/bin/load_kenya && \
+chmod 755 /usr/local/bin/load_ethiopia && chown clouseau /usr/local/bin/load_ethiopia && \
+chmod 755 /usr/local/bin/pipeline && chown clouseau /usr/local/bin/pipeline 
+
+USER clouseau
+WORKDIR /home/clouseau
+
+# Install DSSAT
+RUN mkdir /home/clouseau/src && cd /home/clouseau/src && \
+git clone https://github.com/DSSAT/dssat-csm-os && \
+cd dssat-csm-os && git checkout 3ccad41098ac7c7a162f1d463bd09c82e8931845 -b 4.7.5.42 && \
+mkdir build && cd build && cmake -DCMAKE_INSTALL_PREFIX=/opt/dssat -DCMAKE_BUILD_TYPE=RELEASE .. && \
+make && make install
+
+# modify clouseau home directory file permissions
+USER root
+RUN chown clouseau -R /home/clouseau
+USER clouseau
+
+# Install pythia
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python3 - && \
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && \
+export PATH="$HOME/.local/bin:$PATH" && \
+cd /home/clouseau/src && git clone https://github.com/DSSAT/pythia && cd pythia && \
+git checkout develop && \
+poetry build && cd dist && pip3 install --user pythia-2.0.0b0-py3-none-any.whl
+
+# Install pythia-analytics
+RUN cd /opt && git clone https://github.com/DSSAT/supermaas-aggregate-pythia-outputs pythia-analytics && \
+cd pythia-analytics && git checkout develop && Rscript install-deps-lite.R
+
+# Download the base data to the image
+RUN curl --create-dirs -o $HOME/downloads/global-base-latest.tar.bz2 https://data.agmip.org/darpa/global-base-latest.tar.bz2 && \
+cd /data && tar xjvf $HOME/downloads/global-base-latest.tar.bz2
+
+ENTRYPOINT []
+CMD ["entrypoint.sh"]
