@@ -15,7 +15,7 @@ print(resp.text)
 directive = {
     "id": "dojo/shorthand_templates/9e896392-2639-4df6-b4b4-e1b1d4cf46ae/7c4c890db081265c77b8ede2a4bbefdc.template.txt",
     "model_id": "9e896392-2639-4df6-b4b4-e1b1d4cf46ae",
-    "command": '/bin/bash -c "set -a; source .env; luigi --module models.conflict_model.tasks models.conflict_model.tasks.Predict --peaceful-days {{ peaceful_days }} --youth-bulge {{ youth_bulge_percentage_change }} --drought-index {{ drought_index_evaporative_stress_index }} --local-scheduler"'
+    "command": '/bin/bash -c "sudo chmod -R 777 output; set -a; source .env; luigi --module models.conflict_model.tasks models.conflict_model.tasks.Predict --peaceful-days {{ peaceful_days }} --youth-bulge {{ youth_bulge_percentage_change }} --drought-index {{ drought_index_evaporative_stress_index }} --local-scheduler"'
 }
 resp = requests.post(f"{url}/dojo/directive", json=directive)
 print(resp.text)
