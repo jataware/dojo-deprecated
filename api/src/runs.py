@@ -163,6 +163,8 @@ def create_run(run: RunSchema.ModelRunSchema):
         if 'fileName' in configFile:
             mountPath = configFile["path"]
             fileName = configFile["fileName"]
+        
+        # This is the typical case currently with Phantom/Shorthand
         else:
             mountPath = '/'.join(configFile["path"].split("/")[:-1])
             fileName = configFile["path"].split("/")[-1]
@@ -175,7 +177,7 @@ def create_run(run: RunSchema.ModelRunSchema):
                 "fileName": fileName,
             }
         )
-        volumeArray.append(dmc_local_dir + f"/model_configs/{run.id}:{mountPath}")
+        volumeArray.append(dmc_local_dir + f"/model_configs/{run.id}/{fileName}:{mountPath}/{fileName}")
 
     # remove redundant volume mounts
     volumeArray = list(set(volumeArray))
