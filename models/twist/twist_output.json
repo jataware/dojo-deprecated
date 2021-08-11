@@ -1,0 +1,99 @@
+{
+    "id": "100cdd91-1128-4c90-b458-0cf09ddb7a84",
+    "model_id": "40f08e3a-bc03-4416-ab85-120b4bf5a46b",
+    "name": "TWIST simulation output ",
+    "output_directory": "/home/clouseau/twist-global-model/TWIST_Results/2021_scenario",
+    "path": "TWIST_result_crop-*_pd-*_er-*_tl-*.csv",
+    "file_type": "csv",
+    "transform": {
+    "geo": [],
+    "date": [
+        {
+        "name": "Year",
+        "display_name": "Year",
+        "description": "the simulated year in twist.",
+        "type": "date",
+        "date_type": "year",
+        "time_format": "%Y",
+        "primary_date": true
+        }
+    ],
+    "feature": [
+        {
+        "name": "WM_price_scenario [US$/mt]",
+        "display_name": "World market price [US$/Mt] for scenario",
+        "description": "the world market price in us$ per mega ton of corresponding crop for the particular year under the chosen parameters (and therefore scenario). ",
+        "type": "feature",
+        "feature_type": "float",
+        "units": "us$/mt",
+        "units_description": "us-dollar per mega ton of crop"
+        },
+        {
+        "name": "WM_price_baseline [US$/mt]",
+        "display_name": "World market price [US$/Mt] of baseline",
+        "description": "the world market price in us$ per mega ton of the baseline for the particular year. this value shall be used to compare it with the world market price for the chosen scenario.",
+        "type": "feature",
+        "feature_type": "float",
+        "units": "us$/mt",
+        "units_description": "us-dollar per mega ton of crop"
+        },
+        {
+        "name": "Ending_stock_scenario [mt]",
+        "display_name": "Global stock [Mt] of scenario",
+        "description": "the global stock is the aggregation of producers’ and consumers’  stocks for the corresponding crop and is given after the harvest. the global stock is given in units of mega ton, for the particular year and under the chosen parameters (and therefore scenario).",
+        "type": "feature",
+        "feature_type": "float",
+        "units": "mt",
+        "units_description": "mega ton of crop"
+        },
+        {
+        "name": "Ending_stock_baseline [mt]",
+        "display_name": "Global stock [Mt] of baseline",
+        "description": "the global stock is the aggregation of producers’ and consumers’  stocks for the corresponding crop and is given after the harvest. the global stock for the baseline is given in units of mega ton and for the particular year. this value shall be used to compare it with the global stock for the chosen scenario.",
+        "type": "feature",
+        "feature_type": "float",
+        "units": "mt",
+        "units_description": "mega ton of crop"
+        },
+        {
+        "name": "Production_baseline [mt]",
+        "display_name": "Global production [Mt] of baseline",
+        "description": "global production of corresponding crop in units of mega ton for the particular year of the baseline. this value shall be used to compare it with the global production for the chosen scenario.",
+        "type": "feature",
+        "feature_type": "float",
+        "units": "mt",
+        "units_description": "mega ton of crop"
+        },
+        {
+        "name": "Consumption+baseline [mt]",
+        "display_name": "Global consumption [Mt] for baseline",
+        "description": "global consumption of corresponding crop in units of mega ton for the particular year for the baseline. this value shall be used to compare it with the global consumption for the chosen scenario.",
+        "type": "feature",
+        "feature_type": "float",
+        "units": "mt",
+        "units_description": "mega ton of crop"
+        },
+        {
+        "name": "Production_scenario [mt]",
+        "display_name": "Global production [Mt] for scenario",
+        "description": "global production of corresponding crop in units of mega ton for the particular year under the chosen parameters (and therefore scenario). ",
+        "type": "feature",
+        "feature_type": "float",
+        "units": "mt",
+        "units_description": "mega ton of crop"
+        },
+        {
+        "name": "Consumption_scenario [mt]",
+        "display_name": "Global consumption [Mt] for scenario",
+        "description": "global consumption of corresponding crop in units of mega ton for the particular year under the chosen parameters (and therefore scenario). ",
+        "type": "feature",
+        "feature_type": "float",
+        "units": "mt",
+        "units_description": "mega ton of crop"
+        }
+    ],
+    "meta": {
+        "ftype": "csv"
+    }
+    }
+}

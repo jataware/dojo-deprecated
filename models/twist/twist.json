@@ -1,0 +1,1850 @@
+{
+    "id": "40f08e3a-bc03-4416-ab85-120b4bf5a46b",
+    "name": "TWIST-testing",
+    "family_name": "Supply-demand model",
+    "description": "TWIST is a dynamic year-to-year supply-demand model including consumer and producer stocks to estimate global export prices of crops.",
+    "created_at": 1628155820124,
+    "category": [
+      "twist",
+      "price-dynamics",
+      "rice",
+      "wheat",
+      "corn",
+      "world-market",
+      "export-restriction",
+      "locust-upsurge"
+    ],
+    "maintainer": {
+      "name": "Kilian Kuhla",
+      "email": "kilian.kuhla@pik-potsdam.de",
+      "organization": "Potsdam-Institute for Climate Impact Research",
+      "website": "https://gitlab.pik-potsdam.de/twist/twist-global-model/-/tree/2021_scenario_kk"
+    },
+    "image": "jataware/dojo-publish:TWIST-testing-latest",
+    "observed_data": null,
+    "is_stochastic": false,
+    "parameters": [
+      {
+        "name": "crop",
+        "display_name": "Crop",
+        "description": "Choose your crop of interest for which you want to know the price dynamics. You can choose from wheat, rice or corn.",
+        "type": "str",
+        "unit": null,
+        "unit_description": null,
+        "ontologies": {
+          "concepts": [
+            {
+              "name": "wm/concept/entity/field_reports",
+              "score": 0.7357193827629089
+            },
+            {
+              "name": "wm/concept/economy/commerce",
+              "score": 0.72508305311203
+            },
+            {
+              "name": "wm/concept/plan",
+              "score": 0.7248835563659668
+            },
+            {
+              "name": "wm/concept/humanitarian_assistance/food_aid",
+              "score": 0.7162127494812012
+            },
+            {
+              "name": "wm/concept/economy/marketplace",
+              "score": 0.7060239911079407
+            },
+            {
+              "name": "wm/concept/agriculture/poultry/egg_production",
+              "score": 0.6955749988555908
+            },
+            {
+              "name": "wm/concept/economy/labor",
+              "score": 0.691376268863678
+            },
+            {
+              "name": "wm/concept/agriculture/animal_feed",
+              "score": 0.687932014465332
+            },
+            {
+              "name": "wm/concept/economy/commercial_farmers",
+              "score": 0.6860564351081848
+            },
+            {
+              "name": "wm/concept/innovation",
+              "score": 0.6756237149238586
+            }
+          ],
+          "processes": [
+            {
+              "name": "wm/process/produce",
+              "score": 0.7477648854255676
+            },
+            {
+              "name": "wm/process/consume",
+              "score": 0.7143792510032654
+            },
+            {
+              "name": "wm/process/provide",
+              "score": 0.7093785405158997
+            },
+            {
+              "name": "wm/process/transaction",
+              "score": 0.7057520747184753
+            },
+            {
+              "name": "wm/process/modify",
+              "score": 0.6965340375900269
+            },
+            {
+              "name": "wm/process/attempt",
+              "score": 0.689740002155304
+            },
+            {
+              "name": "wm/process/train/agriculture_training",
+              "score": 0.6886115074157715
+            },
+            {
+              "name": "wm/process/planning",
+              "score": 0.6619327664375305
+            },
+            {
+              "name": "wm/process/communicate/inform",
+              "score": 0.6541280746459961
+            },
+            {
+              "name": "wm/process/develop",
+              "score": 0.645249605178833
+            }
+          ],
+          "properties": [
+            {
+              "name": "wm/property/price_or_cost",
+              "score": 0.7001835703849792
+            },
+            {
+              "name": "wm/property/common_understanding",
+              "score": 0.680402398109436
+            },
+            {
+              "name": "wm/property/condition",
+              "score": 0.6717193126678467
+            },
+            {
+              "name": "wm/property/seasonality",
+              "score": 0.6613466739654541
+            },
+            {
+              "name": "wm/property/preference",
+              "score": 0.6591230630874634
+            },
+            {
+              "name": "wm/property/preparedness",
+              "score": 0.6562861800193787
+            },
+            {
+              "name": "wm/property/stability",
+              "score": 0.6530948281288147
+            },
+            {
+              "name": "wm/property/geographic_resolution/national",
+              "score": 0.6326702833175659
+            },
+            {
+              "name": "wm/property/geographic_resolution/global",
+              "score": 0.6103145480155945
+            }
+          ]
+        },
+        "is_drilldown": null,
+        "additional_options": null,
+        "data_type": "nominal",
+        "default": "Wheat",
+        "choices": [
+          "Wheat",
+          "Corn",
+          "Rice"
+        ],
+        "min": null,
+        "max": null,
+        "id": "Wheat-557430"
+      },
+      {
+        "name": "inclusion_of_production_decline",
+        "display_name": "Inclusion of production decline",
+        "description": "If the scenario should include production reduction comparable with a) production decline in breadbasket areas (top 10 producers for the corresponding crop) in 2007/08 AND b) locust upsurge in East Africa 2020, this parameter should be set to \"True\". If not, this parameter should be set to \"False\".",
+        "type": "str",
+        "unit": null,
+        "unit_description": null,
+        "ontologies": {
+          "concepts": [
+            {
+              "name": "wm/concept/entity/field_reports",
+              "score": 0.7709015011787415
+            },
+            {
+              "name": "wm/concept/plan",
+              "score": 0.7692787051200867
+            },
+            {
+              "name": "wm/concept/economy/commerce",
+              "score": 0.7454786896705627
+            },
+            {
+              "name": "wm/concept/intervention",
+              "score": 0.7319190502166748
+            },
+            {
+              "name": "wm/concept/economy/labor",
+              "score": 0.7238495349884033
+            },
+            {
+              "name": "wm/concept/economy/economy",
+              "score": 0.7186549305915833
+            },
+            {
+              "name": "wm/concept/humanitarian_assistance/food_aid",
+              "score": 0.7143436670303345
+            },
+            {
+              "name": "wm/concept/innovation",
+              "score": 0.7031006217002869
+            },
+            {
+              "name": "wm/concept/government/government_program",
+              "score": 0.6902574896812439
+            },
+            {
+              "name": "wm/concept/economy/commercial_farmers",
+              "score": 0.68951016664505
+            }
+          ],
+          "processes": [
+            {
+              "name": "wm/process/produce",
+              "score": 0.7711357474327087
+            },
+            {
+              "name": "wm/process/train/agriculture_training",
+              "score": 0.7075495719909668
+            },
+            {
+              "name": "wm/process/consume",
+              "score": 0.706174910068512
+            },
+            {
+              "name": "wm/process/attempt",
+              "score": 0.6987491250038147
+            },
+            {
+              "name": "wm/process/modify",
+              "score": 0.6967309713363647
+            },
+            {
+              "name": "wm/process/provide",
+              "score": 0.6744740009307861
+            },
+            {
+              "name": "wm/process/planning",
+              "score": 0.6735509634017944
+            },
+            {
+              "name": "wm/process/train/train",
+              "score": 0.6655605435371399
+            },
+            {
+              "name": "wm/process/develop",
+              "score": 0.6640266180038452
+            },
+            {
+              "name": "wm/process/hatching",
+              "score": 0.661216139793396
+            }
+          ],
+          "properties": [
+            {
+              "name": "wm/property/preparedness",
+              "score": 0.7259008884429932
+            },
+            {
+              "name": "wm/property/price_or_cost",
+              "score": 0.7063071131706238
+            },
+            {
+              "name": "wm/property/common_understanding",
+              "score": 0.704354465007782
+            },
+            {
+              "name": "wm/property/seasonality",
+              "score": 0.6955691576004028
+            },
+            {
+              "name": "wm/property/condition",
+              "score": 0.6895281076431274
+            },
+            {
+              "name": "wm/property/stability",
+              "score": 0.6692481637001038
+            },
+            {
+              "name": "wm/property/geographic_resolution/national",
+              "score": 0.6658461093902588
+            },
+            {
+              "name": "wm/property/geographic_resolution/global",
+              "score": 0.6398441195487976
+            },
+            {
+              "name": "wm/property/preference",
+              "score": 0.6139976382255554
+            },
+            {
+              "name": "wm/property/aftermath",
+              "score": 0.6120871305465698
+            }
+          ]
+        },
+        "is_drilldown": null,
+        "additional_options": null,
+        "data_type": "ordinal",
+        "default": "True",
+        "choices": [
+          "True",
+          "False"
+        ],
+        "min": null,
+        "max": null,
+        "id": "True-980610"
+      },
+      {
+        "name": "length_of_scenario",
+        "display_name": "Length of scenario",
+        "description": "Number of years for which the price dynamics for the corresponding crop is projected from 2020.",
+        "type": "int",
+        "unit": "year",
+        "unit_description": null,
+        "ontologies": {
+          "concepts": [
+            {
+              "name": "wm/concept/entity/field_reports",
+              "score": 0.7529105544090271
+            },
+            {
+              "name": "wm/concept/economy/commerce",
+              "score": 0.7406306862831116
+            },
+            {
+              "name": "wm/concept/plan",
+              "score": 0.7340750694274902
+            },
+            {
+              "name": "wm/concept/economy/economy",
+              "score": 0.7140377163887024
+            },
+            {
+              "name": "wm/concept/humanitarian_assistance/food_aid",
+              "score": 0.693657636642456
+            },
+            {
+              "name": "wm/concept/innovation",
+              "score": 0.6891917586326599
+            },
+            {
+              "name": "wm/concept/economy/labor",
+              "score": 0.6855008006095886
+            },
+            {
+              "name": "wm/concept/intervention",
+              "score": 0.6795400381088257
+            },
+            {
+              "name": "wm/concept/economy/commercial_farmers",
+              "score": 0.6782857775688171
+            },
+            {
+              "name": "wm/concept/economy/marketplace",
+              "score": 0.6754682660102844
+            }
+          ],
+          "processes": [
+            {
+              "name": "wm/process/produce",
+              "score": 0.7388307452201843
+            },
+            {
+              "name": "wm/process/consume",
+              "score": 0.6715378761291504
+            },
+            {
+              "name": "wm/process/train/agriculture_training",
+              "score": 0.6679851412773132
+            },
+            {
+              "name": "wm/process/transaction",
+              "score": 0.6654813885688782
+            },
+            {
+              "name": "wm/process/planning",
+              "score": 0.6549587845802307
+            },
+            {
+              "name": "wm/process/attempt",
+              "score": 0.6545451283454895
+            },
+            {
+              "name": "wm/process/hatching",
+              "score": 0.6541897058486938
+            },
+            {
+              "name": "wm/process/modify",
+              "score": 0.647504985332489
+            },
+            {
+              "name": "wm/process/transport/commercial_transportation",
+              "score": 0.6320370435714722
+            },
+            {
+              "name": "wm/process/train/train",
+              "score": 0.6294355988502502
+            }
+          ],
+          "properties": [
+            {
+              "name": "wm/property/price_or_cost",
+              "score": 0.7155497670173645
+            },
+            {
+              "name": "wm/property/seasonality",
+              "score": 0.7097890973091125
+            },
+            {
+              "name": "wm/property/preparedness",
+              "score": 0.6848028898239136
+            },
+            {
+              "name": "wm/property/common_understanding",
+              "score": 0.6824110746383667
+            },
+            {
+              "name": "wm/property/condition",
+              "score": 0.667050838470459
+            },
+            {
+              "name": "wm/property/geographic_resolution/national",
+              "score": 0.6500169038772583
+            },
+            {
+              "name": "wm/property/stability",
+              "score": 0.6497141718864441
+            },
+            {
+              "name": "wm/property/geographic_resolution/global",
+              "score": 0.6447740197181702
+            }
+          ]
+        },
+        "is_drilldown": null,
+        "additional_options": null,
+        "data_type": "numerical",
+        "default": "3",
+        "choices": [],
+        "min": 1,
+        "max": 9,
+        "id": "3-291203"
+      },
+      {
+        "name": "inclusion_of_export_restriction",
+        "display_name": "Inclusion of export restriction",
+        "description": "In 2007/08 some regions restrict the export of harvested products.\nExport restricting nations for wheat: Argentina, Bolivia, Ethiopia, India, Kazakhstan, Nepal, Pakistan, Serbia, Syria, Ukraine, Guinea.\nExport restricting nations for rice: Argentina, Bangladesh, Brazil, Cambodia, China, Ecuador, Egypt, Ethiopia, India, Indonesia, Madagascar, Myanmar, Nepal, Pakistan, Tanzania, Thailand, Vietnam, Guinea.\nExport restricting nations for corn: China, Ethiopia, Guinea, India, Kenya, Nepal, Serbia, Ukraine, Zambia.\n\nIf the scenario should consider this export restrictions, it should be set to \"2007_2008\". \n\nBesides export bans, Argentina and Russia implemented higher export taxes for corn and wheat, respectively. The following export reduction is once assumed to be 25% and once assumed to be 50% for the corresponding country.\nIf the scenario with corn should include the 25%-effective export tax from Argentina, this parameter should be set to \"2007_2008_ARG25\".  If the scenario with corn should include the 50%-effective export tax from Argentina, this parameter should be set to \"2007_2008_ARG50\". If the scenario with wheat should include, this 25%-effective export tax from Russia the parameter should be set to \"2007_2008_RUS25\". If the scenario with wheat should include the 50%-effective export tax from Russia, this parameter should be set to \"2007_2008_RUS50\". \n\nIf the scenario should include no export restriction, this parameter should be set to \"none\". \n\nHere is a short list of possible parameters depending on the crop.\nWheat: \"2007_2008\", \"2007_2008_RUS25\", \"2007_2008_RUS50\" or \"none\".\nCorn: \"2007_2008\", \"2007_2008_ARG25\", \"2007_2008_ARG50\" or \"none\".\nRice: \"2007_2008\" or \"none\"",
+        "type": "str",
+        "unit": null,
+        "unit_description": null,
+        "ontologies": {
+          "concepts": [
+            {
+              "name": "wm/concept/plan",
+              "score": 0.7769936323165894
+            },
+            {
+              "name": "wm/concept/entity/field_reports",
+              "score": 0.7498601078987122
+            },
+            {
+              "name": "wm/concept/intervention",
+              "score": 0.7298645973205566
+            },
+            {
+              "name": "wm/concept/economy/labor",
+              "score": 0.7122970223426819
+            },
+            {
+              "name": "wm/concept/humanitarian_assistance/food_aid",
+              "score": 0.7047932147979736
+            },
+            {
+              "name": "wm/concept/government/government_program",
+              "score": 0.6997190117835999
+            },
+            {
+              "name": "wm/concept/economy/commerce",
+              "score": 0.6901419162750244
+            },
+            {
+              "name": "wm/concept/government/legislation",
+              "score": 0.6825671195983887
+            },
+            {
+              "name": "wm/concept/economy/economy",
+              "score": 0.6822564005851746
+            },
+            {
+              "name": "wm/concept/time/",
+              "score": 0.6819122433662415
+            }
+          ],
+          "processes": [
+            {
+              "name": "wm/process/attempt",
+              "score": 0.7305670380592346
+            },
+            {
+              "name": "wm/process/produce",
+              "score": 0.7288825511932373
+            },
+            {
+              "name": "wm/process/modify",
+              "score": 0.7270547151565552
+            },
+            {
+              "name": "wm/process/consume",
+              "score": 0.7110264897346497
+            },
+            {
+              "name": "wm/process/provide",
+              "score": 0.705035924911499
+            },
+            {
+              "name": "wm/process/train/agriculture_training",
+              "score": 0.6918318867683411
+            },
+            {
+              "name": "wm/process/communicate/inform",
+              "score": 0.691189706325531
+            },
+            {
+              "name": "wm/process/planning",
+              "score": 0.6776176691055298
+            },
+            {
+              "name": "wm/process/transaction",
+              "score": 0.6691902875900269
+            },
+            {
+              "name": "wm/process/train/train",
+              "score": 0.6681067943572998
+            }
+          ],
+          "properties": [
+            {
+              "name": "wm/property/preparedness",
+              "score": 0.7172399163246155
+            },
+            {
+              "name": "wm/property/common_understanding",
+              "score": 0.6972768306732178
+            },
+            {
+              "name": "wm/property/price_or_cost",
+              "score": 0.6914883255958557
+            },
+            {
+              "name": "wm/property/condition",
+              "score": 0.6816912889480591
+            },
+            {
+              "name": "wm/property/stability",
+              "score": 0.6771863102912903
+            },
+            {
+              "name": "wm/property/geographic_resolution/national",
+              "score": 0.6752387881278992
+            },
+            {
+              "name": "wm/property/preference",
+              "score": 0.6257266402244568
+            },
+            {
+              "name": "wm/property/seasonality",
+              "score": 0.6225621104240417
+            },
+            {
+              "name": "wm/property/aftermath",
+              "score": 0.6059941649436951
+            }
+          ]
+        },
+        "is_drilldown": null,
+        "additional_options": null,
+        "data_type": "nominal",
+        "default": "2007_2008",
+        "choices": [
+          "2007_2008",
+          "none",
+          "2007_2008_ARG25",
+          "2007_2008_ARG50",
+          "2007_2008_RUS25",
+          "2007_2008_RUS50"
+        ],
+        "min": null,
+        "max": null,
+        "id": "2007_2008-381349"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "WM_price_scenario [US$/mt]",
+        "display_name": "World market price [US$/Mt] for scenario",
+        "description": "the world market price in us$ per mega ton of corresponding crop for the particular year under the chosen parameters (and therefore scenario). ",
+        "type": "float",
+        "unit": "us$/mt",
+        "unit_description": "us-dollar per mega ton of crop",
+        "ontologies": {
+          "concepts": [
+            {
+              "name": "wm/concept/economy/commerce",
+              "score": 0.781447172164917
+            },
+            {
+              "name": "wm/concept/entity/field_reports",
+              "score": 0.7452506422996521
+            },
+            {
+              "name": "wm/concept/plan",
+              "score": 0.7436622977256775
+            },
+            {
+              "name": "wm/concept/economy/economy",
+              "score": 0.7240313291549683
+            },
+            {
+              "name": "wm/concept/economy/marketplace",
+              "score": 0.7155929207801819
+            },
+            {
+              "name": "wm/concept/innovation",
+              "score": 0.7114965319633484
+            },
+            {
+              "name": "wm/concept/humanitarian_assistance/food_aid",
+              "score": 0.702758252620697
+            },
+            {
+              "name": "wm/concept/economy/labor",
+              "score": 0.7001835107803345
+            },
+            {
+              "name": "wm/concept/economy/commercial_farmers",
+              "score": 0.6921000480651855
+            },
+            {
+              "name": "wm/concept/intervention",
+              "score": 0.6874842643737793
+            }
+          ],
+          "processes": [
+            {
+              "name": "wm/process/produce",
+              "score": 0.7365682721138
+            },
+            {
+              "name": "wm/process/transaction",
+              "score": 0.702204167842865
+            },
+            {
+              "name": "wm/process/consume",
+              "score": 0.6922436952590942
+            },
+            {
+              "name": "wm/process/train/agriculture_training",
+              "score": 0.6775557994842529
+            },
+            {
+              "name": "wm/process/planning",
+              "score": 0.6695311665534973
+            },
+            {
+              "name": "wm/process/attempt",
+              "score": 0.6642133593559265
+            },
+            {
+              "name": "wm/process/modify",
+              "score": 0.6590655446052551
+            },
+            {
+              "name": "wm/process/hatching",
+              "score": 0.6486351490020752
+            },
+            {
+              "name": "wm/process/transport/commercial_transportation",
+              "score": 0.6455204486846924
+            },
+            {
+              "name": "wm/process/provide",
+              "score": 0.640482485294342
+            }
+          ],
+          "properties": [
+            {
+              "name": "wm/property/price_or_cost",
+              "score": 0.7270964980125427
+            },
+            {
+              "name": "wm/property/seasonality",
+              "score": 0.695248007774353
+            },
+            {
+              "name": "wm/property/preparedness",
+              "score": 0.686960756778717
+            },
+            {
+              "name": "wm/property/common_understanding",
+              "score": 0.6860272884368896
+            },
+            {
+              "name": "wm/property/geographic_resolution/global",
+              "score": 0.6850078105926514
+            },
+            {
+              "name": "wm/property/condition",
+              "score": 0.6722902059555054
+            },
+            {
+              "name": "wm/property/geographic_resolution/national",
+              "score": 0.657118022441864
+            },
+            {
+              "name": "wm/property/stability",
+              "score": 0.6537556052207947
+            },
+            {
+              "name": "wm/property/preference",
+              "score": 0.6099419593811035
+            }
+          ]
+        },
+        "is_primary": true,
+        "additional_options": null,
+        "data_resolution": null,
+        "choices": null,
+        "min": null,
+        "max": null
+      },
+      {
+        "name": "WM_price_baseline [US$/mt]",
+        "display_name": "World market price [US$/Mt] of baseline",
+        "description": "the world market price in us$ per mega ton of the baseline for the particular year. this value shall be used to compare it with the world market price for the chosen scenario.",
+        "type": "float",
+        "unit": "us$/mt",
+        "unit_description": "us-dollar per mega ton of crop",
+        "ontologies": {
+          "concepts": [
+            {
+              "name": "wm/concept/economy/commerce",
+              "score": 0.7601134777069092
+            },
+            {
+              "name": "wm/concept/plan",
+              "score": 0.7437554597854614
+            },
+            {
+              "name": "wm/concept/entity/field_reports",
+              "score": 0.7310253381729126
+            },
+            {
+              "name": "wm/concept/economy/marketplace",
+              "score": 0.7119327783584595
+            },
+            {
+              "name": "wm/concept/innovation",
+              "score": 0.7102576494216919
+            },
+            {
+              "name": "wm/concept/economy/economy",
+              "score": 0.7050285935401917
+            },
+            {
+              "name": "wm/concept/economy/labor",
+              "score": 0.700529932975769
+            },
+            {
+              "name": "wm/concept/humanitarian_assistance/food_aid",
+              "score": 0.696678876876831
+            },
+            {
+              "name": "wm/concept/intervention",
+              "score": 0.6808094382286072
+            },
+            {
+              "name": "wm/concept/government/government_program",
+              "score": 0.6727300882339478
+            }
+          ],
+          "processes": [
+            {
+              "name": "wm/process/produce",
+              "score": 0.7196556329727173
+            },
+            {
+              "name": "wm/process/transaction",
+              "score": 0.7096811532974243
+            },
+            {
+              "name": "wm/process/consume",
+              "score": 0.6962662935256958
+            },
+            {
+              "name": "wm/process/attempt",
+              "score": 0.6801781058311462
+            },
+            {
+              "name": "wm/process/planning",
+              "score": 0.673162579536438
+            },
+            {
+              "name": "wm/process/modify",
+              "score": 0.6633462309837341
+            },
+            {
+              "name": "wm/process/train/agriculture_training",
+              "score": 0.6607570648193359
+            },
+            {
+              "name": "wm/process/provide",
+              "score": 0.6533460021018982
+            },
+            {
+              "name": "wm/process/transport/commercial_transportation",
+              "score": 0.6456194519996643
+            },
+            {
+              "name": "wm/process/train/train",
+              "score": 0.6323342323303223
+            }
+          ],
+          "properties": [
+            {
+              "name": "wm/property/price_or_cost",
+              "score": 0.7208985090255737
+            },
+            {
+              "name": "wm/property/common_understanding",
+              "score": 0.6956934332847595
+            },
+            {
+              "name": "wm/property/condition",
+              "score": 0.679688036441803
+            },
+            {
+              "name": "wm/property/preparedness",
+              "score": 0.6790712475776672
+            },
+            {
+              "name": "wm/property/geographic_resolution/global",
+              "score": 0.6759701371192932
+            },
+            {
+              "name": "wm/property/seasonality",
+              "score": 0.6664302945137024
+            },
+            {
+              "name": "wm/property/geographic_resolution/national",
+              "score": 0.6651002168655396
+            },
+            {
+              "name": "wm/property/stability",
+              "score": 0.6581912636756897
+            },
+            {
+              "name": "wm/property/preference",
+              "score": 0.6060965061187744
+            }
+          ]
+        },
+        "is_primary": true,
+        "additional_options": null,
+        "data_resolution": null,
+        "choices": null,
+        "min": null,
+        "max": null
+      },
+      {
+        "name": "Ending_stock_scenario [mt]",
+        "display_name": "Global stock [Mt] of scenario",
+        "description": "the global stock is the aggregation of producers' and consumers'  stocks for the corresponding crop and is given after the harvest. the global stock is given in units of mega ton, for the particular year and under the chosen parameters (and therefore scenario).",
+        "type": "float",
+        "unit": "mt",
+        "unit_description": "mega ton of crop",
+        "ontologies": {
+          "concepts": [
+            {
+              "name": "wm/concept/plan",
+              "score": 0.7563971281051636
+            },
+            {
+              "name": "wm/concept/entity/field_reports",
+              "score": 0.7509559988975525
+            },
+            {
+              "name": "wm/concept/economy/commerce",
+              "score": 0.7427464723587036
+            },
+            {
+              "name": "wm/concept/economy/economy",
+              "score": 0.7097764015197754
+            },
+            {
+              "name": "wm/concept/innovation",
+              "score": 0.7058390974998474
+            },
+            {
+              "name": "wm/concept/humanitarian_assistance/food_aid",
+              "score": 0.6968320608139038
+            },
+            {
+              "name": "wm/concept/intervention",
+              "score": 0.6929895877838135
+            },
+            {
+              "name": "wm/concept/economy/labor",
+              "score": 0.6916743516921997
+            },
+            {
+              "name": "wm/concept/government/government_program",
+              "score": 0.6876034736633301
+            },
+            {
+              "name": "wm/concept/economy/marketplace",
+              "score": 0.6750770807266235
+            }
+          ],
+          "processes": [
+            {
+              "name": "wm/process/produce",
+              "score": 0.720855176448822
+            },
+            {
+              "name": "wm/process/attempt",
+              "score": 0.6767831444740295
+            },
+            {
+              "name": "wm/process/train/agriculture_training",
+              "score": 0.6693853139877319
+            },
+            {
+              "name": "wm/process/planning",
+              "score": 0.6682894229888916
+            },
+            {
+              "name": "wm/process/transaction",
+              "score": 0.6678019165992737
+            },
+            {
+              "name": "wm/process/consume",
+              "score": 0.6673186421394348
+            },
+            {
+              "name": "wm/process/modify",
+              "score": 0.664114773273468
+            },
+            {
+              "name": "wm/process/train/train",
+              "score": 0.6481629014015198
+            },
+            {
+              "name": "wm/process/provide",
+              "score": 0.6462584733963013
+            },
+            {
+              "name": "wm/process/hatching",
+              "score": 0.6436755061149597
+            }
+          ],
+          "properties": [
+            {
+              "name": "wm/property/common_understanding",
+              "score": 0.7039930820465088
+            },
+            {
+              "name": "wm/property/preparedness",
+              "score": 0.7019537091255188
+            },
+            {
+              "name": "wm/property/price_or_cost",
+              "score": 0.6867262125015259
+            },
+            {
+              "name": "wm/property/seasonality",
+              "score": 0.6747922897338867
+            },
+            {
+              "name": "wm/property/geographic_resolution/global",
+              "score": 0.670993983745575
+            },
+            {
+              "name": "wm/property/condition",
+              "score": 0.6697975397109985
+            },
+            {
+              "name": "wm/property/geographic_resolution/national",
+              "score": 0.6669367551803589
+            },
+            {
+              "name": "wm/property/stability",
+              "score": 0.6568869352340698
+            }
+          ]
+        },
+        "is_primary": true,
+        "additional_options": null,
+        "data_resolution": null,
+        "choices": null,
+        "min": null,
+        "max": null
+      },
+      {
+        "name": "Ending_stock_baseline [mt]",
+        "display_name": "Global stock [Mt] of baseline",
+        "description": "the global stock is the aggregation of producers' and consumers'  stocks for the corresponding crop and is given after the harvest. the global stock for the baseline is given in units of mega ton and for the particular year. this value shall be used to compare it with the global stock for the chosen scenario.",
+        "type": "float",
+        "unit": "mt",
+        "unit_description": "mega ton of crop",
+        "ontologies": {
+          "concepts": [
+            {
+              "name": "wm/concept/plan",
+              "score": 0.7540543079376221
+            },
+            {
+              "name": "wm/concept/entity/field_reports",
+              "score": 0.7469653487205505
+            },
+            {
+              "name": "wm/concept/economy/commerce",
+              "score": 0.7255081534385681
+            },
+            {
+              "name": "wm/concept/innovation",
+              "score": 0.7062035799026489
+            },
+            {
+              "name": "wm/concept/humanitarian_assistance/food_aid",
+              "score": 0.6986651420593262
+            },
+            {
+              "name": "wm/concept/economy/labor",
+              "score": 0.6948029398918152
+            },
+            {
+              "name": "wm/concept/economy/economy",
+              "score": 0.6947135329246521
+            },
+            {
+              "name": "wm/concept/intervention",
+              "score": 0.6912350654602051
+            },
+            {
+              "name": "wm/concept/government/government_program",
+              "score": 0.6816573143005371
+            },
+            {
+              "name": "wm/concept/economy/marketplace",
+              "score": 0.6713026165962219
+            }
+          ],
+          "processes": [
+            {
+              "name": "wm/process/produce",
+              "score": 0.7161209583282471
+            },
+            {
+              "name": "wm/process/attempt",
+              "score": 0.6871426105499268
+            },
+            {
+              "name": "wm/process/transaction",
+              "score": 0.6774359941482544
+            },
+            {
+              "name": "wm/process/consume",
+              "score": 0.6759925484657288
+            },
+            {
+              "name": "wm/process/modify",
+              "score": 0.6708125472068787
+            },
+            {
+              "name": "wm/process/planning",
+              "score": 0.6676963567733765
+            },
+            {
+              "name": "wm/process/train/agriculture_training",
+              "score": 0.6655261516571045
+            },
+            {
+              "name": "wm/process/provide",
+              "score": 0.662452757358551
+            },
+            {
+              "name": "wm/process/train/train",
+              "score": 0.6487818360328674
+            },
+            {
+              "name": "wm/process/research",
+              "score": 0.6360436081886292
+            }
+          ],
+          "properties": [
+            {
+              "name": "wm/property/common_understanding",
+              "score": 0.7057556509971619
+            },
+            {
+              "name": "wm/property/preparedness",
+              "score": 0.6967267394065857
+            },
+            {
+              "name": "wm/property/price_or_cost",
+              "score": 0.6874412298202515
+            },
+            {
+              "name": "wm/property/condition",
+              "score": 0.6739069819450378
+            },
+            {
+              "name": "wm/property/geographic_resolution/national",
+              "score": 0.6645040512084961
+            },
+            {
+              "name": "wm/property/seasonality",
+              "score": 0.6618528366088867
+            },
+            {
+              "name": "wm/property/stability",
+              "score": 0.6600814461708069
+            },
+            {
+              "name": "wm/property/geographic_resolution/global",
+              "score": 0.6575115919113159
+            }
+          ]
+        },
+        "is_primary": true,
+        "additional_options": null,
+        "data_resolution": null,
+        "choices": null,
+        "min": null,
+        "max": null
+      },
+      {
+        "name": "Production_baseline [mt]",
+        "display_name": "Global production [Mt] of baseline",
+        "description": "global production of corresponding crop in units of mega ton for the particular year of the baseline. this value shall be used to compare it with the global production for the chosen scenario.",
+        "type": "float",
+        "unit": "mt",
+        "unit_description": "mega ton of crop",
+        "ontologies": {
+          "concepts": [
+            {
+              "name": "wm/concept/entity/field_reports",
+              "score": 0.7562787532806396
+            },
+            {
+              "name": "wm/concept/plan",
+              "score": 0.7547385096549988
+            },
+            {
+              "name": "wm/concept/economy/commerce",
+              "score": 0.7343575358390808
+            },
+            {
+              "name": "wm/concept/innovation",
+              "score": 0.7267023921012878
+            },
+            {
+              "name": "wm/concept/economy/economy",
+              "score": 0.7061740756034851
+            },
+            {
+              "name": "wm/concept/humanitarian_assistance/food_aid",
+              "score": 0.705950915813446
+            },
+            {
+              "name": "wm/concept/intervention",
+              "score": 0.7023565769195557
+            },
+            {
+              "name": "wm/concept/economy/labor",
+              "score": 0.701897382736206
+            },
+            {
+              "name": "wm/concept/economy/commercial_farmers",
+              "score": 0.683542788028717
+            },
+            {
+              "name": "wm/concept/government/government_program",
+              "score": 0.6792124509811401
+            }
+          ],
+          "processes": [
+            {
+              "name": "wm/process/produce",
+              "score": 0.7632343173027039
+            },
+            {
+              "name": "wm/process/consume",
+              "score": 0.6912700533866882
+            },
+            {
+              "name": "wm/process/train/agriculture_training",
+              "score": 0.6871113777160645
+            },
+            {
+              "name": "wm/process/attempt",
+              "score": 0.6836047172546387
+            },
+            {
+              "name": "wm/process/planning",
+              "score": 0.6680617928504944
+            },
+            {
+              "name": "wm/process/transaction",
+              "score": 0.6677387952804565
+            },
+            {
+              "name": "wm/process/modify",
+              "score": 0.6662985682487488
+            },
+            {
+              "name": "wm/process/provide",
+              "score": 0.6624591946601868
+            },
+            {
+              "name": "wm/process/train/train",
+              "score": 0.6547517776489258
+            },
+            {
+              "name": "wm/process/transport/commercial_transportation",
+              "score": 0.6528864502906799
+            }
+          ],
+          "properties": [
+            {
+              "name": "wm/property/preparedness",
+              "score": 0.7053898572921753
+            },
+            {
+              "name": "wm/property/common_understanding",
+              "score": 0.7026336193084717
+            },
+            {
+              "name": "wm/property/price_or_cost",
+              "score": 0.7012133002281189
+            },
+            {
+              "name": "wm/property/seasonality",
+              "score": 0.6813974976539612
+            },
+            {
+              "name": "wm/property/geographic_resolution/global",
+              "score": 0.6733711361885071
+            },
+            {
+              "name": "wm/property/condition",
+              "score": 0.669144868850708
+            },
+            {
+              "name": "wm/property/geographic_resolution/national",
+              "score": 0.6582159996032715
+            },
+            {
+              "name": "wm/property/stability",
+              "score": 0.6497154831886292
+            }
+          ]
+        },
+        "is_primary": true,
+        "additional_options": null,
+        "data_resolution": null,
+        "choices": null,
+        "min": null,
+        "max": null
+      },
+      {
+        "name": "Consumption+baseline [mt]",
+        "display_name": "Global consumption [Mt] for baseline",
+        "description": "global consumption of corresponding crop in units of mega ton for the particular year for the baseline. this value shall be used to compare it with the global consumption for the chosen scenario.",
+        "type": "float",
+        "unit": "mt",
+        "unit_description": "mega ton of crop",
+        "ontologies": {
+          "concepts": [
+            {
+              "name": "wm/concept/entity/field_reports",
+              "score": 0.757965087890625
+            },
+            {
+              "name": "wm/concept/plan",
+              "score": 0.7540023922920227
+            },
+            {
+              "name": "wm/concept/economy/commerce",
+              "score": 0.7408759593963623
+            },
+            {
+              "name": "wm/concept/humanitarian_assistance/food_aid",
+              "score": 0.7233023643493652
+            },
+            {
+              "name": "wm/concept/innovation",
+              "score": 0.7206982970237732
+            },
+            {
+              "name": "wm/concept/economy/economy",
+              "score": 0.7188584208488464
+            },
+            {
+              "name": "wm/concept/intervention",
+              "score": 0.7122520804405212
+            },
+            {
+              "name": "wm/concept/economy/labor",
+              "score": 0.7035802006721497
+            },
+            {
+              "name": "wm/concept/agriculture/poultry/egg_production",
+              "score": 0.6959525346755981
+            },
+            {
+              "name": "wm/concept/government/government_program",
+              "score": 0.6875808835029602
+            }
+          ],
+          "processes": [
+            {
+              "name": "wm/process/produce",
+              "score": 0.7376291155815125
+            },
+            {
+              "name": "wm/process/consume",
+              "score": 0.7298782467842102
+            },
+            {
+              "name": "wm/process/train/agriculture_training",
+              "score": 0.6916172504425049
+            },
+            {
+              "name": "wm/process/attempt",
+              "score": 0.6870861649513245
+            },
+            {
+              "name": "wm/process/transaction",
+              "score": 0.6766293048858643
+            },
+            {
+              "name": "wm/process/modify",
+              "score": 0.6735876202583313
+            },
+            {
+              "name": "wm/process/provide",
+              "score": 0.6700846552848816
+            },
+            {
+              "name": "wm/process/planning",
+              "score": 0.6673182249069214
+            },
+            {
+              "name": "wm/process/transport/commercial_transportation",
+              "score": 0.6559306979179382
+            },
+            {
+              "name": "wm/process/hatching",
+              "score": 0.653008222579956
+            }
+          ],
+          "properties": [
+            {
+              "name": "wm/property/price_or_cost",
+              "score": 0.7174586653709412
+            },
+            {
+              "name": "wm/property/common_understanding",
+              "score": 0.7070186734199524
+            },
+            {
+              "name": "wm/property/preparedness",
+              "score": 0.7067796587944031
+            },
+            {
+              "name": "wm/property/seasonality",
+              "score": 0.6898394823074341
+            },
+            {
+              "name": "wm/property/geographic_resolution/global",
+              "score": 0.6751530766487122
+            },
+            {
+              "name": "wm/property/condition",
+              "score": 0.6720712780952454
+            },
+            {
+              "name": "wm/property/geographic_resolution/national",
+              "score": 0.6628206968307495
+            },
+            {
+              "name": "wm/property/stability",
+              "score": 0.6556028723716736
+            },
+            {
+              "name": "wm/property/preference",
+              "score": 0.6097536087036133
+            }
+          ]
+        },
+        "is_primary": true,
+        "additional_options": null,
+        "data_resolution": null,
+        "choices": null,
+        "min": null,
+        "max": null
+      },
+      {
+        "name": "Production_scenario [mt]",
+        "display_name": "Global production [Mt] for scenario",
+        "description": "global production of corresponding crop in units of mega ton for the particular year under the chosen parameters (and therefore scenario). ",
+        "type": "float",
+        "unit": "mt",
+        "unit_description": "mega ton of crop",
+        "ontologies": {
+          "concepts": [
+            {
+              "name": "wm/concept/entity/field_reports",
+              "score": 0.7620299458503723
+            },
+            {
+              "name": "wm/concept/economy/commerce",
+              "score": 0.7602471709251404
+            },
+            {
+              "name": "wm/concept/plan",
+              "score": 0.7540743350982666
+            },
+            {
+              "name": "wm/concept/economy/economy",
+              "score": 0.7267047166824341
+            },
+            {
+              "name": "wm/concept/innovation",
+              "score": 0.7245129942893982
+            },
+            {
+              "name": "wm/concept/humanitarian_assistance/food_aid",
+              "score": 0.7087045907974243
+            },
+            {
+              "name": "wm/concept/intervention",
+              "score": 0.708167314529419
+            },
+            {
+              "name": "wm/concept/economy/commercial_farmers",
+              "score": 0.7069376111030579
+            },
+            {
+              "name": "wm/concept/economy/labor",
+              "score": 0.7028481364250183
+            },
+            {
+              "name": "wm/concept/agriculture/poultry/egg_production",
+              "score": 0.6995036602020264
+            }
+          ],
+          "processes": [
+            {
+              "name": "wm/process/produce",
+              "score": 0.7704295516014099
+            },
+            {
+              "name": "wm/process/train/agriculture_training",
+              "score": 0.6952836513519287
+            },
+            {
+              "name": "wm/process/consume",
+              "score": 0.6886705160140991
+            },
+            {
+              "name": "wm/process/planning",
+              "score": 0.6679542660713196
+            },
+            {
+              "name": "wm/process/attempt",
+              "score": 0.6658567190170288
+            },
+            {
+              "name": "wm/process/hatching",
+              "score": 0.6635746955871582
+            },
+            {
+              "name": "wm/process/modify",
+              "score": 0.6613391041755676
+            },
+            {
+              "name": "wm/process/train/train",
+              "score": 0.655960738658905
+            },
+            {
+              "name": "wm/process/transport/commercial_transportation",
+              "score": 0.6518647074699402
+            },
+            {
+              "name": "wm/process/develop",
+              "score": 0.6512950658798218
+            }
+          ],
+          "properties": [
+            {
+              "name": "wm/property/preparedness",
+              "score": 0.7138081789016724
+            },
+            {
+              "name": "wm/property/price_or_cost",
+              "score": 0.7092881798744202
+            },
+            {
+              "name": "wm/property/seasonality",
+              "score": 0.7072054147720337
+            },
+            {
+              "name": "wm/property/common_understanding",
+              "score": 0.6899096965789795
+            },
+            {
+              "name": "wm/property/geographic_resolution/global",
+              "score": 0.682127058506012
+            },
+            {
+              "name": "wm/property/condition",
+              "score": 0.6617787480354309
+            },
+            {
+              "name": "wm/property/stability",
+              "score": 0.6483861207962036
+            },
+            {
+              "name": "wm/property/geographic_resolution/national",
+              "score": 0.6467903256416321
+            }
+          ]
+        },
+        "is_primary": true,
+        "additional_options": null,
+        "data_resolution": null,
+        "choices": null,
+        "min": null,
+        "max": null
+      },
+      {
+        "name": "Consumption_scenario [mt]",
+        "display_name": "Global consumption [Mt] for scenario",
+        "description": "global consumption of corresponding crop in units of mega ton for the particular year under the chosen parameters (and therefore scenario). ",
+        "type": "float",
+        "unit": "mt",
+        "unit_description": "mega ton of crop",
+        "ontologies": {
+          "concepts": [
+            {
+              "name": "wm/concept/economy/commerce",
+              "score": 0.7657325267791748
+            },
+            {
+              "name": "wm/concept/entity/field_reports",
+              "score": 0.7631760239601135
+            },
+            {
+              "name": "wm/concept/plan",
+              "score": 0.7502875924110413
+            },
+            {
+              "name": "wm/concept/economy/economy",
+              "score": 0.7396106719970703
+            },
+            {
+              "name": "wm/concept/humanitarian_assistance/food_aid",
+              "score": 0.7175018787384033
+            },
+            {
+              "name": "wm/concept/innovation",
+              "score": 0.7172287106513977
+            },
+            {
+              "name": "wm/concept/intervention",
+              "score": 0.713877260684967
+            },
+            {
+              "name": "wm/concept/agriculture/poultry/egg_production",
+              "score": 0.7036064267158508
+            },
+            {
+              "name": "wm/concept/economy/labor",
+              "score": 0.6984407305717468
+            },
+            {
+              "name": "wm/concept/economy/commercial_farmers",
+              "score": 0.6962229609489441
+            }
+          ],
+          "processes": [
+            {
+              "name": "wm/process/produce",
+              "score": 0.7459705471992493
+            },
+            {
+              "name": "wm/process/consume",
+              "score": 0.7204177975654602
+            },
+            {
+              "name": "wm/process/train/agriculture_training",
+              "score": 0.6980500221252441
+            },
+            {
+              "name": "wm/process/hatching",
+              "score": 0.6695169806480408
+            },
+            {
+              "name": "wm/process/modify",
+              "score": 0.6658312082290649
+            },
+            {
+              "name": "wm/process/planning",
+              "score": 0.6634860634803772
+            },
+            {
+              "name": "wm/process/attempt",
+              "score": 0.6631941795349121
+            },
+            {
+              "name": "wm/process/transport/commercial_transportation",
+              "score": 0.6530640721321106
+            },
+            {
+              "name": "wm/process/train/train",
+              "score": 0.648858904838562
+            },
+            {
+              "name": "wm/process/develop",
+              "score": 0.6473948955535889
+            }
+          ],
+          "properties": [
+            {
+              "name": "wm/property/price_or_cost",
+              "score": 0.7198200225830078
+            },
+            {
+              "name": "wm/property/seasonality",
+              "score": 0.7159067988395691
+            },
+            {
+              "name": "wm/property/preparedness",
+              "score": 0.7126655578613281
+            },
+            {
+              "name": "wm/property/common_understanding",
+              "score": 0.6960654854774475
+            },
+            {
+              "name": "wm/property/geographic_resolution/global",
+              "score": 0.6863037943840027
+            },
+            {
+              "name": "wm/property/condition",
+              "score": 0.6622573137283325
+            },
+            {
+              "name": "wm/property/geographic_resolution/national",
+              "score": 0.653496503829956
+            },
+            {
+              "name": "wm/property/stability",
+              "score": 0.6510355472564697
+            },
+            {
+              "name": "wm/property/preference",
+              "score": 0.6100479960441589
+            },
+            {
+              "name": "wm/property/coping_capacities",
+              "score": 0.6086793541908264
+            }
+          ]
+        },
+        "is_primary": true,
+        "additional_options": null,
+        "data_resolution": null,
+        "choices": null,
+        "min": null,
+        "max": null
+      }
+    ],
+    "qualifier_outputs": [
+      {
+        "name": "timestamp",
+        "display_name": "timestamp",
+        "description": "the simulated year in twist.",
+        "type": "datetime",
+        "unit": "year",
+        "unit_description": null,
+        "ontologies": {
+          "concepts": [
+            {
+              "name": "wm/concept/economy/commerce",
+              "score": 0.7613013386726379
+            },
+            {
+              "name": "wm/concept/entity/field_reports",
+              "score": 0.7409248948097229
+            },
+            {
+              "name": "wm/concept/economy/exchange_rate",
+              "score": 0.7167713642120361
+            },
+            {
+              "name": "wm/concept/economy/economy",
+              "score": 0.7071753144264221
+            },
+            {
+              "name": "wm/concept/plan",
+              "score": 0.7027080059051514
+            },
+            {
+              "name": "wm/concept/agriculture/poultry/egg_production",
+              "score": 0.6943889260292053
+            },
+            {
+              "name": "wm/concept/economy/commercial_farmers",
+              "score": 0.692844569683075
+            },
+            {
+              "name": "wm/concept/economy/marketplace",
+              "score": 0.6905409693717957
+            },
+            {
+              "name": "wm/concept/innovation",
+              "score": 0.679685652256012
+            },
+            {
+              "name": "wm/concept/humanitarian_assistance/food_aid",
+              "score": 0.6753331422805786
+            }
+          ],
+          "processes": [
+            {
+              "name": "wm/process/produce",
+              "score": 0.7385859489440918
+            },
+            {
+              "name": "wm/process/train/agriculture_training",
+              "score": 0.6668118834495544
+            },
+            {
+              "name": "wm/process/consume",
+              "score": 0.6645577549934387
+            },
+            {
+              "name": "wm/process/hatching",
+              "score": 0.6521481871604919
+            },
+            {
+              "name": "wm/process/modify",
+              "score": 0.6373937129974365
+            },
+            {
+              "name": "wm/process/planning",
+              "score": 0.6286830902099609
+            },
+            {
+              "name": "wm/process/attempt",
+              "score": 0.6253772377967834
+            },
+            {
+              "name": "wm/process/develop",
+              "score": 0.6192351579666138
+            },
+            {
+              "name": "wm/process/transport/commercial_transportation",
+              "score": 0.6128020286560059
+            },
+            {
+              "name": "wm/process/research",
+              "score": 0.6084461212158203
+            }
+          ],
+          "properties": [
+            {
+              "name": "wm/property/seasonality",
+              "score": 0.717792809009552
+            },
+            {
+              "name": "wm/property/price_or_cost",
+              "score": 0.6775415539741516
+            },
+            {
+              "name": "wm/property/preparedness",
+              "score": 0.6653182506561279
+            },
+            {
+              "name": "wm/property/geographic_resolution/global",
+              "score": 0.6609495282173157
+            },
+            {
+              "name": "wm/property/common_understanding",
+              "score": 0.6501060724258423
+            },
+            {
+              "name": "wm/property/condition",
+              "score": 0.6312121748924255
+            },
+            {
+              "name": "wm/property/stability",
+              "score": 0.6205071806907654
+            },
+            {
+              "name": "wm/property/geographic_resolution/national",
+              "score": 0.6141557097434998
+            }
+          ]
+        },
+        "related_features": [
+          "WM_price_scenario [US$/mt]",
+          "WM_price_baseline [US$/mt]",
+          "Ending_stock_scenario [mt]",
+          "Ending_stock_baseline [mt]",
+          "Production_baseline [mt]",
+          "Consumption+baseline [mt]",
+          "Production_scenario [mt]",
+          "Consumption_scenario [mt]"
+        ]
+      }
+    ],
+    "tags": null,
+    "geography": {
+      "country": null,
+      "admin1": null,
+      "admin2": null,
+      "admin3": null,
+      "coordinates": []
+    },
+    "period": {
+      "gte": 157762800000,
+      "lte": 1893366000000
+    },
+    "stochastic": "false",
+    "type": "model"
+  }
