@@ -139,8 +139,11 @@ USER clouseau
 # silence warnings about descarteslabs credentials, they are provided via environment variables
 RUN mkdir /home/clouseau/.descarteslabs
 RUN echo "{}" >> /home/clouseau/.descarteslabs/token_info.json
+# in case the descarteslabs package ever writes to this directory
+RUN chown -R clouseau /home/clouseau/.descarteslabs
 
 # RUN tini -g -- docker/kimetrica-darpa-models/entrypoint.sh
+
 # # when setting an entrypoint, apparently the CMD gets reset?!
 # CMD ["start-notebook.sh"]
 WORKDIR /usr/src/app
