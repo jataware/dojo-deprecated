@@ -1,0 +1,26 @@
+{
+    "id": "lpjml-test-run-1",
+    "model_name": "LPJmL crop yield forecasts",
+    "model_id": "9f407b82-d2d2-4c38-a2c3-ae1bb483f476",
+    "created_at": 0,
+    "data_paths": [],
+    "pre_gen_output_paths": null,
+    "is_default_run": false,
+    "parameters": [
+      {
+        "name": "fertilizerscenario",
+        "value": "reference"
+      },
+      {
+        "name": "sowingscenario",
+        "value": "reference"
+      },
+      {
+        "name": "weatheryear",
+        "value": "2019-2020"
+      }
+    ],
+    "tags": [],
+    "attributes": {
+    }
+  }

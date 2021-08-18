@@ -595,7 +595,82 @@
             "choices": null,
             "min": null,
             "max": null
-        }
+        },
+        {
+            "name": "u",
+            "display_name": "Mean Channel Flow Velocity",
+            "description": "mean channel flow velocity",
+            "type": "float",
+            "unit": "m/s",
+            "unit_description": "meters per sec",
+            "ontologies": {
+                "concepts": [],
+                "processes": [],
+                "properties": []
+            },
+            "is_primary": true,
+            "additional_options": null,
+            "data_resolution": {
+                "temporal_resolution": "other",
+                "spatial_resolution": [
+                    1000,
+                    1000
+                ]
+            },
+            "choices": null,
+            "min": null,
+            "max": null                        
+          },  
+          {
+            "name": "d_flood",
+            "display_name": "Land Surface Water Depth",
+            "description": "land surface water depth",
+            "type": "float",
+            "unit": "m",
+            "unit_description": "land surface water depth",
+            "ontologies": {
+                "concepts": [],
+                "processes": [],
+                "properties": []
+            },
+            "is_primary": true,
+            "additional_options": null,
+            "data_resolution": {
+                "temporal_resolution": "other",
+                "spatial_resolution": [
+                    1000,
+                    1000
+                ]
+            },
+            "choices": null,
+            "min": null,
+            "max": null                        
+          },    
+          {
+            "name": "Q",
+            "display_name": "Volumetric Discharge [m^3/s]",
+            "description": "volumetric discharge grid",
+            "type": "float",
+            "unit": "m3/s",
+            "unit_description": "volumetric discharge grid",
+            "ontologies": {
+                "concepts": [],
+                "processes": [],
+                "properties": []
+            },
+            "is_primary": true,
+            "additional_options": null,
+            "data_resolution": {
+                "temporal_resolution": "other",
+                "spatial_resolution": [
+                    1000,
+                    1000
+                ]
+            },
+            "choices": null,
+            "min": null,
+            "max": null                        
+          }                      
     ],
     "qualifier_outputs": [
         {
