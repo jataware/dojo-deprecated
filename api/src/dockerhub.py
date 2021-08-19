@@ -51,7 +51,7 @@ def get_image_tags():
         -------
         JSON Array of
             {
-                "sort_order": 0,
+                "sort_order": int,
                 "display_name": "string",
                 "image": "string"
             }
@@ -67,19 +67,34 @@ def get_image_tags():
             page_size: Number of images to get per page. Defaults to 10. Max of 100.
             status: "active", "inactive"; Filters to only show images of this status.
             currently_tagged: boolean; Filters to only show images with:
-            true: at least 1 current tag.
-            false: no current tags.
+                true: at least 1 current tag.
+                false: no current tags.
             ordering: "last_activity""-last_activity""digest""-digest": Orders the results by this property.
             Prefixing with - sorts by descending order.
     """
 
-    url = f'{os.getenv("DOCKERHUB_URL")}/namespaces/jataware/repositories/dojo-publish/images?status=active&ordering=last_activity&currently_tagged=true&page_size=100'
+    url = f'{os.getenv("DOCKERHUB_URL")}/namespaces/jataware/repositories/dojo-publish/images?ordering=last_activity&page_size=100&currently_tagged=true'
     headers = {"Accept" :"application/json", "Authorization": f"Bearer {auth_token}"}
 
-    return get_repo_image_details(url, headers)
+    # Get list of image tag dicts.
+    image_tags = get_repo_image_details(url, headers, [])
+
+    # Remove the Ubuntu dict from the list
+    ubuntu = next((item for item in image_tags if item["display_name"] == "Ubuntu"), None)
+    image_tags[:] = [d for d in image_tags if d.get('display_name') != "Ubuntu"]
+
+    # Sort the list based on Display Names, and add Ubuntu to the front.
+    image_tags.sort(key=lambda item: item.get("display_name"))
+    image_tags.insert(0, ubuntu)
+
+    # Enumerate and set sort_order; although, Phantom does not seem to use this.
+    for idx, d in enumerate(image_tags):
+        d["sort_order"] = idx
+
+    return image_tags
 
 
-def get_repo_image_details(url: str, headers: dict, image_tags: list = [], sort_order: int = 0):
+def get_repo_image_details(url: str, headers: dict, image_tags) -> list:
     """
         Description
         -----------
@@ -92,18 +107,11 @@ def get_repo_image_details(url: str, headers: dict, image_tags: list = [], sort_
         headers: dict
             Authentication headers.
         image_tags: list
-            Current list of image tag info.
-        sort_order: int
-            Current sort_order.
+            Current list of dict of image tag info.
 
         Returns
         -------
-        List of image tag info:
-            {
-                "sort_order": 0,
-                "display_name": "string",
-                "image": "string"
-            }
+        Dict of display_name: image
 
         Notes
         -----
@@ -144,15 +152,14 @@ def get_repo_image_details(url: str, headers: dict, image_tags: list = [], sort_
                 if "tags" in r:
                     tags = r["tags"][0]
                     tag = tags["tag"]
-                    image = r["namespace"] + "/" + r["repository"] + "/" + tag
+                    image = r["namespace"] + "/" + r["repository"] + ":" + tag
                     display_name = tag.replace('-latest','')
 
-                    image_tags.append( {"sort_order":sort_order, "image":image, "display_name": display_name} )
-                    sort_order += 1
+                    image_tags.append({"display_name" : display_name, "image": image, "sort_order": 0})
 
         # Get the next page if there is a "next".
         if "next" in resp and resp["next"] != None:
-            image_tags = get_repo_image_details(resp["next"], headers, image_tags, sort_order)
+            image_tags = get_repo_image_details(resp["next"], headers, image_tags)
 
         return image_tags
 
