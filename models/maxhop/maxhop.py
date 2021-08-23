@@ -31,7 +31,7 @@ outputfile = {
     "name": "Hopper Presence Prediction",
     "file_type": "geotiff",
     "output_directory": "/usr/local/src/myscripts/output",
-    "path": "maxent_Ethiopia_precipChange={{ annualPrecipIncrease }}tempChange={{ meanTempIncrease }}.tif",
+    "path": "maxent_*_precipChange=*tempChange=*.tif",
     "transform": mapper,
 }
 resp = requests.post(f"{url}/dojo/outputfile", json=[outputfile])
