@@ -15,7 +15,7 @@ print(resp.text)
 directive = {
   "id": "dojo/shorthand_templates/efde67cb-d6f3-4bd4-aed0-25b9748534fd/9240514bd3360e84cc842c773e59983a.template.txt",
   "model_id": "efde67cb-d6f3-4bd4-aed0-25b9748534fd",
-  "command": '/bin/bash -c "sudo chmod -R 777 output; set -a; source .env; luigi --module models.water_sanitation_model.tasks models.water_sanitation_model.tasks.PredictUnimprovedSanitation --geography /usr/src/app/models/geography/boundaries/{{ country_geojson }}_2d.geojson --country-level \'{{ country }}\' --time {{ date_range }} --travel-time-percent-change {{ travel_time_percent_change }} --aridity-index-percent-change {{ aridity_index_percent_change }} --night-light-percent-change 0 --local-scheduler"',
+  "command": '/bin/bash -c "sudo chmod -R 777 output; set -a; source .env; luigi --module models.water_sanitation_model.tasks models.water_sanitation_model.tasks.PredictUnimprovedSanitation --country-level \'{{ country }}\' --time {{ date_range }} --travel-time-percent-change {{ travel_time_percent_change }} --aridity-index-percent-change {{ aridity_index_percent_change }} --night-light-percent-change 0 --local-scheduler"',
   "output_directory": "/results"
 }
 resp = requests.post(f"{url}/dojo/directive", json=directive)

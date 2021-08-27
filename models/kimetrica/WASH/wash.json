@@ -21,27 +21,6 @@
   "is_stochastic": false,
   "parameters": [
     {
-      "name": "country_geojson",
-      "display_name": "country geojson",
-      "description": "geojson national boundary file of the country selected.",
-      "type": "str",
-      "unit": null,
-      "unit_description": null,
-      "ontologies": null,
-      "is_drilldown": null,
-      "additional_options": null,
-      "data_type": "freeform",
-      "default": "ethiopia",
-      "choices": [
-        "ethiopia",
-        "south_sudan",
-        "djibouti"
-      ],
-      "min": null,
-      "max": null,
-      "id": "ethiopia-625480"
-    },
-    {
       "name": "country",
       "display_name": "country",
       "description": "Country to run the model.",

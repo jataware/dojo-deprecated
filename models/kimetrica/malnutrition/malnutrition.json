@@ -67,40 +67,6 @@
         },
         {
             "unit": "N/A",
-            "default": "ethiopia",
-            "min": null,
-            "max": null,
-            "name": "geography",
-            "data_type": "nominal",
-            "description": "choose geography",
-            "id": "ethiopia-778574",
-            "unit_description": null,
-            "display_name": "geography",
-            "type": "str",
-            "choices": [
-                "south_sudan",
-                "ethiopia"
-            ]
-        },
-        {
-            "unit": "N/A",
-            "default": "ethiopia",
-            "min": null,
-            "max": null,
-            "name": "rainfall_geography",
-            "data_type": "nominal",
-            "description": "choose rainfall geography",
-            "id": "ethiopia-744673",
-            "unit_description": null,
-            "display_name": "rainfall geography",
-            "type": "str",
-            "choices": [
-                "ethiopia",
-                "south_sudan"
-            ]
-        },
-        {
-            "unit": "N/A",
             "default": "normal",
             "min": null,
             "max": null,

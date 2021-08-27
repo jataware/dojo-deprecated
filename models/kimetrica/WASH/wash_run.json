@@ -13,10 +13,6 @@
         "value": "Ethiopia"
       },
       {
-        "name": "country_geojson",
-        "value": "ethiopia"
-      },
-      {
         "name":"date_range",
         "value": "2017-08-01-2017-10-01"
       },

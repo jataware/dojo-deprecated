@@ -23,14 +23,6 @@
             "value": "Ethiopia"
         },
         {
-            "name": "geography",
-            "value": "ethiopia"
-        },
-        {
-            "name": "rainfall_geography",
-            "value": "ethiopia"
-        },
-        {
             "name": "rainfall_scenario",
             "value": "high"
         }

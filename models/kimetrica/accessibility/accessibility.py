@@ -3,7 +3,7 @@
 import requests
 import json
 
-url = "http://localhost:8000"
+url = "https://localhost:8000"
 headers = {"Content-Type": "application/json"}
 
 #### Create Model
@@ -15,7 +15,7 @@ print(resp.text)
 directive = {
   "id": "dojo/shorthand_templates/6c30c05d-54cd-4048-832f-0fd09793f08e/90b060c1d0eedbe1720c782e29120919.template.txt",
   "model_id": "6c30c05d-54cd-4048-832f-0fd09793f08e",
-  "command": '/bin/bash -c "sudo chmod -R 777 output; set -a; source .env; luigi --module models.accessibility_model.tasks models.accessibility_model.tasks.TravelTimeToNearestDestination --country-level \'{{ country }}\' --geography /usr/src/app/models/geography/boundaries/{{ country_geography }}_2d.geojson --destination {{ destination }} --trunk-road-speed-offset {{ trunk_road_speed_offset }} --primary-road-speed-offset {{ primary_road_speed_offset }} --secondary-road-speed-offset {{ secondary_road_speed_offset }} --tertiary-road-speed-offset {{ tertiary_road_speed_offset }} --unclassified-road-speed-offset {{ unclassified_road_speed_offset }} --local-scheduler"',
+  "command": '/bin/bash -c "sudo chmod -R 777 output; set -a; source .env; luigi --module models.accessibility_model.tasks models.accessibility_model.tasks.TravelTimeToNearestDestination --country-level \'{{ country }}\' --destination {{ destination }} --trunk-road-speed-offset {{ trunk_road_speed_offset }} --primary-road-speed-offset {{ primary_road_speed_offset }} --secondary-road-speed-offset {{ secondary_road_speed_offset }} --tertiary-road-speed-offset {{ tertiary_road_speed_offset }} --unclassified-road-speed-offset {{ unclassified_road_speed_offset }} --local-scheduler"',
   "output_directory": "/results"
 }
 resp = requests.post(f"{url}/dojo/directive", json=directive)
