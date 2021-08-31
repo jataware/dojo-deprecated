@@ -1,90 +1,59 @@
 {
-  "annotations": {
-    "latitude": {
-      "Description": "The latitude of the given point",
-      "Type": "GEO",
-      "Geo": "Latitude",
-      "Primary_geo": "true",
-      "Primary_time": null,
-      "Coordinate_format": null,
-      "Data_type": null,
-      "Units": null,
-      "Timeformat": null,
-      "Year": null,
-      "Is_geo_pair": "true",
-      "Other_geo": "LONGITUDE",
-      "Time": null,
-      "Unit_description": null,
-      "New_col_name": null
-    },
-    "longitude": {
-      "Description": "The longitude of the given point",
-      "Type": "GEO",
-      "Geo": "Longitude",
-      "Primary_geo": "true",
-      "Is_geo_pair": "true",
-      "Other_geo": "LATITUDE",
-      "Primary_time": null,
-      "Coordinate_format": null,
-      "Data_type": null,
-      "Units": null,
-      "Timeformat": null,
-      "Year": null,
-      "Time": null,
-      "Unit_description": null,
-      "New_col_name": null
-    },
-    "date": {
-      "Description": "Planting date (YrDoy)",
-      "Type": "DATE/TIME",
-      "Time": "Date",
-      "Primary_time": "true",
-      "Time_format": "%Y-%m-%d",
-      "Primary_geo": null,
-      "Coordinate_format": null,
-      "Data_type": null,
-      "Units": null,
-      "Timeformat": null,
-      "Year": null,
-      "Is_geo_pair": null,
-      "Other_geo": null,
-      "Geo": null,
-      "Unit_description": null,
-      "New_col_name": null
-    },
-    "value": {
-      "Description": "Fake value",
-      "Type": "OTHER",
-      "Data_type": "FLOAT",
-      "Primary_time": null,
-      "Primary_geo": null,
-      "Units": null,
-      "Timeformat": null,
-      "Year": null,
-      "Is_geo_pair": null,
-      "Other_geo": null,
-      "Geo": null,
-      "Unit_description": null,
-      "New_col_name": null
-    },
-    "color_hue": {
-      "Description": "Fake value",
-      "Type": "STR",
-      "Data_type": "nominal",
-      "Primary_time": null,
-      "Primary_geo": null,
-      "Units": null,
-      "Timeformat": null,
-      "Year": null,
-      "Unit_description": null,
-      "New_col_name": null,
-      "Other_geo": null,
-      "Geo": null,
-      "Is_geo_pair": null
-    }
-  },
+  "geo": [
+      {
+          "name": "longitude",
+          "display_name": "longitude",
+          "description": "location",
+          "type": "geo",
+          "geo_type": "longitude",
+          "primary_geo": true,
+          "is_geo_pair": "latitude"
+      },
+      {
+          "name": "latitude",
+          "display_name": "Latitude",
+          "description": "location",
+          "type": "geo",
+          "geo_type": "latitude",
+          "primary_geo": true,
+          "is_geo_pair": "longitude"
+      }
+  ],
+  "date": [
+      {
+          "name": "date",
+          "display_name": "Date",
+          "description": "time",
+          "type": "date",
+          "date_type": "date",
+          "time_format": "%Y-%m-%d",
+          "primary_date": true
+      }
+  ],
+  "feature": [
+      {
+          "name": "value",
+          "display_name": "Value",
+          "description": "feature",
+          "type": "feature",
+          "feature_type": "float",
+          "units": "na",
+          "units_description": ""
+      },
+      {
+          "name": "color_hue",
+          "display_name": "Color Hue",
+          "description": "hue",
+          "type": "feature",
+          "feature_type": "string",
+          "units": "na",
+          "units_description": "",
+          "qualifies": [
+              "value"
+          ]
+      }
+  ],
   "meta": {
       "ftype": "csv"
-    }
-
+  }
 }
