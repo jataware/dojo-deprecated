@@ -27,7 +27,17 @@
             "is_geo_pair": "latitude"
           }
         ],
-        "date": [],
+        "date": [
+          {
+              "name": "date",
+              "display_name": "Date",
+              "description": "year of date",
+              "type": "date",
+              "date_type": "year",
+              "time_format": "%Y",
+              "primary_date": true
+          }
+      ],
         "feature": [
           {
             "name": "travel time",
@@ -45,7 +55,7 @@
           "band_name": "1",
           "band": "",
           "null_val": "-9999",
-          "date": "",
+          "date": "2021",
           "bands": {"1":"travel time"}
         }
       }
