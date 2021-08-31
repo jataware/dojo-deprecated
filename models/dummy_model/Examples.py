@@ -31,7 +31,8 @@ outputfile = {
     "model_id": "dummy-model-v0.1",
     "name": "dummy-model",
     "file_type": "csv",
-    "path": "output_{{rainfall}}_{{temp}}.csv",
+    "output_directory": "/model/output"
+    "path": "output_*_*.csv",
     "transform": mapper,
 }
 resp = requests.post(f"{url}/dojo/outputfile", json=[outputfile])
