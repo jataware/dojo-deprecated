@@ -29,9 +29,11 @@ mapper = json.loads(open("mapper.json").read())
 outputfile = {
     "id": "dummy-outputfile-1",
     "model_id": "dummy-model-v0.1",
+    "output_directory": "/model/output",
+    "path": "output.csv",
     "name": "dummy-model",
     "file_type": "csv",
-    "output_directory": "/model/output"
+    "output_directory": "/model/output",
     "path": "output_*_*.csv",
     "transform": mapper,
 }
