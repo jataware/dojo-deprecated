@@ -16,6 +16,10 @@ from jinja2 import Template
 
 import glob
 
+import logging
+from logging import Logger
+logger: Logger = logging.getLogger(__name__)
+
 # Get latest version of mixmasta
 mixmasta_version = os.getenv('MIXMASTA_VERSION')
 print(f'mixmasta_version: {mixmasta_version}')
@@ -166,6 +170,7 @@ def s3copy(**kwargs):
 
     return
 
+
 def getMapper(**kwargs):
     dojo_url = kwargs['dag_run'].conf.get('dojo_url')
     model_id = kwargs['dag_run'].conf.get('model_id')
@@ -207,7 +212,7 @@ def RunExit(**kwargs):
 
     # Notify Uncharted
     if os.getenv('DMC_DEBUG') == 'true':
-        print("Debug mode: no need to notify Uncharted")
+        print("testing Debug mode: no need to notify Uncharted")
         return
     else:
         print('Notifying Uncharted...')
@@ -217,7 +222,7 @@ def RunExit(**kwargs):
                                 auth=(causemos_user, causemos_pwd))
         print(f"Response from Uncharted: {response.text}")
         return
-
+    
 
 def post_failed_to_dojo(**kwargs):
 
@@ -229,9 +234,9 @@ def post_failed_to_dojo(**kwargs):
     # TODO: this should be conditional; if the other tasks fail
     # this should reflect the failure; job should always finish
     if 'attributes' not in run:
-        run['attributes'] = {'status': 'success'}
+        run['attributes'] = {'status': 'failed'}
     else:
-        run['attributes']['status'] = 'success'
+        run['attributes']['status'] = 'failed'
 
     response = requests.put(f"{dojo_url}/runs", json=run)
     print(response.text)
