@@ -1,17 +1,18 @@
-from __future__ import annotations
 
-import time
-from datetime import datetime
-from typing import Any, Dict, Generator, List, Optional
+import json
+
+from typing import List
 
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
-from pydantic import BaseModel, Field
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
-from fastapi.logger import logger
+from fastapi import APIRouter, Response, status
 from validation import DojoSchema
 from src.settings import settings
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -147,3 +148,78 @@ def get_outputfiles(model_id: str) -> List[DojoSchema.ModelOutputFile]:
             status_code=status.HTTP_404_NOT_FOUND,
             content=f"Outputfile(s) for model {model_id} not found.",
         )
+
+
+### Accessories Endpoints
+
+@router.get("/dojo/accessories/{model_id}")
+def get_accessories(model_id: str) -> List[DojoSchema.ModelAccessory]:
+    results = es.search(index="accessories", body=search_by_model(model_id))
+    try:
+        return [i["_source"] for i in results["hits"]["hits"]]
+    except:
+        return Response(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=f"Accessory file(s) for model {model_id} not found.",
+        )
+
+
+@router.post("/dojo/accessories")
+def create_accessory(payload: DojoSchema.ModelAccessory):
+    """
+        Create or update an `accessory file` for a model. 
+        
+        Each `accessory file` represents a single file that is created to be 
+        associated with the model. Here we store key metadata about the 
+        `accessory file` which  enables us to find it within the container and 
+        provide it to Uncharted.
+    """
+    try:
+        es.update(index="accessories", body={"doc": payload.dict()}, id=payload.id)
+        return Response(
+            status_code=status.HTTP_200_OK,
+            headers={"location": f"/dojo/accessory/{payload.model_id}"},
+            content=f"Created accessory for model with id = {payload.model_id}",
+        )
+    except NotFoundError:
+        es.index(index="accessories", body=payload.json(), id=payload.id)
+        return Response(
+            status_code=status.HTTP_201_CREATED,
+            headers={"location": f"/dojo/accessory/{payload.model_id}"},
+            content=f"Created accessory for model with id = {payload.model_id}",
+        )
+
+
+@router.put("/dojo/accessories")
+def create_accessories(payload: List[DojoSchema.ModelAccessory]):
+    """
+        The PUT would overwrite the entire array with a new array.
+
+        For each, create an `accessory file` for a model. 
+        
+        Each `accessory file` represents a single file that is created to be 
+        associated with the model. Here we store key metadata about the 
+        `accessory file` which  enables us to find it within the container and 
+        provide it to Uncharted.
+    """
+    if len(payload) == 0:
+        return Response(status_code=status.HTTP_400_BAD_REQUEST,content=f"No payload")
+    
+    # Delete previous entries.
+    results = es.search(index="accessories", body=search_by_model(payload[0].model_id))
+    try:
+        for i in results["hits"]["hits"]:
+            es.delete(index="accessories", id=i["_source"]["id"])
+    except:
+        pass
+
+    # Add the new entries.
+    for p in payload:
+        es.index(index="accessories", body=p.json(), id=p.id)
+
+    return Response(
+        status_code=status.HTTP_201_CREATED,
+        headers={"location": f"/api/dojo/accessory/{p.id}"},
+        content=f"Created accessories(s) for model with id = {p.model_id}",
+    )
+    
