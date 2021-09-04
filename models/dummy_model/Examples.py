@@ -44,3 +44,8 @@ print(resp.text)
 config = json.loads(open("config_dummy_model.json").read())
 resp = requests.post(f"{url}/dojo/config", json=config)
 print(resp.text)
+
+#### Add accessories
+accessories = json.loads(open("dummy_accessories.json").read())
+resp = requests.put(f"{url}/dojo/accessories", json=accessories)
+print(resp.text)
