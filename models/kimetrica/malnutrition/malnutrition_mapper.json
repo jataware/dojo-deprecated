@@ -1,6 +1,13 @@
 {
     "geo": [
         {
+            "name": "Country",
+            "display_name": "Country",
+            "description": "country",
+            "type": "geo",
+            "geo_type": "country"
+        },
+        {
             "name": "County",
             "display_name": "County",
             "description": "county",
