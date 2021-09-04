@@ -177,6 +177,8 @@ def create_accessory_file(payload: DojoSchema.ModelAccessory):
     """
     Create or update an `accessory file` for a model. 
     
+    `id` is optional and will be assigned a uuid by the API.
+
     Each `accessory file` represents a single file that is created to be 
     associated with the model. Here we store key metadata about the 
     `accessory file` which  enables us to find it within the container and 
@@ -204,7 +206,9 @@ def create_accessory_files(payload: List[DojoSchema.ModelAccessory]):
     """
     The PUT would overwrite the entire array with a new array.
 
-    For each, create an `accessory file` for a model. 
+    For each, create an `accessory file` for a model.
+
+    `id` is optional and will be assigned a uuid by the API. 
     
     Each `accessory file` represents a single file that is created to be 
     associated with the model. Here we store key metadata about the 
