@@ -20,7 +20,7 @@ class IndicatorSearchResult(BaseModel):
 
 
 class ModelAccessory(BaseModel):
-    id: str
+    id: Optional[str]
     model_id: str = Field(
         title="Model ID",
         description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",

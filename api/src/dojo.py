@@ -1,5 +1,5 @@
 
-import json
+import uuid
 
 from typing import List
 
@@ -153,7 +153,15 @@ def get_outputfiles(model_id: str) -> List[DojoSchema.ModelOutputFile]:
 ### Accessories Endpoints
 
 @router.get("/dojo/accessories/{model_id}")
-def get_accessories(model_id: str) -> List[DojoSchema.ModelAccessory]:
+def get_accessory_files(model_id: str) -> List[DojoSchema.ModelAccessory]:
+    """
+    Get the `accessory files` for a model.
+
+    Each `accessory file` represents a single file that is created to be 
+    associated with the model. Here we store key metadata about the 
+    `accessory file` which  enables us to find it within the container and 
+    provide it to Uncharted.
+    """
     results = es.search(index="accessories", body=search_by_model(model_id))
     try:
         return [i["_source"] for i in results["hits"]["hits"]]
@@ -165,16 +173,17 @@ def get_accessories(model_id: str) -> List[DojoSchema.ModelAccessory]:
 
 
 @router.post("/dojo/accessories")
-def create_accessory(payload: DojoSchema.ModelAccessory):
+def create_accessory_file(payload: DojoSchema.ModelAccessory):
     """
-        Create or update an `accessory file` for a model. 
-        
-        Each `accessory file` represents a single file that is created to be 
-        associated with the model. Here we store key metadata about the 
-        `accessory file` which  enables us to find it within the container and 
-        provide it to Uncharted.
+    Create or update an `accessory file` for a model. 
+    
+    Each `accessory file` represents a single file that is created to be 
+    associated with the model. Here we store key metadata about the 
+    `accessory file` which  enables us to find it within the container and 
+    provide it to Uncharted.
     """
     try:
+        payload.id = uuid.uuid4() # update payload with uuid
         es.update(index="accessories", body={"doc": payload.dict()}, id=payload.id)
         return Response(
             status_code=status.HTTP_200_OK,
@@ -191,16 +200,16 @@ def create_accessory(payload: DojoSchema.ModelAccessory):
 
 
 @router.put("/dojo/accessories")
-def create_accessories(payload: List[DojoSchema.ModelAccessory]):
+def create_accessory_files(payload: List[DojoSchema.ModelAccessory]):
     """
-        The PUT would overwrite the entire array with a new array.
+    The PUT would overwrite the entire array with a new array.
 
-        For each, create an `accessory file` for a model. 
-        
-        Each `accessory file` represents a single file that is created to be 
-        associated with the model. Here we store key metadata about the 
-        `accessory file` which  enables us to find it within the container and 
-        provide it to Uncharted.
+    For each, create an `accessory file` for a model. 
+    
+    Each `accessory file` represents a single file that is created to be 
+    associated with the model. Here we store key metadata about the 
+    `accessory file` which  enables us to find it within the container and 
+    provide it to Uncharted.
     """
     if len(payload) == 0:
         return Response(status_code=status.HTTP_400_BAD_REQUEST,content=f"No payload")
@@ -210,11 +219,12 @@ def create_accessories(payload: List[DojoSchema.ModelAccessory]):
     try:
         for i in results["hits"]["hits"]:
             es.delete(index="accessories", id=i["_source"]["id"])
-    except:
-        pass
+    except Exception as e:
+        logger.error(e)
 
     # Add the new entries.
     for p in payload:
+        p.id = uuid.uuid4() # update payload with uuid
         es.index(index="accessories", body=p.json(), id=p.id)
 
     return Response(
