@@ -58,9 +58,10 @@ class ModelRunSchema(BaseModel):
         examples=[["runs/<run-id>/<cube-id-1>", "runs/<run-id>/<cube-id-2>"]],
         title="Data Path URLs",
     )
-    pre_gen_output_paths: Optional[List[str]] = Field(
+    #pre_gen_output_paths: Optional[List[str]] = Field(
+    pre_gen_output_paths: Optional[List] = Field(
         None,
-        description="URL paths to pre-generated output",
+        description="List of dict {file:URL path} to pre-generated output",
         examples=[["runs/<run-id>/<cube-id-1>/pre-gen"]],
         title="Pre-generated Output Path URLs",
     )

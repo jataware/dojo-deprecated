@@ -2,35 +2,74 @@
 # Dojo
 ################################################################
 
-from enum import Enum
-from typing import Any, Dict, List, Optional
 
-import dateutil.parser
-from pydantic import BaseModel, Field, validator
-from shapely.geometry import LineString, Point, Polygon
-
-from toposort import CircularDependencyError, toposort_flatten
-from validation import api_types as types
-
+from typing import Dict, List, Optional
+from pydantic import BaseModel, Field
 from validation import ModelSchema, IndicatorSchema
 
 
-class ParameterFormatter(BaseModel):
-    """
-    A formatter for a model parameters that are date or time
-    """
+class IndicatorSearchResult(BaseModel):
+    hits: int = Field(title="Total hits for query", example="113")
+    results: List[IndicatorSchema.IndicatorMetadataSchema] = Field(
+        title="Results", description="Array of result objects"
+    )
+    scroll_id: Optional[str] = Field(
+        title="Scroll ID",
+        description="Provide this scroll ID to receive the next page of results",
+    )
 
+
+class ModelAccessory(BaseModel):
+    id: Optional[str]
+    model_id: str = Field(
+        title="Model ID",
+        description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
+        example="abcd-efg-1233",
+    )
+    path: str = Field(
+        title="File Path",
+        description="The file path where the accessory file must be mounted.",
+        example="/model/settings/my_img.png",
+    )
+
+
+class ModelConfig(BaseModel):
     id: str
     model_id: str = Field(
         title="Model ID",
         description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
         example="abcd-efg-1233",
     )
-    format: str = Field(
-        title="Format String",
-        description="The format of the model parameter using strftime",
-        example="%m/%d/%Y",
+    s3_url: str = Field(
+        title="S3 URL",
+        description="The S3 URL where the config file is located",
+        example="https://jataware-world-modelers.s3.amazonaws.com/dummy-model/config.json",
     )
+    path: str = Field(
+        title="File Path",
+        description="The file path where the conf file must be mounted.",
+        example="/model/settings/config.json",
+    )
+
+    class Config:
+        extra = "allow"
+
+
+class ModelDirective(BaseModel):
+    id: str
+    model_id: str = Field(
+        title="Model ID",
+        description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
+        example="abcd-efg-1233",
+    )
+    command: str = Field(
+        title="Model Container command",
+        description="The model container command, templated using Jinja. Templated fields must correspond with the name of the model parameters.",
+        example="python3 dssat.py --management_practice = {{ management_practice }}",
+    )
+
+    class Config:
+        extra = "allow"
 
 
 class ModelOutputFile(BaseModel):
@@ -71,45 +110,6 @@ class ModelOutputFile(BaseModel):
         extra = "allow"
 
 
-class ModelDirective(BaseModel):
-    id: str
-    model_id: str = Field(
-        title="Model ID",
-        description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
-        example="abcd-efg-1233",
-    )
-    command: str = Field(
-        title="Model Container command",
-        description="The model container command, templated using Jinja. Templated fields must correspond with the name of the model parameters.",
-        example="python3 dssat.py --management_practice = {{ management_practice }}",
-    )
-
-    class Config:
-        extra = "allow"
-
-
-class ModelConfig(BaseModel):
-    id: str
-    model_id: str = Field(
-        title="Model ID",
-        description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
-        example="abcd-efg-1233",
-    )
-    s3_url: str = Field(
-        title="S3 URL",
-        description="The S3 URL where the config file is located",
-        example="https://jataware-world-modelers.s3.amazonaws.com/dummy-model/config.json",
-    )
-    path: str = Field(
-        title="File Path",
-        description="The file path where the conf file must be mounted.",
-        example="/model/settings/config.json",
-    )
-
-    class Config:
-        extra = "allow"
-
-
 class ModelSearchResult(BaseModel):
     hits: int = Field(title="Total hits for query", example="113")
     results: List[ModelSchema.ModelMetadataSchema] = Field(
@@ -121,12 +121,21 @@ class ModelSearchResult(BaseModel):
     )
 
 
-class IndicatorSearchResult(BaseModel):
-    hits: int = Field(title="Total hits for query", example="113")
-    results: List[IndicatorSchema.IndicatorMetadataSchema] = Field(
-        title="Results", description="Array of result objects"
+class ParameterFormatter(BaseModel):
+    """
+    A formatter for a model parameters that are date or time
+    """
+
+    id: str
+    model_id: str = Field(
+        title="Model ID",
+        description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
+        example="abcd-efg-1233",
     )
-    scroll_id: Optional[str] = Field(
-        title="Scroll ID",
-        description="Provide this scroll ID to receive the next page of results",
+    format: str = Field(
+        title="Format String",
+        description="The format of the model parameter using strftime",
+        example="%m/%d/%Y",
     )
+
+
