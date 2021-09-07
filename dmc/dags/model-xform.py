@@ -249,7 +249,9 @@ def RunExit(**kwargs):
 
         accessories_array.append(f"https://jataware-world-modelers.s3.amazonaws.com/{bucket_dir}/{run_id}/{fn}")
 
+    accessories_array = [{"file":s3_url_path} for s3_url_path in accessories_array]
     print('accessories_array', accessories_array)
+
     run['pre_gen_output_paths'] = accessories_array
 
     # Update attributes.executed_at.

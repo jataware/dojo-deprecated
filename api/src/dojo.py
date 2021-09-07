@@ -162,8 +162,9 @@ def get_accessory_files(model_id: str) -> List[DojoSchema.ModelAccessory]:
     `accessory file` which  enables us to find it within the container and 
     provide it to Uncharted.
     """
-    results = es.search(index="accessories", body=search_by_model(model_id))
+    
     try:
+        results = es.search(index="accessories", body=search_by_model(model_id))
         return [i["_source"] for i in results["hits"]["hits"]]
     except:
         return Response(
@@ -218,9 +219,9 @@ def create_accessory_files(payload: List[DojoSchema.ModelAccessory]):
     if len(payload) == 0:
         return Response(status_code=status.HTTP_400_BAD_REQUEST,content=f"No payload")
     
-    # Delete previous entries.
-    results = es.search(index="accessories", body=search_by_model(payload[0].model_id))
+    # Delete previous entries.  
     try:
+        results = es.search(index="accessories", body=search_by_model(payload[0].model_id))
         for i in results["hits"]["hits"]:
             es.delete(index="accessories", id=i["_source"]["id"])
     except Exception as e:
