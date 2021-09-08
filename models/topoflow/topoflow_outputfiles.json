@@ -3,7 +3,7 @@
       "id": "25d1d6ab-1e74-4084-8c18-692e6542aa49",
       "model_id": "2ddd2cbe-364b-4520-a28e-a5691227db39",
       "name": "Land Surface Water Depth",
-      "output_directory": "/home/clouseau/output",
+      "output_directory": "/home/clouseau/output/results",
       "path": "Test1_2D-d-flood.nc",
       "file_type": "csv",
       "transform": {
@@ -58,7 +58,7 @@
       "id": "e489d023-58c3-4544-8ae1-bb9cfa987e23",
       "model_id": "2ddd2cbe-364b-4520-a28e-a5691227db39",
       "name": "Volumetric Discharge",
-      "output_directory": "/home/clouseau/output",
+      "output_directory": "/home/clouseau/output/results",
       "path": "Test1_2D-Q.nc",
       "file_type": "csv",
       "transform": {
@@ -113,7 +113,7 @@
       "id": "7302d901-85b8-4fab-a3b2-b9e0b9646458",
       "model_id": "2ddd2cbe-364b-4520-a28e-a5691227db39",
       "name": "Max Channel Flow Depth",
-      "output_directory": "/home/clouseau/output",
+      "output_directory": "/home/clouseau/output/results",
       "path": "Test1_2D-d.nc",
       "file_type": "csv",
       "transform": {
@@ -168,7 +168,7 @@
       "id": "c925ad6e-5275-4a2c-b288-ba7c450a4b8f",
       "model_id": "2ddd2cbe-364b-4520-a28e-a5691227db39",
       "name": "Mean Channel Flow Velocity",
-      "output_directory": "/home/clouseau/output",
+      "output_directory": "/home/clouseau/output/results",
       "path": "Test1_2D-u.nc",
       "file_type": "csv",
       "transform": {

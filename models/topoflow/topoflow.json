@@ -13,7 +13,7 @@
         "organization": "University of Colorado, Boulder",
         "website": "https://github.com/mintproject/topoflow36"
     },
-    "image": "jataware/dojo-publish:Topoflow-latest",
+    "image": "jataware/dojo-publish:Topoflow-dev",
     "observed_data": null,
     "is_stochastic": false,
     "parameters": [
