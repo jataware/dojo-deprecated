@@ -1,0 +1,28 @@
+{
+  "id":"flee-test-run-1",
+  "model_name":"Flee Model for South Sudan, 2013 to 2015",
+  "model_id":"ceedd3b0-f48f-43d2-b279-d74be695ed1c",
+  "created_at":0,
+  "data_paths":[ 
+  ],
+  "pre_gen_output_paths":null,
+  "is_default_run":true,
+  "parameters":[
+     {
+        "name":"maxmovespeed",
+        "value":"200"
+     },
+     {
+        "name":"awarenesslevel",
+        "value":"1"
+     },
+     {
+        "name":"defaultmovechance",
+        "value":"0.3"
+     }
+  ],
+  "tags":[
+     
+  ],
+  "attributes":{}
+}
