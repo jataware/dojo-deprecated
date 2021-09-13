@@ -257,16 +257,16 @@ def get_run_logs(run_id: str):
     )
 
     task_instances = response.json()["task_instances"]
-    logs = {}
     for t in task_instances:
         task_id = t["task_id"]
-        task_try_number = t["try_number"]
-        response_l = requests.get(
-            f"{dmc_base_url}/dags/model_xform/dagRuns/{run_id}/taskInstances/{task_id}/logs/{task_try_number}",
-            headers=headers,
-            auth=(dmc_user, dmc_pass),
-        )
-        logs[task_id] = response_l.text
+        if task_id == "model-task":
+            task_try_number = t["try_number"]
+            response_l = requests.get(
+                f"{dmc_base_url}/dags/model_xform/dagRuns/{run_id}/taskInstances/{task_id}/logs/{task_try_number}",
+                headers=headers,
+                auth=(dmc_user, dmc_pass),
+            )
+            logs = response_l.text
     return Response(status_code=status.HTTP_200_OK, content=json.dumps(logs))
 
 
