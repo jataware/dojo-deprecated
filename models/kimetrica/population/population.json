@@ -1,0 +1,104 @@
+{
+    "id":"4996b2b8-96e6-4598-90f0-e87dcedcd6a2",
+    "name":"Population Model",
+    "family_name":"Kimetrica Models",
+    "description":"The population model serves as an ancillary tool to distribute, disaggregate yearly population projections onto a geospatial representation. The model is not a machine learning model. It works by distributing projected or census population values into administrative boundaries or high-resolution raster (1km pixel resolution)",
+    "created_at":1626229316253,
+    "category":[
+       "population",
+       "projection"
+    ],
+    "maintainer":{
+       "name":"Ahmad Mohassel",
+       "email":"ahmad.mohassel@kimetrica.com",
+       "organization":"Kimetrica",
+       "website":"https: //gitlab.com/kimetrica/darpa/darpa/-/tree/master/models/population_model"
+    },
+    "image":"jataware/dojo-publish:PopulationModel-latest",
+    "observed_data":[
+       
+    ],
+    "is_stochastic":false,
+    "parameters":[
+       {
+          "unit":"N/A",
+          "default":"2017-01-01-2017-06-01",
+          "min": null,
+          "max": null,
+          "name":"time_range",
+          "data_type":"freeform",
+          "description":"time range format: YYYY-MM-DD-YYY-MM-DD\nExample: 2018-04-01-2018-09-01\nchoose time range from 2008-01-01 to 2020-01-01",
+          "id":"2018-04-01-2018-09-01-253903",
+          "unit_description": null,
+          "display_name":"time range",
+          "type":"str",
+          "choices":[
+             
+          ]
+       },
+       {
+          "unit":"N/A",
+          "default":"South Sudan",
+          "min": null,
+          "max": null,
+          "name":"country",
+          "data_type":"freeform",
+          "description":"choose the country",
+          "id":"Ethiopia-844446",
+          "unit_description": null,
+          "display_name":"country",
+          "type":"str",
+          "choices":[
+             "Ethiopia",
+             "South Sudan"
+          ]
+       },
+       {
+          "unit":"N/A",
+          "default":"south_sudan",
+          "min": null,
+          "max": null,
+          "name":"geography",
+          "data_type":"freeform",
+          "description":"choose geography",
+          "id":"ethiopia-799648",
+          "unit_description": null,
+          "display_name":"geography",
+          "type":"str",
+          "choices":[
+             "south_sudan",
+             "ethiopia"
+          ]
+       }
+    ],
+    "outputs":[
+       
+    ],
+    "qualifier_outputs":[
+       
+    ],
+    "tags":[
+       
+    ],
+    "geography":{
+       "country":[
+          "Ethiopia",
+          "South Sudan"
+       ],
+       "admin1":[
+          
+       ],
+       "admin2":[
+          
+       ],
+       "admin3":[
+          
+       ],
+       "coordinates":[
+          
+       ]
+    },
+    "type":"model",
+    "period": null,
+    "stochastic":"false"
+ }

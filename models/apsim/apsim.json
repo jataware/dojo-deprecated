@@ -1,0 +1,1133 @@
+{
+    "id": "deeaae7d-2820-4019-b7af-0e9ffd4455bb",
+    "name": "APSIM",
+    "family_name": "APSIM",
+    "description": "Farming systems and rangelands",
+    "created_at": 1631229179932,
+    "category": [
+        "Agriculture"
+    ],
+    "maintainer": {
+        "name": "Dean Holzworth",
+        "email": "Dean.Holzworth@csiro.au",
+        "organization": "CSIRO",
+        "website": "https://www.apsim.info"
+    },
+    "image": "jataware/dojo-publish:APSIM-latest",
+    "observed_data": null,
+    "is_stochastic": false,
+    "parameters": [
+        {
+            "name": "country",
+            "display_name": "Country",
+            "description": "Country",
+            "type": "str",
+            "unit": null,
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/agriculture/poultry/backyard_poultry",
+                        "score": 0.7754907011985779
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/",
+                        "score": 0.7688183784484863
+                    },
+                    {
+                        "name": "wm/concept/agriculture/",
+                        "score": 0.7688183784484863
+                    },
+                    {
+                        "name": "wm/concept/economy/commercial_farmers",
+                        "score": 0.7623082399368286
+                    },
+                    {
+                        "name": "wm/concept/economy/small_farmers",
+                        "score": 0.7532666325569153
+                    },
+                    {
+                        "name": "wm/concept/entity/rural_households",
+                        "score": 0.7490548491477966
+                    },
+                    {
+                        "name": "wm/concept/agriculture/animal_science",
+                        "score": 0.7452344298362732
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/farm_infrastructure",
+                        "score": 0.7415395379066467
+                    },
+                    {
+                        "name": "wm/concept/entity/african_governments",
+                        "score": 0.7369750738143921
+                    },
+                    {
+                        "name": "wm/concept/economy/commerce",
+                        "score": 0.7332705855369568
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.7410327792167664
+                    },
+                    {
+                        "name": "wm/process/transport/commercial_transportation",
+                        "score": 0.6478325724601746
+                    },
+                    {
+                        "name": "wm/process/develop",
+                        "score": 0.6002616286277771
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/geographic_resolution/national",
+                        "score": 0.6845536828041077
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/global",
+                        "score": 0.6368741989135742
+                    },
+                    {
+                        "name": "wm/property/common_understanding",
+                        "score": 0.6002224087715149
+                    }
+                ]
+            },
+            "is_drilldown": null,
+            "additional_options": null,
+            "data_type": "nominal",
+            "default": "ethiopia",
+            "choices": [
+                "ethiopia",
+                "kenya"
+            ],
+            "min": null,
+            "max": null,
+            "id": "ethiopia-686597"
+        },
+        {
+            "name": "run_type",
+            "display_name": "Run Type",
+            "description": "Type of run",
+            "type": "str",
+            "unit": null,
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.7237898111343384
+                    },
+                    {
+                        "name": "wm/concept/agriculture/poultry/backyard_poultry",
+                        "score": 0.722157895565033
+                    },
+                    {
+                        "name": "wm/concept/economy/commercial_farmers",
+                        "score": 0.7080562114715576
+                    },
+                    {
+                        "name": "wm/concept/humanitarian_assistance/food_aid",
+                        "score": 0.7010903358459473
+                    },
+                    {
+                        "name": "wm/concept/plan",
+                        "score": 0.6919851303100586
+                    },
+                    {
+                        "name": "wm/concept/agriculture/animal_science",
+                        "score": 0.6913633346557617
+                    },
+                    {
+                        "name": "wm/concept/intervention",
+                        "score": 0.6893099546432495
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/water_facilities",
+                        "score": 0.6794895529747009
+                    },
+                    {
+                        "name": "wm/concept/economy/labor",
+                        "score": 0.6732190251350403
+                    },
+                    {
+                        "name": "wm/concept/innovation",
+                        "score": 0.6723953485488892
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.7438598275184631
+                    },
+                    {
+                        "name": "wm/process/produce",
+                        "score": 0.6877760887145996
+                    },
+                    {
+                        "name": "wm/process/consume",
+                        "score": 0.6721528172492981
+                    },
+                    {
+                        "name": "wm/process/attempt",
+                        "score": 0.669306218624115
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.6576522588729858
+                    },
+                    {
+                        "name": "wm/process/transport/commercial_transportation",
+                        "score": 0.6547030210494995
+                    },
+                    {
+                        "name": "wm/process/planning",
+                        "score": 0.6453771591186523
+                    },
+                    {
+                        "name": "wm/process/modify",
+                        "score": 0.6069806218147278
+                    },
+                    {
+                        "name": "wm/process/research",
+                        "score": 0.6062495112419128
+                    },
+                    {
+                        "name": "wm/process/transmission",
+                        "score": 0.6045001149177551
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/preparedness",
+                        "score": 0.6377156972885132
+                    },
+                    {
+                        "name": "wm/property/common_understanding",
+                        "score": 0.6354836225509644
+                    },
+                    {
+                        "name": "wm/property/condition",
+                        "score": 0.6243870854377747
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/national",
+                        "score": 0.6145033240318298
+                    },
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.6062033772468567
+                    }
+                ]
+            },
+            "is_drilldown": null,
+            "additional_options": null,
+            "data_type": "nominal",
+            "default": "forecast",
+            "choices": [
+                "forecast",
+                "historical"
+            ],
+            "min": null,
+            "max": null,
+            "id": "forecast-415264"
+        },
+        {
+            "name": "temporal_aggregation",
+            "display_name": "Temporal aggregation",
+            "description": "Temporal aggregation",
+            "type": "str",
+            "unit": null,
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/social_structure",
+                        "score": 0.6879798769950867
+                    },
+                    {
+                        "name": "wm/concept/agriculture/animal_science",
+                        "score": 0.6627612709999084
+                    },
+                    {
+                        "name": "wm/concept/intervention",
+                        "score": 0.6592068076133728
+                    },
+                    {
+                        "name": "wm/concept/economy/economy",
+                        "score": 0.6557170152664185
+                    },
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.6292664408683777
+                    },
+                    {
+                        "name": "wm/concept/safety_net",
+                        "score": 0.6172846555709839
+                    },
+                    {
+                        "name": "wm/concept/environment/climate_change",
+                        "score": 0.6146838068962097
+                    },
+                    {
+                        "name": "wm/concept/goods/agricultural/pesticide",
+                        "score": 0.610886812210083
+                    },
+                    {
+                        "name": "wm/concept/agriculture/animal_feed",
+                        "score": 0.6007532477378845
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.6617838144302368
+                    },
+                    {
+                        "name": "wm/process/hatching",
+                        "score": 0.6055019497871399
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/coping_capacities",
+                        "score": 0.6176233291625977
+                    },
+                    {
+                        "name": "wm/property/utilization",
+                        "score": 0.6004453301429749
+                    }
+                ]
+            },
+            "is_drilldown": null,
+            "additional_options": null,
+            "data_type": "nominal",
+            "default": "annual",
+            "choices": [
+                "annual",
+                "mean",
+                "monthly",
+                "ltmean"
+            ],
+            "min": null,
+            "max": null,
+            "id": "annual-862282"
+        },
+        {
+            "name": "year",
+            "display_name": "Year",
+            "description": "Year",
+            "type": "int",
+            "unit": null,
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/farm_infrastructure",
+                        "score": 0.7313846349716187
+                    },
+                    {
+                        "name": "wm/concept/agriculture/animal_science",
+                        "score": 0.7250112891197205
+                    },
+                    {
+                        "name": "wm/concept/economy/commercial_farmers",
+                        "score": 0.7225204706192017
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/",
+                        "score": 0.7100890874862671
+                    },
+                    {
+                        "name": "wm/concept/agriculture/poultry/backyard_poultry",
+                        "score": 0.7100370526313782
+                    },
+                    {
+                        "name": "wm/concept/agriculture/crop/major_crops",
+                        "score": 0.7020588517189026
+                    },
+                    {
+                        "name": "wm/concept/economy/commerce",
+                        "score": 0.6833813190460205
+                    },
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.6810063123703003
+                    },
+                    {
+                        "name": "wm/concept/economy/labor",
+                        "score": 0.6769735217094421
+                    },
+                    {
+                        "name": "wm/concept/humanitarian_assistance/food_aid",
+                        "score": 0.676517903804779
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.7463207840919495
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.6230417490005493
+                    },
+                    {
+                        "name": "wm/process/produce",
+                        "score": 0.6100910902023315
+                    },
+                    {
+                        "name": "wm/process/research",
+                        "score": 0.6055648326873779
+                    },
+                    {
+                        "name": "wm/process/develop",
+                        "score": 0.604178249835968
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.6263595223426819
+                    },
+                    {
+                        "name": "wm/property/preparedness",
+                        "score": 0.6095402240753174
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/national",
+                        "score": 0.6073421835899353
+                    }
+                ]
+            },
+            "is_drilldown": null,
+            "additional_options": null,
+            "data_type": "numerical",
+            "default": "2021",
+            "choices": [],
+            "min": 2021,
+            "max": 2022,
+            "id": "2021-241046"
+        }
+    ],
+    "outputs": [
+        {
+            "name": "country",
+            "display_name": "Country",
+            "description": "country",
+            "type": "country",
+            "unit": "country",
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/agriculture/poultry/backyard_poultry",
+                        "score": 0.7754907011985779
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/",
+                        "score": 0.7688183784484863
+                    },
+                    {
+                        "name": "wm/concept/agriculture/",
+                        "score": 0.7688183784484863
+                    },
+                    {
+                        "name": "wm/concept/economy/commercial_farmers",
+                        "score": 0.7623082399368286
+                    },
+                    {
+                        "name": "wm/concept/economy/small_farmers",
+                        "score": 0.7532666325569153
+                    },
+                    {
+                        "name": "wm/concept/entity/rural_households",
+                        "score": 0.7490548491477966
+                    },
+                    {
+                        "name": "wm/concept/agriculture/animal_science",
+                        "score": 0.7452344298362732
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/farm_infrastructure",
+                        "score": 0.7415395379066467
+                    },
+                    {
+                        "name": "wm/concept/entity/african_governments",
+                        "score": 0.7369750738143921
+                    },
+                    {
+                        "name": "wm/concept/economy/commerce",
+                        "score": 0.7332705855369568
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.7410327792167664
+                    },
+                    {
+                        "name": "wm/process/transport/commercial_transportation",
+                        "score": 0.6478325724601746
+                    },
+                    {
+                        "name": "wm/process/develop",
+                        "score": 0.6002616286277771
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/geographic_resolution/national",
+                        "score": 0.6845536828041077
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/global",
+                        "score": 0.6368741989135742
+                    },
+                    {
+                        "name": "wm/property/common_understanding",
+                        "score": 0.6002224087715149
+                    }
+                ]
+            },
+            "is_primary": true,
+            "additional_options": null,
+            "data_resolution": {
+                "temporal_resolution": "annual",
+                "spatial_resolution": null
+            },
+            "choices": null,
+            "min": null,
+            "max": null
+        },
+        {
+            "name": "admin1",
+            "display_name": "Admin1",
+            "description": "admin1",
+            "type": "str",
+            "unit": "state/territory",
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/",
+                        "score": 0.8241827487945557
+                    },
+                    {
+                        "name": "wm/concept/agriculture/",
+                        "score": 0.8241827487945557
+                    },
+                    {
+                        "name": "wm/concept/agriculture/animal_science",
+                        "score": 0.7763178944587708
+                    },
+                    {
+                        "name": "wm/concept/agriculture/poultry/backyard_poultry",
+                        "score": 0.7678679823875427
+                    },
+                    {
+                        "name": "wm/concept/economy/commercial_farmers",
+                        "score": 0.7605909705162048
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/farm_infrastructure",
+                        "score": 0.7489202618598938
+                    },
+                    {
+                        "name": "wm/concept/economy/small_farmers",
+                        "score": 0.7339627146720886
+                    },
+                    {
+                        "name": "wm/concept/agriculture/poultry/poultry_sector",
+                        "score": 0.7084094882011414
+                    },
+                    {
+                        "name": "wm/concept/agriculture/dairy",
+                        "score": 0.7066337466239929
+                    },
+                    {
+                        "name": "wm/concept/goods/agricultural/pesticide",
+                        "score": 0.6993238925933838
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/farming/",
+                        "score": 0.7830552458763123
+                    },
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.7767813205718994
+                    },
+                    {
+                        "name": "wm/process/transport/commercial_transportation",
+                        "score": 0.6080030798912048
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.6048745512962341
+                    }
+                ],
+                "properties": []
+            },
+            "is_primary": true,
+            "additional_options": null,
+            "data_resolution": {
+                "temporal_resolution": "annual",
+                "spatial_resolution": null
+            },
+            "choices": null,
+            "min": null,
+            "max": null
+        },
+        {
+            "name": "admin2",
+            "display_name": "Admin2",
+            "description": "admin2",
+            "type": "str",
+            "unit": "county/district",
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/",
+                        "score": 0.7005350589752197
+                    },
+                    {
+                        "name": "wm/concept/agriculture/",
+                        "score": 0.7005350589752197
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/farming/",
+                        "score": 0.6662516593933105
+                    }
+                ],
+                "properties": []
+            },
+            "is_primary": true,
+            "additional_options": null,
+            "data_resolution": {
+                "temporal_resolution": "annual",
+                "spatial_resolution": null
+            },
+            "choices": null,
+            "min": null,
+            "max": null
+        },
+        {
+            "name": "year",
+            "display_name": "Year",
+            "description": "year",
+            "type": "datetime",
+            "unit": "year",
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/farm_infrastructure",
+                        "score": 0.7313846349716187
+                    },
+                    {
+                        "name": "wm/concept/agriculture/animal_science",
+                        "score": 0.7250112891197205
+                    },
+                    {
+                        "name": "wm/concept/economy/commercial_farmers",
+                        "score": 0.7225204706192017
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/",
+                        "score": 0.7100890874862671
+                    },
+                    {
+                        "name": "wm/concept/agriculture/poultry/backyard_poultry",
+                        "score": 0.7100370526313782
+                    },
+                    {
+                        "name": "wm/concept/agriculture/crop/major_crops",
+                        "score": 0.7020588517189026
+                    },
+                    {
+                        "name": "wm/concept/economy/commerce",
+                        "score": 0.6833813190460205
+                    },
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.6810063123703003
+                    },
+                    {
+                        "name": "wm/concept/economy/labor",
+                        "score": 0.6769735217094421
+                    },
+                    {
+                        "name": "wm/concept/humanitarian_assistance/food_aid",
+                        "score": 0.676517903804779
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.7463207840919495
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.6230417490005493
+                    },
+                    {
+                        "name": "wm/process/produce",
+                        "score": 0.6100910902023315
+                    },
+                    {
+                        "name": "wm/process/research",
+                        "score": 0.6055648326873779
+                    },
+                    {
+                        "name": "wm/process/develop",
+                        "score": 0.604178249835968
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.6263595223426819
+                    },
+                    {
+                        "name": "wm/property/preparedness",
+                        "score": 0.6095402240753174
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/national",
+                        "score": 0.6073421835899353
+                    }
+                ]
+            },
+            "is_primary": true,
+            "additional_options": null,
+            "data_resolution": {
+                "temporal_resolution": "annual",
+                "spatial_resolution": null
+            },
+            "choices": null,
+            "min": null,
+            "max": null
+        },
+        {
+            "name": "month",
+            "display_name": "Month",
+            "description": "month",
+            "type": "datetime",
+            "unit": "month",
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/farm_infrastructure",
+                        "score": 0.7227829098701477
+                    },
+                    {
+                        "name": "wm/concept/economy/commercial_farmers",
+                        "score": 0.721393346786499
+                    },
+                    {
+                        "name": "wm/concept/agriculture/animal_science",
+                        "score": 0.7048768997192383
+                    },
+                    {
+                        "name": "wm/concept/agriculture/poultry/backyard_poultry",
+                        "score": 0.7017888426780701
+                    },
+                    {
+                        "name": "wm/concept/economy/commerce",
+                        "score": 0.6998949646949768
+                    },
+                    {
+                        "name": "wm/concept/humanitarian_assistance/food_aid",
+                        "score": 0.6956073641777039
+                    },
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.6944541931152344
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/",
+                        "score": 0.6839497685432434
+                    },
+                    {
+                        "name": "wm/concept/economy/labor",
+                        "score": 0.6832980513572693
+                    },
+                    {
+                        "name": "wm/concept/agriculture/crop/major_crops",
+                        "score": 0.6810859441757202
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.7403221130371094
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.6239740252494812
+                    },
+                    {
+                        "name": "wm/process/consume",
+                        "score": 0.6109057068824768
+                    },
+                    {
+                        "name": "wm/process/attempt",
+                        "score": 0.6056339144706726
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.660662055015564
+                    },
+                    {
+                        "name": "wm/property/preparedness",
+                        "score": 0.6318408250808716
+                    }
+                ]
+            },
+            "is_primary": true,
+            "additional_options": null,
+            "data_resolution": {
+                "temporal_resolution": "annual",
+                "spatial_resolution": null
+            },
+            "choices": null,
+            "min": null,
+            "max": null
+        },
+        {
+            "name": "herbage_anpp",
+            "display_name": "Herbage Anpp",
+            "description": "herbage annual net primary production",
+            "type": "float",
+            "unit": "kg/ha",
+            "unit_description": "",
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/economy/commercial_farmers",
+                        "score": 0.7402797937393188
+                    },
+                    {
+                        "name": "wm/concept/agriculture/animal_science",
+                        "score": 0.7362563014030457
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/farm_infrastructure",
+                        "score": 0.7227742671966553
+                    },
+                    {
+                        "name": "wm/concept/agriculture/",
+                        "score": 0.7187870144844055
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/",
+                        "score": 0.7187870144844055
+                    },
+                    {
+                        "name": "wm/concept/agriculture/crop/crops",
+                        "score": 0.7119412422180176
+                    },
+                    {
+                        "name": "wm/concept/agriculture/crop/major_crops",
+                        "score": 0.7027549147605896
+                    },
+                    {
+                        "name": "wm/concept/economy/small_farmers",
+                        "score": 0.7006809711456299
+                    },
+                    {
+                        "name": "wm/concept/agriculture/poultry/backyard_poultry",
+                        "score": 0.6952089667320251
+                    },
+                    {
+                        "name": "wm/concept/agriculture/crop/crop_land",
+                        "score": 0.6898804903030396
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.7265846133232117
+                    },
+                    {
+                        "name": "wm/process/farming/",
+                        "score": 0.656401515007019
+                    },
+                    {
+                        "name": "wm/process/hatching",
+                        "score": 0.6547576785087585
+                    },
+                    {
+                        "name": "wm/process/produce",
+                        "score": 0.6424630880355835
+                    },
+                    {
+                        "name": "wm/process/develop",
+                        "score": 0.6138834357261658
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.6263741850852966
+                    },
+                    {
+                        "name": "wm/property/utilization",
+                        "score": 0.6005915403366089
+                    }
+                ]
+            },
+            "is_primary": true,
+            "additional_options": null,
+            "data_resolution": {
+                "temporal_resolution": "annual",
+                "spatial_resolution": null
+            },
+            "choices": null,
+            "min": null,
+            "max": null
+        },
+        {
+            "name": "relative_anpp",
+            "display_name": "Relative Anpp",
+            "description": "relative herbage annual net primary production",
+            "type": "float",
+            "unit": "0-1",
+            "unit_description": "",
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/agriculture/animal_science",
+                        "score": 0.7410854697227478
+                    },
+                    {
+                        "name": "wm/concept/economy/commercial_farmers",
+                        "score": 0.7370040416717529
+                    },
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.7316896319389343
+                    },
+                    {
+                        "name": "wm/concept/economy/economy",
+                        "score": 0.7253189086914062
+                    },
+                    {
+                        "name": "wm/concept/economy/commerce",
+                        "score": 0.7219664454460144
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/farm_infrastructure",
+                        "score": 0.7213679552078247
+                    },
+                    {
+                        "name": "wm/concept/agriculture/crop/major_crops",
+                        "score": 0.7045638561248779
+                    },
+                    {
+                        "name": "wm/concept/agriculture/poultry/backyard_poultry",
+                        "score": 0.7041614651679993
+                    },
+                    {
+                        "name": "wm/concept/population_demographics/population_density/population_growth",
+                        "score": 0.7000530958175659
+                    },
+                    {
+                        "name": "wm/concept/government/government_program",
+                        "score": 0.6948552131652832
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.7414644360542297
+                    },
+                    {
+                        "name": "wm/process/hatching",
+                        "score": 0.7056927680969238
+                    },
+                    {
+                        "name": "wm/process/produce",
+                        "score": 0.6637829542160034
+                    },
+                    {
+                        "name": "wm/process/develop",
+                        "score": 0.641377866268158
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.6328858733177185
+                    },
+                    {
+                        "name": "wm/process/transport/commercial_transportation",
+                        "score": 0.6297077536582947
+                    },
+                    {
+                        "name": "wm/process/consume",
+                        "score": 0.6187159419059753
+                    },
+                    {
+                        "name": "wm/process/transmission",
+                        "score": 0.6136104464530945
+                    },
+                    {
+                        "name": "wm/process/research",
+                        "score": 0.6043780446052551
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.6938657760620117
+                    },
+                    {
+                        "name": "wm/property/seasonality",
+                        "score": 0.6689689755439758
+                    },
+                    {
+                        "name": "wm/property/preparedness",
+                        "score": 0.6444833278656006
+                    },
+                    {
+                        "name": "wm/property/productivity",
+                        "score": 0.6266767382621765
+                    },
+                    {
+                        "name": "wm/property/utilization",
+                        "score": 0.6262253522872925
+                    },
+                    {
+                        "name": "wm/property/common_understanding",
+                        "score": 0.6248672604560852
+                    },
+                    {
+                        "name": "wm/property/improved_breeds",
+                        "score": 0.6012964844703674
+                    },
+                    {
+                        "name": "wm/property/coping_capacities",
+                        "score": 0.601146936416626
+                    }
+                ]
+            },
+            "is_primary": true,
+            "additional_options": null,
+            "data_resolution": {
+                "temporal_resolution": "annual",
+                "spatial_resolution": null
+            },
+            "choices": null,
+            "min": null,
+            "max": null
+        }
+    ],
+    "qualifier_outputs": [
+        {
+            "name": "ensemble_member",
+            "display_name": "Ensemble Member",
+            "description": "weather ensemble member",
+            "type": "int",
+            "unit": " ",
+            "unit_description": "",
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/entity/people/person_or_group",
+                        "score": 0.6842889189720154
+                    },
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.683785617351532
+                    },
+                    {
+                        "name": "wm/concept/entity/organization",
+                        "score": 0.6812339425086975
+                    },
+                    {
+                        "name": "wm/concept/agriculture/poultry/backyard_poultry",
+                        "score": 0.6597852110862732
+                    },
+                    {
+                        "name": "wm/concept/agriculture/animal_science",
+                        "score": 0.6465156078338623
+                    },
+                    {
+                        "name": "wm/concept/plan",
+                        "score": 0.6350220441818237
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/agriculture/farm_infrastructure",
+                        "score": 0.6319220066070557
+                    },
+                    {
+                        "name": "wm/concept/social_structure",
+                        "score": 0.6318410038948059
+                    },
+                    {
+                        "name": "wm/concept/economy/commercial_farmers",
+                        "score": 0.6280457377433777
+                    },
+                    {
+                        "name": "wm/concept/government/government_program",
+                        "score": 0.6192646026611328
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.6615267395973206
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.6259390115737915
+                    },
+                    {
+                        "name": "wm/process/transport/commercial_transportation",
+                        "score": 0.6018843650817871
+                    }
+                ],
+                "properties": []
+            },
+            "related_features": [
+                "herbage_anpp",
+                "relative_anpp"
+            ]
+        }
+    ],
+    "tags": null,
+    "geography": {
+        "country": null,
+        "admin1": null,
+        "admin2": null,
+        "admin3": null,
+        "coordinates": [
+            [
+                [
+                    "37",
+                    "-22"
+                ],
+                [
+                    "-35",
+                    "53"
+                ]
+            ]
+        ]
+    },
+    "period": {
+        "gte": 631112400000,
+        "lte": 2556021600000
+    },
+    "type": "model",
+    "stochastic": "false"
+}

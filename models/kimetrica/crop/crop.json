@@ -1,0 +1,89 @@
+{
+    "id": "cec89aa6-543b-4317-95a4-ddf69af9e12f",
+    "name": "Kimetrica Crop model",
+    "family_name": "Kimetrica Models",    
+    "description": "Crop-model runs gridded crop simulation models using the Decision Support System for Agrotechnology Transfer (DSSAT) in a docker container. The DSSAT system is configured to be run in a gridded mode at a horizontal grid spacing of approximately 10 km. A reference grid assigned a unique ID (Identification Number) for each grid cell was developed and is used to defines the location and soil type for each grid.\nThe DSSAT models require daily weather data, soil type, and soil profile properties, as well as cultivar-specific inputs and management including irrigation and amount and type of fertilizer among others for simulating growth, development, and yield. The detailed gridded crop modeling results for each grid cell are aggregated using an area-weighted averaging method according crop specific production technologies namely: irrigated, rainfed and high/low-input and rainfed subsistence. Finally, the results are further aggregated by second level administrative units of the country.",
+    "created_at": 1624893762056,
+    "category": [
+        "Crops",
+        "Agriculture",
+        "Production"
+    ],
+    "maintainer": {
+        "name": "Eric Muchugu",
+        "email": "eric.muchugu@kimetrica.com",
+        "organization": "Kimetrica",
+        "website": "https://github.com/jataware/dummy-model"
+    },
+    "image": "jataware/clouseau:claudine_ki_models",
+    "observed_data": null,
+    "is_stochastic": false,
+    "parameters": [
+        {
+            "unit": "n/a",
+            "default": "maize",
+            "min": null,
+            "max": null,
+            "name": "crop",
+            "data_type": "nominal",
+            "description": "Choose the crop to model",
+            "id": "maize-726718",
+            "unit_description": null,
+            "display_name": "crop",
+            "type": "str",
+            "choices": [
+                "sorghum",
+                "millet",
+                "cowpea",
+                "groundnut"
+            ]
+        },
+        {
+            "unit": "n/a",
+            "default": "Ethiopia",
+            "min": null,
+            "max": null,
+            "name": "country",
+            "data_type": "nominal",
+            "description": "choose the country to run the crop-model",
+            "id": "Ethiopia-827493",
+            "unit_description": null,
+            "display_name": "country",
+            "type": "str",
+            "choices": [
+                "South Sudan",
+                "Eritrea",
+                "Sudan",
+                "Djibouti",
+                "Somalia",
+                "Kenya",
+                "Uganda",
+                "Rwanda",
+                "Burundi",
+                "Tanzania"
+            ]
+        }
+    ],
+    "outputs": [],
+    "tags": null,
+    "geography": {
+        "country": [
+            "Ethiopia",
+            "South Sudan",
+            "Eritrea",
+            "Djibouti",
+            "Sudan",
+            "Somalia",
+            "Kenya",
+            "Uganda",
+            "Rwanda",
+            "Burundi"
+        ],
+        "admin1": null,
+        "admin2": null,
+        "admin3": null
+    },
+    "period": null,
+    "type": "model",
+    "stochastic": "false"
+}

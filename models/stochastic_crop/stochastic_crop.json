@@ -1,0 +1,170 @@
+{
+    "id": "8cb140a5-4513-4ec3-af74-04277afa733b",
+    "name": "Stochastic Gridded Conflict Model",
+    "family_name": "Kimetrica",
+    "description": "This grid-based, stochastic model simulates the triggering of conflict in areas where \"unrest\" is high, and its subsequent spreading and/or resolution based on measures of local and nonlocal connectivity. This model has been written as a Python package that can be installed in a conda environment.\n\nThere is also a Jupyter notebook (see notebook folder) which has a graphical user interface (GUI), with sliders and text boxes, for running the model. Instructions for installing the package are included in the notebook. Values from the GUI are written to the model's configuration file. Model output can also be visualized within the notebook with built-in graphics routines. The model can also be run at a Python command line or at a Unix prompt.\n\nThis model is a work in progress and has not yet been calibrated against conflict data (e.g. number of fatalities, type of conflict) because of the difficulty in obtaining reliable data that is grid-based vs. aggregated for admininstrative regions. We are investigating various data sources including ACLED and GDELT for this purpose. Current applications and testing are for the Horn of Africa.\n\nSee the PDF in the docs folder for a more detailed description of the model and with references and a mathematical appendix.\n\nThis model is partially compliant with the Basic Model Interface (BMI).\n\nThe main model parameters are as follows:\n\n- conflict emergence factor\nThis is a proportionality factor that is multiplied by the normalized unrest (U) to get the probability that conflict emerges in a given grid cell in the current timestep. A real-valued number between 0 and 1. Can be set with a slider in the GUI.\n\n- conflict local spreading factor\nThis is a proportionality factor that is multiplied by the normalized local connectivity (C1) to get the probability that conflict emerges in a given grid cell in the current timestep. A real-valued number between 0 and 1. Can be set with a slider in the GUI.\n\n- conflict resolution probability\nThe probability that the conflict in any grid cell will be resolved in the current timestep. A real-valued number between 0 and 1. Can be set with a slider in the GUI.\n\n- unrest grid\nA spatial grid of values (2D array) that gives a measure of the \"unrest\", or potential for conflict to emerge, in each grid cell. It depends on indicators such as population count, average rainfall rate, and many others. This grid is currently pre-computed for the user as a function of several indicators. It is fixed for each model run for a given region. Must be in GeoTIFF format and all grids must have same dimensions. If no grid is specified, a uniform (constant-valued grid) is used.\n\n- local connectivity grid\nThis is a spatial grid of values (2D array) that gives a measure of the \"local connectivty\", or potential for conflict to spread, in each grid cell. It depends on indicators such as accessibility, road density, etc.. This grid is currently pre-computed for the user as a function of several indicators. It is fixed for each model run for a given region. Must be in GeoTIFF format and all grids must have same dimensions. If no grid is specified, a uniform (constant-valued grid) is used.\n\n- nonlocal connectivity grid\nThis is a spatial grid of values (2D array) that gives a measure of the \"nonlocal connectivty\", or potential for conflict to spread to distant grid cells, in each grid cell. It depends on indicators such as internet and cell phone access. This grid is currently pre-computed for the user as a function of several indicators. It is fixed for each model run for a given region. Must be in GeoTIFF format and all grids must have same dimensions. If no grid is specified, a uniform (constant-valued grid) is used.",
+    "created_at": 1631211340909,
+    "category": [
+        "stochastic",
+        "gridded",
+        "spatial",
+        "conflict_model"
+    ],
+    "maintainer": {
+        "name": "Scott D. Peckham",
+        "email": "speckham@air.org",
+        "organization": "Kimetrica",
+        "website": "https://github.com/peckhams/stochastic_conflict_model"
+    },
+    "image": "jataware/dojo-publish:StochasticGriddedConflictModel-latest",
+    "observed_data": null,
+    "is_stochastic": false,
+    "parameters": [
+        {
+            "name": "conflictemergencefactor",
+            "display_name": "conflict_emergence_factor",
+            "description": "This is a proportionality factor that is multiplied by the normalized unrest (U) to get the probability that conflict emerges in a given grid cell in the current timestep. A real-valued number between 0 and 1. Can be set with a slider in the GUI.",
+            "type": "float",
+            "unit": "none",
+            "unit_description": "unitless",
+            "ontologies": null,
+            "is_drilldown": null,
+            "additional_options": null,
+            "data_type": "numerical",
+            "default": "0.001",
+            "choices": [],
+            "min": 0,
+            "max": 1,
+            "id": "c_emerge-623216"
+        },
+        {
+            "name": "conflictlocalspreadingfactor",
+            "display_name": "conflict_local_spreading_factor",
+            "description": "This is a proportionality factor that is multiplied by the normalized local connectivity (C1) to get the probability that conflict emerges in a given grid cell in the current timestep. A real-valued number between 0 and 1. Can be set with a slider in the GUI.",
+            "type": "float",
+            "unit": "none",
+            "unit_description": "unitless",
+            "ontologies": null,
+            "is_drilldown": null,
+            "additional_options": null,
+            "data_type": "numerical",
+            "default": "0.4",
+            "choices": [],
+            "min": 0,
+            "max": 1,
+            "id": "c_spread-601832"
+        },
+        {
+            "name": "conflictresolutionprobability",
+            "display_name": "conflict_resolution_probability",
+            "description": "The probability that the conflict in any grid cell will be resolved in the current timestep. A real-valued number between 0 and 1. Can be set with a slider in the GUI.",
+            "type": "float",
+            "unit": "none",
+            "unit_description": "unitless",
+            "ontologies": null,
+            "is_drilldown": null,
+            "additional_options": null,
+            "data_type": "numerical",
+            "default": "0.4",
+            "choices": [],
+            "min": 0,
+            "max": 1,
+            "id": "p_resolve-964882"
+        },
+        {
+            "name": "unrestgridfile",
+            "display_name": "unrest_grid_file",
+            "description": "A spatial grid of values (2D array) that gives a measure of the \"unrest\", or potential for conflict to emerge, in each grid cell. It depends on indicators such as population count, average rainfall rate, and many others. This grid is currently pre-computed for the user as a function of several indicators. It is fixed for each model run for a given region. Must be in GeoTIFF format and all grids must have same dimensions. If no grid is specified, a uniform (constant-valued grid) is used.",
+            "type": "str",
+            "unit": "none",
+            "unit_description": "unitless",
+            "ontologies": null,
+            "is_drilldown": null,
+            "additional_options": null,
+            "data_type": "freeform",
+            "default": "''",
+            "choices": [],
+            "min": 0,
+            "max": null,
+            "id": "U_file-572191"
+        },
+        {
+            "name": "localconnectivitygridfile",
+            "display_name": "local_connectivity_grid_file",
+            "description": "This is a spatial grid of values (2D array) that gives a measure of the \"local connectivty\", or potential for conflict to spread, in each grid cell. It depends on indicators such as accessibility, road density, etc.. This grid is currently pre-computed for the user as a function of several indicators. It is fixed for each model run for a given region. Must be in GeoTIFF format and all grids must have same dimensions. If no grid is specified, a uniform (constant-valued grid) is used.",
+            "type": "str",
+            "unit": "none",
+            "unit_description": "unitless",
+            "ontologies": null,
+            "is_drilldown": null,
+            "additional_options": null,
+            "data_type": "freeform",
+            "default": "''",
+            "choices": [],
+            "min": null,
+            "max": null,
+            "id": "C1_file-697500"
+        },
+        {
+            "name": "nonlocal_connectivitygridfile",
+            "display_name": "nonlocal_ connectivity_grid_file",
+            "description": "This is a spatial grid of values (2D array) that gives a measure of the \"nonlocal connectivty\", or potential for conflict to spread to distant grid cells, in each grid cell. It depends on indicators such as internet and cell phone access. This grid is currently pre-computed for the user as a function of several indicators. It is fixed for each model run for a given region. Must be in GeoTIFF format and all grids must have same dimensions. If no grid is specified, a uniform (constant-valued grid) is used.",
+            "type": "str",
+            "unit": "none",
+            "unit_description": "unitless",
+            "ontologies": null,
+            "is_drilldown": null,
+            "additional_options": null,
+            "data_type": "freeform",
+            "default": "''",
+            "choices": [],
+            "min": null,
+            "max": null,
+            "id": "C2_file-169269"
+        },
+        {
+            "name": "numberoftimesteps",
+            "display_name": "number_of_timesteps",
+            "description": "The number of time steps to run the model.  The time step size is currently set to one day.",
+            "type": "int",
+            "unit": "none",
+            "unit_description": "unitless",
+            "ontologies": null,
+            "is_drilldown": null,
+            "additional_options": null,
+            "data_type": "numerical",
+            "default": "100",
+            "choices": [],
+            "min": 0,
+            "max": 3650,
+            "id": "n_steps-352992"
+        }
+    ],
+    "outputs": [],
+    "qualifier_outputs": null,
+    "tags": null,
+    "geography": {
+        "country": null,
+        "admin1": null,
+        "admin2": null,
+        "admin3": null,
+        "coordinates": [
+            [
+                [
+                    "-5",
+                    "25"
+                ],
+                [
+                    "25",
+                    "55"
+                ]
+            ]
+        ]
+    },
+    "period": {
+        "gte": 1596261600000,
+        "lte": 1627797600000
+    },
+    "type": "model",
+    "stochastic": "true"
+}

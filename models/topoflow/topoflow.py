@@ -3,7 +3,7 @@
 import requests
 import json
 
-url = "https://wmuser:mellowcubicle@dojo-test.com"
+url = "http://localhost:8000"
 headers = {"Content-Type": "application/json"}
 
 #### Create Model

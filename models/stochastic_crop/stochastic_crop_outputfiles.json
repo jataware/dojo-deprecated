@@ -1,0 +1,85 @@
+[
+  {
+    "id": "dc811c78-e448-4eba-8c7d-1b1f72fb3761",
+    "model_id": "deeaae7d-2820-4019-b7af-0e9ffd4455bb",
+    "name": "APSIM",
+    "output_directory": "/home/clouseau",
+    "path": "results.csv",
+    "file_type": "csv",
+    "transform": {
+      "geo": [
+        {
+          "name": "country",
+          "display_name": "Country",
+          "description": "country",
+          "type": "geo",
+          "geo_type": "country",
+          "resolve_to_gadm": true
+        },
+        {
+          "name": "admin1",
+          "display_name": "Admin1",
+          "description": "admin1",
+          "type": "geo",
+          "geo_type": "state/territory",
+          "resolve_to_gadm": true
+        },
+        {
+          "name": "admin2",
+          "display_name": "Admin2",
+          "description": "admin2",
+          "type": "geo",
+          "geo_type": "county/district",
+          "resolve_to_gadm": true
+        }
+      ],
+      "date": [
+        {
+          "name": "year",
+          "display_name": "Year",
+          "description": "year",
+          "type": "date",
+          "date_type": "year",
+          "time_format": "%Y",
+          "primary_date": true
+        }
+      ],
+      "feature": [
+        {
+          "name": "ensemble_member",
+          "display_name": "Ensemble Member",
+          "description": "weather ensemble member",
+          "type": "feature",
+          "feature_type": "int",
+          "units": " ",
+          "units_description": "",
+          "qualifies": [
+            "herbage_anpp",
+            "relative_anpp"
+          ]
+        },
+        {
+          "name": "herbage_anpp",
+          "display_name": "Herbage Anpp",
+          "description": "herbage annual net primary production",
+          "type": "feature",
+          "feature_type": "float",
+          "units": "kg/ha",
+          "units_description": ""
+        },
+        {
+          "name": "relative_anpp",
+          "display_name": "Relative Anpp",
+          "description": "relative herbage annual net primary production",
+          "type": "feature",
+          "feature_type": "float",
+          "units": "0-1",
+          "units_description": ""
+        }
+      ],
+      "meta": {
+        "ftype": "csv"
+      }
+    }
+  }
+]
