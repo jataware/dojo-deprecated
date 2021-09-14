@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 import logging
+import os
 import pathlib
 import re
 import requests
@@ -22,7 +23,7 @@ from typing_extensions import final
 from validation import RunSchema
 
 from src.models import get_model
-from src.dojo import get_directive, get_outputfiles, get_configs
+from src.dojo import get_directive, get_outputfiles, get_configs, get_accessory_files
 
 logger = logging.getLogger(__name__)
 
@@ -105,15 +106,12 @@ def create_run(run: RunSchema.ModelRunSchema):
     model_command = model_command.render(param_dict)
     logging.info(f"Model Command is: {model_command}")
 
-    outputfiles = get_outputfiles(run.model_id)
+    ### Handle output files and append to volumeArray.
 
-    
-    volumeArray = [
-        "/var/run/docker.sock:/var/run/docker.sock"
-    ]
-
+    outputfiles = get_outputfiles(run.model_id) # call dojo.py API method directly.
     output_dirs = {}
     mixmasta_inputs = []
+    volumeArray = [ "/var/run/docker.sock:/var/run/docker.sock" ]
     for output in outputfiles:
         try:
             # rehydrate file path in 
@@ -134,6 +132,7 @@ def create_run(run: RunSchema.ModelRunSchema):
 
             # use the lookup to build the path
             output_dir_volume = dmc_local_dir + f"/results/{run.id}/{output_dirs[output_dir]}:{output_dir}"               
+            logger.info('output_dir_volume:' + output_dir_volume)
 
             # add it to the volumeArray
             volumeArray.append(output_dir_volume)
@@ -146,6 +145,36 @@ def create_run(run: RunSchema.ModelRunSchema):
         except Exception as e:
             logging.exception(e)
         logging.info(f"Mixmasta input file (model output file) is: {mixmasta_input_file}")
+
+    ### Handle accessory files.
+    accessoryFiles = get_accessory_files(run.model_id) # call dojo.py API method directly.
+    logger.info(accessoryFiles)
+    accessory_dirs = {}
+    for accessoryFile in accessoryFiles:
+        try:
+            # build a volume mount for this accessory file's directory
+            accessory_dir = os.path.split(accessoryFile['path'])[0] #exclude file name
+            accessory_id = accessoryFile['id']
+
+            # we have to be careful since we cannot mount the same directory (within the model container) more than once
+            # so if multiple output files reside in the same directory (which is common), we need to re-use that volume mount
+            # and therefore need to ensure mixmasta knows where to fetch the files
+            if accessory_dir not in accessory_dirs:
+                accessory_dirs[accessory_dir] = accessory_id
+
+            # use the lookup to build the path
+            try:
+                # Ussing the accessory_file id (uuid) is breaking the docker mount:
+                #accessory_dir_volume = dmc_local_dir + f"/results/{run.id}/accessories/{accessory_dirs[accessory_dir]}:{accessory_dir}"
+                accessory_dir_volume = dmc_local_dir + f"/results/{run.id}/accessories:{accessory_dir}"
+                logger.info('accessory_dir_volume: ' + accessory_dir_volume)
+            except Exception as e:
+                logging.exception(e)
+
+            # add it to the volumeArray
+            volumeArray.append(accessory_dir_volume)
+        except Exception as e:
+            logging.exception(e)
 
     # get config in s3
     try:
@@ -160,9 +189,14 @@ def create_run(run: RunSchema.ModelRunSchema):
 
     # get volumes
     for configFile in configsData:
-        mountPath = configFile["path"]
-
-        fileName = configFile["fileName"]
+        if 'fileName' in configFile:
+            mountPath = configFile["path"]
+            fileName = configFile["fileName"]
+        
+        # This is the typical case currently with Phantom/Shorthand
+        else:
+            mountPath = '/'.join(configFile["path"].split("/")[:-1])
+            fileName = configFile["path"].split("/")[-1]
         savePath = dmc_local_dir + f"/model_configs/{run.id}/{fileName}"
         model_config_s3_path_objects.append(
             {
@@ -172,7 +206,7 @@ def create_run(run: RunSchema.ModelRunSchema):
                 "fileName": fileName,
             }
         )
-        volumeArray.append(dmc_local_dir + f"/model_configs/{run.id}:{mountPath}")
+        volumeArray.append(dmc_local_dir + f"/model_configs/{run.id}/{fileName}:{mountPath}/{fileName}")
 
     # remove redundant volume mounts
     volumeArray = list(set(volumeArray))
@@ -223,16 +257,16 @@ def get_run_logs(run_id: str):
     )
 
     task_instances = response.json()["task_instances"]
-    logs = {}
     for t in task_instances:
         task_id = t["task_id"]
-        task_try_number = t["try_number"]
-        response_l = requests.get(
-            f"{dmc_base_url}/dags/model_xform/dagRuns/{run_id}/taskInstances/{task_id}/logs/{task_try_number}",
-            headers=headers,
-            auth=(dmc_user, dmc_pass),
-        )
-        logs[task_id] = response_l.text
+        if task_id == "model-task":
+            task_try_number = t["try_number"]
+            response_l = requests.get(
+                f"{dmc_base_url}/dags/model_xform/dagRuns/{run_id}/taskInstances/{task_id}/logs/{task_try_number}",
+                headers=headers,
+                auth=(dmc_user, dmc_pass),
+            )
+            logs = response_l.text
     return Response(status_code=status.HTTP_200_OK, content=json.dumps(logs))
 
 

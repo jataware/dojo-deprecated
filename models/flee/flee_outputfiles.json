@@ -1,0 +1,75 @@
+[
+    {
+        "id": "2b63fd71-823a-49f0-82f9-b40733912afd",
+        "model_id": "ceedd3b0-f48f-43d2-b279-d74be695ed1c",
+        "name": "Camp Refugee Data (Simulated, Observed, Errors)",
+        "output_directory": "/home/clouseau/flee/Flee_scenarios/results",
+        "path": "camp_data.csv",
+        "file_type": "csv",
+        "transform": {
+            "geo": [
+                {
+                    "name": "Longitude",
+                    "display_name": "Longitude",
+                    "description": "latitude of refugee camp",
+                    "type": "geo",
+                    "geo_type": "longitude",
+                    "primary_geo": true,
+                    "is_geo_pair": "Latitude"
+                },
+                {
+                    "name": "Latitude",
+                    "display_name": "Latitude",
+                    "description": "latitude of refugee camp",
+                    "type": "geo",
+                    "geo_type": "latitude",
+                    "primary_geo": true,
+                    "is_geo_pair": "Longitude"
+                }
+            ],
+            "date": [
+                {
+                    "name": "Date",
+                    "display_name": "Date",
+                    "description": "time (date)",
+                    "type": "date",
+                    "date_type": "date",
+                    "time_format": "%Y-%m-%d",
+                    "primary_date": true
+                }
+            ],
+            "feature": [
+                {
+                    "name": "sim",
+                    "display_name": "Population, Simulated",
+                    "description": "simulated population in the refugee camp",
+                    "type": "feature",
+                    "feature_type": "int",
+                    "units": "people",
+                    "units_description": "number of refugees"
+                },
+                {
+                    "name": "data",
+                    "display_name": "Population, Observed",
+                    "description": "observed population in the refugee camp",
+                    "type": "feature",
+                    "feature_type": "int",
+                    "units": "people",
+                    "units_description": "number of refugees"
+                },
+                {
+                    "name": "error",
+                    "display_name": "Relative Error",
+                    "description": "relative error = abs(simulated - observed)/observed",
+                    "type": "feature",
+                    "feature_type": "float",
+                    "units": "-",
+                    "units_description": "unitless"
+                }
+            ],
+            "meta": {
+                "ftype": "csv"
+            }
+        }
+    }
+]

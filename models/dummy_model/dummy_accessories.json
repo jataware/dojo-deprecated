@@ -1,0 +1,12 @@
+[
+    {
+       "id":"accessory-dummy-1",
+       "model_id":"dummy-model-v0.1",
+       "path":"/model/media/lime-cat.jpg"
+    },
+    {
+       "id":"accessory-dummy-2",
+       "model_id":"dummy-model-v0.1",
+       "path":"/model/media/1WWMDwIQ_400x400.jpg"
+    }
+ ]

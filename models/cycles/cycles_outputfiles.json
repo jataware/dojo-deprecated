@@ -1,0 +1,96 @@
+[{
+  "id": "e03e0a98-c261-472e-adb1-c294936f6bcd",
+  "model_id": "923f9b79-487d-4a85-8dfa-29ab1b442829",
+  "name": "Cycles Output",
+  "output_directory": "/home/clouseau/outputs",
+  "path": "cycles_results.csv",
+  "file_type": "csv",
+  "transform": {
+    "geo": [
+      {
+        "name": "country",
+        "display_name": "Country",
+        "description": "country",
+        "type": "geo",
+        "geo_type": "country",
+        "primary_geo": true
+      },
+      {
+        "name": "admin1",
+        "display_name": "Admin1",
+        "description": "admin1",
+        "type": "geo",
+        "geo_type": "state/territory",
+        "primary_geo": true
+      },
+      {
+        "name": "admin2",
+        "display_name": "Admin2",
+        "description": "admin2",
+        "type": "geo",
+        "geo_type": "county/district",
+        "primary_geo": true
+      },
+      {
+        "name": "admin3",
+        "display_name": "Admin3",
+        "description": "admin3",
+        "type": "geo",
+        "geo_type": "municipality/town",
+        "primary_geo": true
+      }
+    ],
+    "date": [
+      {
+        "name": "date",
+        "display_name": "Date",
+        "description": "date",
+        "type": "date",
+        "date_type": "date",
+        "time_format": "%Y-%m-%d",
+        "primary_date": true
+      }
+    ],
+    "feature": [
+      {
+        "name": "grain_yield",
+        "display_name": "Grain Yield",
+        "description": "grain yield",
+        "type": "feature",
+        "feature_type": "float",
+        "units": "megagrams/ha",
+        "units_description": "megagrams per hectare"
+      },
+      {
+        "name": "crop_production",
+        "display_name": "Crop Production",
+        "description": "crop production",
+        "type": "feature",
+        "feature_type": "float",
+        "units": "megagrams",
+        "units_description": "megagrams"
+      },
+      {
+        "name": "nitrogen_stress",
+        "display_name": "Nitrogen Stress",
+        "description": "nitrogen stress",
+        "type": "feature",
+        "feature_type": "float",
+        "units": "n/a",
+        "units_description": "n/a"
+      },
+      {
+        "name": "water_stress",
+        "display_name": "Water Stress",
+        "description": "water stress",
+        "type": "feature",
+        "feature_type": "float",
+        "units": "n/a",
+        "units_description": "n/a"
+      }
+    ],
+    "meta": {
+      "ftype": "csv"
+    }
+  }
+}]

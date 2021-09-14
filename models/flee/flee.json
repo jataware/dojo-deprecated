@@ -1,0 +1,1863 @@
+{
+  "id": "ceedd3b0-f48f-43d2-b279-d74be695ed1c",
+  "name": "Flee Model for South Sudan, 2013 to 2015",
+  "family_name": "Flee Agent Based Model",
+  "description": "Flee is an agent-based modeling toolkit which is purpose-built for simulating the movement of individuals across geographical locations, released under a BSD 3-clause license.  Flee is currently used for modeling the movements of refugees and internally displaced persons (IDPs).  This instance of Flee is for South Sudan covering the period December 15, 2013 to August 10, 2015 (a simulation period of 604 days). During this period, 2.4 million refugees fled the country to multiple camps in neighboring countries (Kenya, Sudan, Uganda and Ethiopia).",
+  "created_at": 1631131140912,
+  "category": [],
+  "maintainer": {
+    "name": "Michael Puma",
+    "email": "mjp38@columbia.edu",
+    "organization": "Columbia University",
+    "website": "https://github.com/djgroen/flee"
+  },
+  "image": "jataware/dojo-publish:Flee-dev",
+  "observed_data": null,
+  "is_stochastic": false,
+  "parameters": [
+    {
+      "name": "maxmovespeed",
+      "display_name": "MaxMoveSpeed",
+      "description": "A user can adjust the maximum movement speed of refugee agents within the model. Refugees will never move faster than this limit, but will move slower, for example, when agents stop at intermediate (non conflict-zone) locations.",
+      "type": "float",
+      "unit": "km/day",
+      "unit_description": "Maximum speed of refugee movement",
+      "ontologies": {
+        "concepts": [
+          {
+            "name": "wm/concept/plan",
+            "score": 0.7688798904418945
+          },
+          {
+            "name": "wm/concept/entity/field_reports",
+            "score": 0.74400395154953
+          },
+          {
+            "name": "wm/concept/economy/labor",
+            "score": 0.7185133695602417
+          },
+          {
+            "name": "wm/concept/intervention",
+            "score": 0.7098740935325623
+          },
+          {
+            "name": "wm/concept/government/government_program",
+            "score": 0.7071108222007751
+          },
+          {
+            "name": "wm/concept/humanitarian_assistance/food_aid",
+            "score": 0.6954898238182068
+          },
+          {
+            "name": "wm/concept/entity/people/",
+            "score": 0.6950970888137817
+          },
+          {
+            "name": "wm/concept/time/",
+            "score": 0.6884455680847168
+          },
+          {
+            "name": "wm/concept/infrastructure/water_facilities",
+            "score": 0.6870467066764832
+          },
+          {
+            "name": "wm/concept/innovation",
+            "score": 0.6772888898849487
+          }
+        ],
+        "processes": [
+          {
+            "name": "wm/process/attempt",
+            "score": 0.7315006256103516
+          },
+          {
+            "name": "wm/process/train/train",
+            "score": 0.6820260882377625
+          },
+          {
+            "name": "wm/process/train/agriculture_training",
+            "score": 0.6780712604522705
+          },
+          {
+            "name": "wm/process/produce",
+            "score": 0.6747144460678101
+          },
+          {
+            "name": "wm/process/provide",
+            "score": 0.671230673789978
+          },
+          {
+            "name": "wm/process/planning",
+            "score": 0.664725124835968
+          },
+          {
+            "name": "wm/process/transport/commercial_transportation",
+            "score": 0.6638842821121216
+          },
+          {
+            "name": "wm/process/modify",
+            "score": 0.6615607738494873
+          },
+          {
+            "name": "wm/process/assist",
+            "score": 0.6587870717048645
+          },
+          {
+            "name": "wm/process/transmission",
+            "score": 0.6584104299545288
+          }
+        ],
+        "properties": [
+          {
+            "name": "wm/property/preparedness",
+            "score": 0.7173373699188232
+          },
+          {
+            "name": "wm/property/common_understanding",
+            "score": 0.7115934491157532
+          },
+          {
+            "name": "wm/property/geographic_resolution/national",
+            "score": 0.707007110118866
+          },
+          {
+            "name": "wm/property/condition",
+            "score": 0.6596860289573669
+          },
+          {
+            "name": "wm/property/price_or_cost",
+            "score": 0.6550889611244202
+          },
+          {
+            "name": "wm/property/stability",
+            "score": 0.6476739645004272
+          },
+          {
+            "name": "wm/property/aftermath",
+            "score": 0.6354580521583557
+          },
+          {
+            "name": "wm/property/geographic_resolution/local",
+            "score": 0.6141877174377441
+          },
+          {
+            "name": "wm/property/geographic_resolution/global",
+            "score": 0.6138354539871216
+          }
+        ]
+      },
+      "is_drilldown": null,
+      "additional_options": null,
+      "data_type": "numerical",
+      "default": "200",
+      "choices": [],
+      "min": 25,
+      "max": 1000,
+      "id": "200-607671"
+    },
+    {
+      "name": "awarenesslevel",
+      "display_name": "AwarenessLevel",
+      "description": "Within our simulation model, we are able to adjust our algorithm to incorporate a more wide or narrow awareness level for the agents. Agents can be aware of the presence of paths only ('Unweighted'), of only the length of the path to the nearest settlement ('Path distance only'), the type of nearest settlement ('1 link away'), the type of settlements adjacent to neighboring settlements ('2 links away'), and the type of settlements neighboring those neighbors of neighbors ('3 links away'). \nAwarenessLevel: \n-1, no weighting at all, \n0 = road only, \n1 = location, \n2 = neighbors, \n3 = region.",
+      "type": "int",
+      "unit": null,
+      "unit_description": null,
+      "ontologies": {
+        "concepts": [
+          {
+            "name": "wm/concept/plan",
+            "score": 0.7603440284729004
+          },
+          {
+            "name": "wm/concept/entity/field_reports",
+            "score": 0.7498727440834045
+          },
+          {
+            "name": "wm/concept/intervention",
+            "score": 0.7150075435638428
+          },
+          {
+            "name": "wm/concept/government/government_program",
+            "score": 0.7032209634780884
+          },
+          {
+            "name": "wm/concept/economy/labor",
+            "score": 0.6925639510154724
+          },
+          {
+            "name": "wm/concept/entity/people/",
+            "score": 0.6924518346786499
+          },
+          {
+            "name": "wm/concept/infrastructure/water_facilities",
+            "score": 0.6923933625221252
+          },
+          {
+            "name": "wm/concept/humanitarian_assistance/food_aid",
+            "score": 0.6897878050804138
+          },
+          {
+            "name": "wm/concept/time/",
+            "score": 0.678748369216919
+          },
+          {
+            "name": "wm/concept/social_structure",
+            "score": 0.678043007850647
+          }
+        ],
+        "processes": [
+          {
+            "name": "wm/process/attempt",
+            "score": 0.7166714668273926
+          },
+          {
+            "name": "wm/process/train/train",
+            "score": 0.6760283708572388
+          },
+          {
+            "name": "wm/process/provide",
+            "score": 0.6750450134277344
+          },
+          {
+            "name": "wm/process/train/agriculture_training",
+            "score": 0.6720649003982544
+          },
+          {
+            "name": "wm/process/produce",
+            "score": 0.6689240336418152
+          },
+          {
+            "name": "wm/process/transport/commercial_transportation",
+            "score": 0.6636263132095337
+          },
+          {
+            "name": "wm/process/modify",
+            "score": 0.6629592776298523
+          },
+          {
+            "name": "wm/process/planning",
+            "score": 0.6614152789115906
+          },
+          {
+            "name": "wm/process/transmission",
+            "score": 0.655414879322052
+          },
+          {
+            "name": "wm/process/consume",
+            "score": 0.6491833925247192
+          }
+        ],
+        "properties": [
+          {
+            "name": "wm/property/common_understanding",
+            "score": 0.7278737425804138
+          },
+          {
+            "name": "wm/property/preparedness",
+            "score": 0.703936755657196
+          },
+          {
+            "name": "wm/property/geographic_resolution/national",
+            "score": 0.7012850046157837
+          },
+          {
+            "name": "wm/property/condition",
+            "score": 0.6639070510864258
+          },
+          {
+            "name": "wm/property/price_or_cost",
+            "score": 0.6533480286598206
+          },
+          {
+            "name": "wm/property/stability",
+            "score": 0.6532650589942932
+          },
+          {
+            "name": "wm/property/geographic_resolution/local",
+            "score": 0.6388586163520813
+          },
+          {
+            "name": "wm/property/aftermath",
+            "score": 0.6186034083366394
+          },
+          {
+            "name": "wm/property/geographic_resolution/global",
+            "score": 0.6013759970664978
+          }
+        ]
+      },
+      "is_drilldown": null,
+      "additional_options": null,
+      "data_type": "numerical",
+      "default": "1",
+      "choices": [
+        "-1 = no weighting at all",
+        "0 = road only",
+        "1 = location",
+        "2 = neighbors",
+        "3 = region"
+      ],
+      "min": null,
+      "max": null,
+      "id": "1-148025"
+    },
+    {
+      "name": "defaultmovechance",
+      "display_name": "DefaultMoveChance",
+      "description": "Move probability for agents who reside in locations other than camps and conflict zones.  That is, it is the probability of moving away from the current location.",
+      "type": "float",
+      "unit": null,
+      "unit_description": null,
+      "ontologies": {
+        "concepts": [
+          {
+            "name": "wm/concept/plan",
+            "score": 0.7593768239021301
+          },
+          {
+            "name": "wm/concept/entity/field_reports",
+            "score": 0.7412782907485962
+          },
+          {
+            "name": "wm/concept/economy/labor",
+            "score": 0.7081912755966187
+          },
+          {
+            "name": "wm/concept/intervention",
+            "score": 0.70740807056427
+          },
+          {
+            "name": "wm/concept/government/government_program",
+            "score": 0.7067791819572449
+          },
+          {
+            "name": "wm/concept/entity/people/",
+            "score": 0.6973795294761658
+          },
+          {
+            "name": "wm/concept/humanitarian_assistance/food_aid",
+            "score": 0.6909436583518982
+          },
+          {
+            "name": "wm/concept/infrastructure/water_facilities",
+            "score": 0.6800167560577393
+          },
+          {
+            "name": "wm/concept/entity/locations/city",
+            "score": 0.6794227957725525
+          },
+          {
+            "name": "wm/concept/government/corruption/corrupt_policy/illicit_political_financing",
+            "score": 0.6789578795433044
+          }
+        ],
+        "processes": [
+          {
+            "name": "wm/process/attempt",
+            "score": 0.7124911546707153
+          },
+          {
+            "name": "wm/process/train/train",
+            "score": 0.6736583709716797
+          },
+          {
+            "name": "wm/process/train/agriculture_training",
+            "score": 0.6669313311576843
+          },
+          {
+            "name": "wm/process/transport/commercial_transportation",
+            "score": 0.6604944467544556
+          },
+          {
+            "name": "wm/process/transmission",
+            "score": 0.658849835395813
+          },
+          {
+            "name": "wm/process/planning",
+            "score": 0.6531448364257812
+          },
+          {
+            "name": "wm/process/provide",
+            "score": 0.6496708393096924
+          },
+          {
+            "name": "wm/process/research",
+            "score": 0.6467884182929993
+          },
+          {
+            "name": "wm/process/assist",
+            "score": 0.6397953629493713
+          },
+          {
+            "name": "wm/process/communicate/inform",
+            "score": 0.6390925049781799
+          }
+        ],
+        "properties": [
+          {
+            "name": "wm/property/common_understanding",
+            "score": 0.7131441831588745
+          },
+          {
+            "name": "wm/property/geographic_resolution/national",
+            "score": 0.7125054597854614
+          },
+          {
+            "name": "wm/property/preparedness",
+            "score": 0.7083965539932251
+          },
+          {
+            "name": "wm/property/price_or_cost",
+            "score": 0.6489447951316833
+          },
+          {
+            "name": "wm/property/condition",
+            "score": 0.6471201181411743
+          },
+          {
+            "name": "wm/property/aftermath",
+            "score": 0.635237991809845
+          },
+          {
+            "name": "wm/property/geographic_resolution/local",
+            "score": 0.6285841464996338
+          },
+          {
+            "name": "wm/property/stability",
+            "score": 0.6234412789344788
+          },
+          {
+            "name": "wm/property/geographic_resolution/global",
+            "score": 0.6171184182167053
+          }
+        ]
+      },
+      "is_drilldown": null,
+      "additional_options": null,
+      "data_type": "numerical",
+      "default": "0.3",
+      "choices": [],
+      "min": 0,
+      "max": 1,
+      "id": "03-900958"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "sim",
+      "display_name": "Population, Simulated",
+      "description": "simulated population in the refugee camp",
+      "type": "int",
+      "unit": "people",
+      "unit_description": "number of refugees",
+      "ontologies": {
+        "concepts": [
+          {
+            "name": "wm/concept/plan",
+            "score": 0.7474933862686157
+          },
+          {
+            "name": "wm/concept/entity/field_reports",
+            "score": 0.7349214553833008
+          },
+          {
+            "name": "wm/concept/government/government_program",
+            "score": 0.7059023976325989
+          },
+          {
+            "name": "wm/concept/intervention",
+            "score": 0.7009252905845642
+          },
+          {
+            "name": "wm/concept/economy/labor",
+            "score": 0.6944754719734192
+          },
+          {
+            "name": "wm/concept/entity/humanitarian_actors",
+            "score": 0.6871768832206726
+          },
+          {
+            "name": "wm/concept/entity/locations/city",
+            "score": 0.6815356612205505
+          },
+          {
+            "name": "wm/concept/humanitarian_assistance/food_aid",
+            "score": 0.6813808679580688
+          },
+          {
+            "name": "wm/concept/crisis_or_disaster/conflict/armed_conflict",
+            "score": 0.6771952509880066
+          },
+          {
+            "name": "wm/concept/entity/people/",
+            "score": 0.6766490936279297
+          }
+        ],
+        "processes": [
+          {
+            "name": "wm/process/attempt",
+            "score": 0.695898711681366
+          },
+          {
+            "name": "wm/process/train/train",
+            "score": 0.6674121618270874
+          },
+          {
+            "name": "wm/process/train/agriculture_training",
+            "score": 0.664034366607666
+          },
+          {
+            "name": "wm/process/transmission",
+            "score": 0.6609125137329102
+          },
+          {
+            "name": "wm/process/transport/commercial_transportation",
+            "score": 0.6517338752746582
+          },
+          {
+            "name": "wm/process/research",
+            "score": 0.6470885276794434
+          },
+          {
+            "name": "wm/process/planning",
+            "score": 0.6402496099472046
+          },
+          {
+            "name": "wm/process/conflict/demonstrate",
+            "score": 0.6384510397911072
+          },
+          {
+            "name": "wm/process/build",
+            "score": 0.6320050954818726
+          },
+          {
+            "name": "wm/process/assist",
+            "score": 0.6303198933601379
+          }
+        ],
+        "properties": [
+          {
+            "name": "wm/property/preparedness",
+            "score": 0.7067493796348572
+          },
+          {
+            "name": "wm/property/geographic_resolution/national",
+            "score": 0.7035998702049255
+          },
+          {
+            "name": "wm/property/common_understanding",
+            "score": 0.6968708634376526
+          },
+          {
+            "name": "wm/property/aftermath",
+            "score": 0.6324021220207214
+          },
+          {
+            "name": "wm/property/condition",
+            "score": 0.6314162611961365
+          },
+          {
+            "name": "wm/property/price_or_cost",
+            "score": 0.6302694082260132
+          },
+          {
+            "name": "wm/property/geographic_resolution/local",
+            "score": 0.6196607947349548
+          },
+          {
+            "name": "wm/property/geographic_resolution/global",
+            "score": 0.6164965629577637
+          },
+          {
+            "name": "wm/property/stability",
+            "score": 0.6122729778289795
+          },
+          {
+            "name": "wm/property/seasonality",
+            "score": 0.6004965305328369
+          }
+        ]
+      },
+      "is_primary": true,
+      "additional_options": null,
+      "data_resolution": {
+        "temporal_resolution": "daily",
+        "spatial_resolution": null
+      },
+      "choices": null,
+      "min": null,
+      "max": null
+    },
+    {
+      "name": "data",
+      "display_name": "Population, Observed",
+      "description": "observed population in the refugee camp",
+      "type": "int",
+      "unit": "people",
+      "unit_description": "number of refugees",
+      "ontologies": {
+        "concepts": [
+          {
+            "name": "wm/concept/plan",
+            "score": 0.7473233342170715
+          },
+          {
+            "name": "wm/concept/entity/field_reports",
+            "score": 0.7360483407974243
+          },
+          {
+            "name": "wm/concept/government/government_program",
+            "score": 0.7082228064537048
+          },
+          {
+            "name": "wm/concept/intervention",
+            "score": 0.7002988457679749
+          },
+          {
+            "name": "wm/concept/economy/labor",
+            "score": 0.6964938044548035
+          },
+          {
+            "name": "wm/concept/entity/humanitarian_actors",
+            "score": 0.688008189201355
+          },
+          {
+            "name": "wm/concept/humanitarian_assistance/food_aid",
+            "score": 0.6862418055534363
+          },
+          {
+            "name": "wm/concept/entity/people/",
+            "score": 0.6839495897293091
+          },
+          {
+            "name": "wm/concept/entity/african_governments",
+            "score": 0.6812729835510254
+          },
+          {
+            "name": "wm/concept/crisis_or_disaster/conflict/armed_conflict",
+            "score": 0.6776576042175293
+          }
+        ],
+        "processes": [
+          {
+            "name": "wm/process/attempt",
+            "score": 0.6962994337081909
+          },
+          {
+            "name": "wm/process/train/train",
+            "score": 0.663873016834259
+          },
+          {
+            "name": "wm/process/train/agriculture_training",
+            "score": 0.6630094051361084
+          },
+          {
+            "name": "wm/process/transmission",
+            "score": 0.662202000617981
+          },
+          {
+            "name": "wm/process/research",
+            "score": 0.6535938382148743
+          },
+          {
+            "name": "wm/process/transport/commercial_transportation",
+            "score": 0.6505179405212402
+          },
+          {
+            "name": "wm/process/conflict/demonstrate",
+            "score": 0.6407903432846069
+          },
+          {
+            "name": "wm/process/planning",
+            "score": 0.6359072327613831
+          },
+          {
+            "name": "wm/process/build",
+            "score": 0.6302932500839233
+          },
+          {
+            "name": "wm/process/assist",
+            "score": 0.6274864673614502
+          }
+        ],
+        "properties": [
+          {
+            "name": "wm/property/geographic_resolution/national",
+            "score": 0.707554817199707
+          },
+          {
+            "name": "wm/property/preparedness",
+            "score": 0.7051304578781128
+          },
+          {
+            "name": "wm/property/common_understanding",
+            "score": 0.7012195587158203
+          },
+          {
+            "name": "wm/property/aftermath",
+            "score": 0.6354584693908691
+          },
+          {
+            "name": "wm/property/condition",
+            "score": 0.6342511177062988
+          },
+          {
+            "name": "wm/property/price_or_cost",
+            "score": 0.6307811737060547
+          },
+          {
+            "name": "wm/property/geographic_resolution/local",
+            "score": 0.6226887106895447
+          },
+          {
+            "name": "wm/property/stability",
+            "score": 0.6139044761657715
+          },
+          {
+            "name": "wm/property/geographic_resolution/global",
+            "score": 0.6138042211532593
+          },
+          {
+            "name": "wm/property/seasonality",
+            "score": 0.6048733592033386
+          }
+        ]
+      },
+      "is_primary": true,
+      "additional_options": null,
+      "data_resolution": {
+        "temporal_resolution": "daily",
+        "spatial_resolution": null
+      },
+      "choices": null,
+      "min": null,
+      "max": null
+    },
+    {
+      "name": "error",
+      "display_name": "Relative Error",
+      "description": "relative error = abs(simulated - observed)/observed",
+      "type": "float",
+      "unit": "-",
+      "unit_description": "unitless",
+      "ontologies": {
+        "concepts": [
+          {
+            "name": "wm/concept/plan",
+            "score": 0.7526023983955383
+          },
+          {
+            "name": "wm/concept/entity/field_reports",
+            "score": 0.7469391226768494
+          },
+          {
+            "name": "wm/concept/government/government_program",
+            "score": 0.7163528203964233
+          },
+          {
+            "name": "wm/concept/intervention",
+            "score": 0.7071672081947327
+          },
+          {
+            "name": "wm/concept/economy/labor",
+            "score": 0.6999107599258423
+          },
+          {
+            "name": "wm/concept/humanitarian_assistance/food_aid",
+            "score": 0.6847816109657288
+          },
+          {
+            "name": "wm/concept/entity/humanitarian_actors",
+            "score": 0.6795523166656494
+          },
+          {
+            "name": "wm/concept/economy/finance",
+            "score": 0.6784946322441101
+          },
+          {
+            "name": "wm/concept/entity/people/",
+            "score": 0.6765862703323364
+          },
+          {
+            "name": "wm/concept/government/corruption/corrupt_policy/illicit_political_financing",
+            "score": 0.6758726239204407
+          }
+        ],
+        "processes": [
+          {
+            "name": "wm/process/attempt",
+            "score": 0.7076566815376282
+          },
+          {
+            "name": "wm/process/train/train",
+            "score": 0.6691394448280334
+          },
+          {
+            "name": "wm/process/train/agriculture_training",
+            "score": 0.6670995950698853
+          },
+          {
+            "name": "wm/process/transmission",
+            "score": 0.6587284207344055
+          },
+          {
+            "name": "wm/process/produce",
+            "score": 0.656651496887207
+          },
+          {
+            "name": "wm/process/transport/commercial_transportation",
+            "score": 0.6518300175666809
+          },
+          {
+            "name": "wm/process/planning",
+            "score": 0.6495445370674133
+          },
+          {
+            "name": "wm/process/research",
+            "score": 0.6483480334281921
+          },
+          {
+            "name": "wm/process/modify",
+            "score": 0.641375720500946
+          },
+          {
+            "name": "wm/process/consume",
+            "score": 0.6378137469291687
+          }
+        ],
+        "properties": [
+          {
+            "name": "wm/property/common_understanding",
+            "score": 0.7134172320365906
+          },
+          {
+            "name": "wm/property/geographic_resolution/national",
+            "score": 0.7110622525215149
+          },
+          {
+            "name": "wm/property/preparedness",
+            "score": 0.7094099521636963
+          },
+          {
+            "name": "wm/property/condition",
+            "score": 0.6512776017189026
+          },
+          {
+            "name": "wm/property/price_or_cost",
+            "score": 0.6510399580001831
+          },
+          {
+            "name": "wm/property/stability",
+            "score": 0.633602499961853
+          },
+          {
+            "name": "wm/property/aftermath",
+            "score": 0.6310398578643799
+          },
+          {
+            "name": "wm/property/geographic_resolution/global",
+            "score": 0.6188384890556335
+          },
+          {
+            "name": "wm/property/geographic_resolution/local",
+            "score": 0.6106709241867065
+          },
+          {
+            "name": "wm/property/seasonality",
+            "score": 0.6051928997039795
+          }
+        ]
+      },
+      "is_primary": true,
+      "additional_options": null,
+      "data_resolution": {
+        "temporal_resolution": "daily",
+        "spatial_resolution": null
+      },
+      "choices": null,
+      "min": null,
+      "max": null
+    }
+  ],
+  "qualifier_outputs": [
+    {
+      "name": "admin1",
+      "display_name": "admin1",
+      "description": "latitude of refugee camp",
+      "type": "admin1",
+      "unit": null,
+      "unit_description": null,
+      "ontologies": {
+        "concepts": [
+          {
+            "name": "wm/concept/plan",
+            "score": 0.7511298060417175
+          },
+          {
+            "name": "wm/concept/entity/field_reports",
+            "score": 0.7326278686523438
+          },
+          {
+            "name": "wm/concept/government/government_program",
+            "score": 0.7071442604064941
+          },
+          {
+            "name": "wm/concept/economy/labor",
+            "score": 0.6971971988677979
+          },
+          {
+            "name": "wm/concept/intervention",
+            "score": 0.6969280242919922
+          },
+          {
+            "name": "wm/concept/entity/humanitarian_actors",
+            "score": 0.6912170648574829
+          },
+          {
+            "name": "wm/concept/humanitarian_assistance/food_aid",
+            "score": 0.6851621270179749
+          },
+          {
+            "name": "wm/concept/entity/people/",
+            "score": 0.6822992563247681
+          },
+          {
+            "name": "wm/concept/entity/african_governments",
+            "score": 0.6787999868392944
+          },
+          {
+            "name": "wm/concept/government/corruption/corrupt_policy/illicit_political_financing",
+            "score": 0.6766485571861267
+          }
+        ],
+        "processes": [
+          {
+            "name": "wm/process/attempt",
+            "score": 0.700097918510437
+          },
+          {
+            "name": "wm/process/train/train",
+            "score": 0.6679543256759644
+          },
+          {
+            "name": "wm/process/train/agriculture_training",
+            "score": 0.6606104969978333
+          },
+          {
+            "name": "wm/process/transmission",
+            "score": 0.6557018756866455
+          },
+          {
+            "name": "wm/process/transport/commercial_transportation",
+            "score": 0.6531545519828796
+          },
+          {
+            "name": "wm/process/research",
+            "score": 0.6420065760612488
+          },
+          {
+            "name": "wm/process/planning",
+            "score": 0.6409664154052734
+          },
+          {
+            "name": "wm/process/conflict/demonstrate",
+            "score": 0.638937771320343
+          },
+          {
+            "name": "wm/process/assist",
+            "score": 0.6351854205131531
+          },
+          {
+            "name": "wm/process/build",
+            "score": 0.6306381225585938
+          }
+        ],
+        "properties": [
+          {
+            "name": "wm/property/geographic_resolution/national",
+            "score": 0.7077447175979614
+          },
+          {
+            "name": "wm/property/preparedness",
+            "score": 0.7048581838607788
+          },
+          {
+            "name": "wm/property/common_understanding",
+            "score": 0.6995106339454651
+          },
+          {
+            "name": "wm/property/condition",
+            "score": 0.6334389448165894
+          },
+          {
+            "name": "wm/property/price_or_cost",
+            "score": 0.632506787776947
+          },
+          {
+            "name": "wm/property/aftermath",
+            "score": 0.6260929107666016
+          },
+          {
+            "name": "wm/property/geographic_resolution/local",
+            "score": 0.6241787672042847
+          },
+          {
+            "name": "wm/property/geographic_resolution/global",
+            "score": 0.6155993938446045
+          },
+          {
+            "name": "wm/property/stability",
+            "score": 0.6132625937461853
+          }
+        ]
+      },
+      "related_features": [
+        "sim",
+        "data",
+        "error"
+      ]
+    },
+    {
+      "name": "admin2",
+      "display_name": "admin2",
+      "description": "latitude of refugee camp",
+      "type": "admin2",
+      "unit": null,
+      "unit_description": null,
+      "ontologies": {
+        "concepts": [
+          {
+            "name": "wm/concept/plan",
+            "score": 0.7492111921310425
+          },
+          {
+            "name": "wm/concept/entity/field_reports",
+            "score": 0.7304680943489075
+          },
+          {
+            "name": "wm/concept/government/government_program",
+            "score": 0.7057056427001953
+          },
+          {
+            "name": "wm/concept/economy/labor",
+            "score": 0.6956146955490112
+          },
+          {
+            "name": "wm/concept/intervention",
+            "score": 0.6942295432090759
+          },
+          {
+            "name": "wm/concept/entity/humanitarian_actors",
+            "score": 0.6928287148475647
+          },
+          {
+            "name": "wm/concept/humanitarian_assistance/food_aid",
+            "score": 0.6830191612243652
+          },
+          {
+            "name": "wm/concept/entity/people/",
+            "score": 0.6814197897911072
+          },
+          {
+            "name": "wm/concept/crisis_or_disaster/conflict/armed_conflict",
+            "score": 0.6790744066238403
+          },
+          {
+            "name": "wm/concept/entity/african_governments",
+            "score": 0.6778510808944702
+          }
+        ],
+        "processes": [
+          {
+            "name": "wm/process/attempt",
+            "score": 0.6961978673934937
+          },
+          {
+            "name": "wm/process/train/train",
+            "score": 0.6662937998771667
+          },
+          {
+            "name": "wm/process/train/agriculture_training",
+            "score": 0.6583161354064941
+          },
+          {
+            "name": "wm/process/transmission",
+            "score": 0.6546357870101929
+          },
+          {
+            "name": "wm/process/transport/commercial_transportation",
+            "score": 0.6512604355812073
+          },
+          {
+            "name": "wm/process/conflict/demonstrate",
+            "score": 0.6425215601921082
+          },
+          {
+            "name": "wm/process/research",
+            "score": 0.6396234035491943
+          },
+          {
+            "name": "wm/process/planning",
+            "score": 0.6381868124008179
+          },
+          {
+            "name": "wm/process/assist",
+            "score": 0.6336619853973389
+          },
+          {
+            "name": "wm/process/build",
+            "score": 0.6288620233535767
+          }
+        ],
+        "properties": [
+          {
+            "name": "wm/property/geographic_resolution/national",
+            "score": 0.7051933407783508
+          },
+          {
+            "name": "wm/property/preparedness",
+            "score": 0.7045671343803406
+          },
+          {
+            "name": "wm/property/common_understanding",
+            "score": 0.6958918571472168
+          },
+          {
+            "name": "wm/property/price_or_cost",
+            "score": 0.6291188597679138
+          },
+          {
+            "name": "wm/property/condition",
+            "score": 0.6288038492202759
+          },
+          {
+            "name": "wm/property/aftermath",
+            "score": 0.6275243163108826
+          },
+          {
+            "name": "wm/property/geographic_resolution/local",
+            "score": 0.6229563355445862
+          },
+          {
+            "name": "wm/property/geographic_resolution/global",
+            "score": 0.6138314008712769
+          },
+          {
+            "name": "wm/property/stability",
+            "score": 0.6129285097122192
+          }
+        ]
+      },
+      "related_features": [
+        "sim",
+        "data",
+        "error"
+      ]
+    },
+    {
+      "name": "admin3",
+      "display_name": "admin3",
+      "description": "latitude of refugee camp",
+      "type": "admin3",
+      "unit": null,
+      "unit_description": null,
+      "ontologies": {
+        "concepts": [
+          {
+            "name": "wm/concept/plan",
+            "score": 0.7511298060417175
+          },
+          {
+            "name": "wm/concept/entity/field_reports",
+            "score": 0.7326278686523438
+          },
+          {
+            "name": "wm/concept/government/government_program",
+            "score": 0.7071442604064941
+          },
+          {
+            "name": "wm/concept/economy/labor",
+            "score": 0.6971971988677979
+          },
+          {
+            "name": "wm/concept/intervention",
+            "score": 0.6969280242919922
+          },
+          {
+            "name": "wm/concept/entity/humanitarian_actors",
+            "score": 0.6912170648574829
+          },
+          {
+            "name": "wm/concept/humanitarian_assistance/food_aid",
+            "score": 0.6851621270179749
+          },
+          {
+            "name": "wm/concept/entity/people/",
+            "score": 0.6822992563247681
+          },
+          {
+            "name": "wm/concept/entity/african_governments",
+            "score": 0.6787999868392944
+          },
+          {
+            "name": "wm/concept/government/corruption/corrupt_policy/illicit_political_financing",
+            "score": 0.6766485571861267
+          }
+        ],
+        "processes": [
+          {
+            "name": "wm/process/attempt",
+            "score": 0.700097918510437
+          },
+          {
+            "name": "wm/process/train/train",
+            "score": 0.6679543256759644
+          },
+          {
+            "name": "wm/process/train/agriculture_training",
+            "score": 0.6606104969978333
+          },
+          {
+            "name": "wm/process/transmission",
+            "score": 0.6557018756866455
+          },
+          {
+            "name": "wm/process/transport/commercial_transportation",
+            "score": 0.6531545519828796
+          },
+          {
+            "name": "wm/process/research",
+            "score": 0.6420065760612488
+          },
+          {
+            "name": "wm/process/planning",
+            "score": 0.6409664154052734
+          },
+          {
+            "name": "wm/process/conflict/demonstrate",
+            "score": 0.638937771320343
+          },
+          {
+            "name": "wm/process/assist",
+            "score": 0.6351854205131531
+          },
+          {
+            "name": "wm/process/build",
+            "score": 0.6306381225585938
+          }
+        ],
+        "properties": [
+          {
+            "name": "wm/property/geographic_resolution/national",
+            "score": 0.7077447175979614
+          },
+          {
+            "name": "wm/property/preparedness",
+            "score": 0.7048581838607788
+          },
+          {
+            "name": "wm/property/common_understanding",
+            "score": 0.6995106339454651
+          },
+          {
+            "name": "wm/property/condition",
+            "score": 0.6334389448165894
+          },
+          {
+            "name": "wm/property/price_or_cost",
+            "score": 0.632506787776947
+          },
+          {
+            "name": "wm/property/aftermath",
+            "score": 0.6260929107666016
+          },
+          {
+            "name": "wm/property/geographic_resolution/local",
+            "score": 0.6241787672042847
+          },
+          {
+            "name": "wm/property/geographic_resolution/global",
+            "score": 0.6155993938446045
+          },
+          {
+            "name": "wm/property/stability",
+            "score": 0.6132625937461853
+          }
+        ]
+      },
+      "related_features": [
+        "sim",
+        "data",
+        "error"
+      ]
+    },
+    {
+      "name": "country",
+      "display_name": "country",
+      "description": "latitude of refugee camp",
+      "type": "country",
+      "unit": null,
+      "unit_description": null,
+      "ontologies": {
+        "concepts": [
+          {
+            "name": "wm/concept/plan",
+            "score": 0.7518839836120605
+          },
+          {
+            "name": "wm/concept/entity/field_reports",
+            "score": 0.7330189347267151
+          },
+          {
+            "name": "wm/concept/government/government_program",
+            "score": 0.7084199786186218
+          },
+          {
+            "name": "wm/concept/economy/labor",
+            "score": 0.6984438896179199
+          },
+          {
+            "name": "wm/concept/intervention",
+            "score": 0.6959471702575684
+          },
+          {
+            "name": "wm/concept/entity/humanitarian_actors",
+            "score": 0.6932814717292786
+          },
+          {
+            "name": "wm/concept/entity/african_governments",
+            "score": 0.6857138276100159
+          },
+          {
+            "name": "wm/concept/humanitarian_assistance/food_aid",
+            "score": 0.6854981184005737
+          },
+          {
+            "name": "wm/concept/entity/people/",
+            "score": 0.6845295429229736
+          },
+          {
+            "name": "wm/concept/government/corruption/corrupt_policy/illicit_political_financing",
+            "score": 0.6784006357192993
+          }
+        ],
+        "processes": [
+          {
+            "name": "wm/process/attempt",
+            "score": 0.700946033000946
+          },
+          {
+            "name": "wm/process/train/train",
+            "score": 0.6668627262115479
+          },
+          {
+            "name": "wm/process/train/agriculture_training",
+            "score": 0.6611763834953308
+          },
+          {
+            "name": "wm/process/transmission",
+            "score": 0.6560078859329224
+          },
+          {
+            "name": "wm/process/transport/commercial_transportation",
+            "score": 0.6550251245498657
+          },
+          {
+            "name": "wm/process/conflict/demonstrate",
+            "score": 0.6416786313056946
+          },
+          {
+            "name": "wm/process/research",
+            "score": 0.6407891511917114
+          },
+          {
+            "name": "wm/process/planning",
+            "score": 0.640521764755249
+          },
+          {
+            "name": "wm/process/assist",
+            "score": 0.6344648599624634
+          },
+          {
+            "name": "wm/process/build",
+            "score": 0.6301159858703613
+          }
+        ],
+        "properties": [
+          {
+            "name": "wm/property/geographic_resolution/national",
+            "score": 0.7138360738754272
+          },
+          {
+            "name": "wm/property/preparedness",
+            "score": 0.704062283039093
+          },
+          {
+            "name": "wm/property/common_understanding",
+            "score": 0.6995008587837219
+          },
+          {
+            "name": "wm/property/condition",
+            "score": 0.6338776350021362
+          },
+          {
+            "name": "wm/property/price_or_cost",
+            "score": 0.6317225098609924
+          },
+          {
+            "name": "wm/property/geographic_resolution/local",
+            "score": 0.6286067366600037
+          },
+          {
+            "name": "wm/property/aftermath",
+            "score": 0.6255588531494141
+          },
+          {
+            "name": "wm/property/geographic_resolution/global",
+            "score": 0.6205484867095947
+          },
+          {
+            "name": "wm/property/stability",
+            "score": 0.6124422550201416
+          }
+        ]
+      },
+      "related_features": [
+        "sim",
+        "data",
+        "error"
+      ]
+    },
+    {
+      "name": "lat",
+      "display_name": "lat",
+      "description": "latitude of refugee camp",
+      "type": "lat",
+      "unit": null,
+      "unit_description": null,
+      "ontologies": {
+        "concepts": [
+          {
+            "name": "wm/concept/plan",
+            "score": 0.7498748302459717
+          },
+          {
+            "name": "wm/concept/entity/field_reports",
+            "score": 0.7338313460350037
+          },
+          {
+            "name": "wm/concept/government/government_program",
+            "score": 0.706233561038971
+          },
+          {
+            "name": "wm/concept/economy/labor",
+            "score": 0.6979214549064636
+          },
+          {
+            "name": "wm/concept/intervention",
+            "score": 0.6947484612464905
+          },
+          {
+            "name": "wm/concept/entity/humanitarian_actors",
+            "score": 0.6897185444831848
+          },
+          {
+            "name": "wm/concept/humanitarian_assistance/food_aid",
+            "score": 0.6849275231361389
+          },
+          {
+            "name": "wm/concept/entity/people/",
+            "score": 0.6814746260643005
+          },
+          {
+            "name": "wm/concept/entity/locations/city",
+            "score": 0.680948793888092
+          },
+          {
+            "name": "wm/concept/entity/african_governments",
+            "score": 0.6784325242042542
+          }
+        ],
+        "processes": [
+          {
+            "name": "wm/process/attempt",
+            "score": 0.7005943059921265
+          },
+          {
+            "name": "wm/process/train/train",
+            "score": 0.6667629480361938
+          },
+          {
+            "name": "wm/process/train/agriculture_training",
+            "score": 0.6601369380950928
+          },
+          {
+            "name": "wm/process/transmission",
+            "score": 0.6551238298416138
+          },
+          {
+            "name": "wm/process/transport/commercial_transportation",
+            "score": 0.6526584029197693
+          },
+          {
+            "name": "wm/process/research",
+            "score": 0.641970694065094
+          },
+          {
+            "name": "wm/process/planning",
+            "score": 0.6400196552276611
+          },
+          {
+            "name": "wm/process/conflict/demonstrate",
+            "score": 0.6389160752296448
+          },
+          {
+            "name": "wm/process/assist",
+            "score": 0.6348027586936951
+          },
+          {
+            "name": "wm/process/build",
+            "score": 0.6296967267990112
+          }
+        ],
+        "properties": [
+          {
+            "name": "wm/property/geographic_resolution/national",
+            "score": 0.7087040543556213
+          },
+          {
+            "name": "wm/property/preparedness",
+            "score": 0.7031435966491699
+          },
+          {
+            "name": "wm/property/common_understanding",
+            "score": 0.6975494623184204
+          },
+          {
+            "name": "wm/property/condition",
+            "score": 0.6340878009796143
+          },
+          {
+            "name": "wm/property/price_or_cost",
+            "score": 0.6310577988624573
+          },
+          {
+            "name": "wm/property/aftermath",
+            "score": 0.6256621479988098
+          },
+          {
+            "name": "wm/property/geographic_resolution/local",
+            "score": 0.6247531771659851
+          },
+          {
+            "name": "wm/property/geographic_resolution/global",
+            "score": 0.6146654486656189
+          },
+          {
+            "name": "wm/property/stability",
+            "score": 0.6136634349822998
+          }
+        ]
+      },
+      "related_features": [
+        "sim",
+        "data",
+        "error"
+      ]
+    },
+    {
+      "name": "lng",
+      "display_name": "lng",
+      "description": "latitude of refugee camp",
+      "type": "lng",
+      "unit": null,
+      "unit_description": null,
+      "ontologies": {
+        "concepts": [
+          {
+            "name": "wm/concept/plan",
+            "score": 0.7519751787185669
+          },
+          {
+            "name": "wm/concept/entity/field_reports",
+            "score": 0.7341181635856628
+          },
+          {
+            "name": "wm/concept/government/government_program",
+            "score": 0.7075202465057373
+          },
+          {
+            "name": "wm/concept/economy/labor",
+            "score": 0.699103832244873
+          },
+          {
+            "name": "wm/concept/intervention",
+            "score": 0.6964235901832581
+          },
+          {
+            "name": "wm/concept/entity/humanitarian_actors",
+            "score": 0.6929229497909546
+          },
+          {
+            "name": "wm/concept/humanitarian_assistance/food_aid",
+            "score": 0.6873984932899475
+          },
+          {
+            "name": "wm/concept/entity/people/",
+            "score": 0.6816402673721313
+          },
+          {
+            "name": "wm/concept/entity/locations/city",
+            "score": 0.6813111901283264
+          },
+          {
+            "name": "wm/concept/entity/african_governments",
+            "score": 0.6805267333984375
+          }
+        ],
+        "processes": [
+          {
+            "name": "wm/process/attempt",
+            "score": 0.7012859582901001
+          },
+          {
+            "name": "wm/process/train/train",
+            "score": 0.6687811613082886
+          },
+          {
+            "name": "wm/process/train/agriculture_training",
+            "score": 0.6617640852928162
+          },
+          {
+            "name": "wm/process/transport/commercial_transportation",
+            "score": 0.6565023064613342
+          },
+          {
+            "name": "wm/process/transmission",
+            "score": 0.655705988407135
+          },
+          {
+            "name": "wm/process/research",
+            "score": 0.6439873576164246
+          },
+          {
+            "name": "wm/process/planning",
+            "score": 0.6423301696777344
+          },
+          {
+            "name": "wm/process/conflict/demonstrate",
+            "score": 0.6396092772483826
+          },
+          {
+            "name": "wm/process/assist",
+            "score": 0.6355020999908447
+          },
+          {
+            "name": "wm/process/build",
+            "score": 0.6311541795730591
+          }
+        ],
+        "properties": [
+          {
+            "name": "wm/property/geographic_resolution/national",
+            "score": 0.7101267576217651
+          },
+          {
+            "name": "wm/property/preparedness",
+            "score": 0.7062938213348389
+          },
+          {
+            "name": "wm/property/common_understanding",
+            "score": 0.7010700106620789
+          },
+          {
+            "name": "wm/property/condition",
+            "score": 0.6355603933334351
+          },
+          {
+            "name": "wm/property/price_or_cost",
+            "score": 0.6340991854667664
+          },
+          {
+            "name": "wm/property/aftermath",
+            "score": 0.6266193389892578
+          },
+          {
+            "name": "wm/property/geographic_resolution/local",
+            "score": 0.6247643232345581
+          },
+          {
+            "name": "wm/property/geographic_resolution/global",
+            "score": 0.6172529458999634
+          },
+          {
+            "name": "wm/property/stability",
+            "score": 0.614047110080719
+          }
+        ]
+      },
+      "related_features": [
+        "sim",
+        "data",
+        "error"
+      ]
+    },
+    {
+      "name": "timestamp",
+      "display_name": "timestamp",
+      "description": "time (date)",
+      "type": "datetime",
+      "unit": "date",
+      "unit_description": null,
+      "ontologies": {
+        "concepts": [
+          {
+            "name": "wm/concept/plan",
+            "score": 0.7544474601745605
+          },
+          {
+            "name": "wm/concept/entity/field_reports",
+            "score": 0.7364973425865173
+          },
+          {
+            "name": "wm/concept/government/government_program",
+            "score": 0.7069993615150452
+          },
+          {
+            "name": "wm/concept/intervention",
+            "score": 0.7022520303726196
+          },
+          {
+            "name": "wm/concept/economy/labor",
+            "score": 0.7011253833770752
+          },
+          {
+            "name": "wm/concept/humanitarian_assistance/food_aid",
+            "score": 0.6835216879844666
+          },
+          {
+            "name": "wm/concept/entity/humanitarian_actors",
+            "score": 0.6821895837783813
+          },
+          {
+            "name": "wm/concept/entity/people/",
+            "score": 0.6807255744934082
+          },
+          {
+            "name": "wm/concept/government/corruption/corrupt_policy/illicit_political_financing",
+            "score": 0.675957977771759
+          },
+          {
+            "name": "wm/concept/economy/finance",
+            "score": 0.6752625703811646
+          }
+        ],
+        "processes": [
+          {
+            "name": "wm/process/attempt",
+            "score": 0.7055093050003052
+          },
+          {
+            "name": "wm/process/train/train",
+            "score": 0.6673821210861206
+          },
+          {
+            "name": "wm/process/train/agriculture_training",
+            "score": 0.6657405495643616
+          },
+          {
+            "name": "wm/process/transmission",
+            "score": 0.6576709747314453
+          },
+          {
+            "name": "wm/process/transport/commercial_transportation",
+            "score": 0.6525992155075073
+          },
+          {
+            "name": "wm/process/planning",
+            "score": 0.6464199423789978
+          },
+          {
+            "name": "wm/process/research",
+            "score": 0.6431247591972351
+          },
+          {
+            "name": "wm/process/assist",
+            "score": 0.6360791921615601
+          },
+          {
+            "name": "wm/process/provide",
+            "score": 0.6357216835021973
+          },
+          {
+            "name": "wm/process/conflict/demonstrate",
+            "score": 0.6316994428634644
+          }
+        ],
+        "properties": [
+          {
+            "name": "wm/property/preparedness",
+            "score": 0.7074939608573914
+          },
+          {
+            "name": "wm/property/geographic_resolution/national",
+            "score": 0.7067225575447083
+          },
+          {
+            "name": "wm/property/common_understanding",
+            "score": 0.7023618221282959
+          },
+          {
+            "name": "wm/property/price_or_cost",
+            "score": 0.6387697458267212
+          },
+          {
+            "name": "wm/property/condition",
+            "score": 0.6374406218528748
+          },
+          {
+            "name": "wm/property/aftermath",
+            "score": 0.629136323928833
+          },
+          {
+            "name": "wm/property/stability",
+            "score": 0.6201033592224121
+          },
+          {
+            "name": "wm/property/geographic_resolution/global",
+            "score": 0.6183979511260986
+          },
+          {
+            "name": "wm/property/geographic_resolution/local",
+            "score": 0.6179687976837158
+          }
+        ]
+      },
+      "related_features": [
+        "sim",
+        "data",
+        "error"
+      ]
+    }
+  ],
+  "tags": null,
+  "geography": {
+    "country": [
+      "Sudan",
+      "South Sudan",
+      "Kenya",
+      "Ethiopia",
+      "Uganda"
+    ],
+    "admin1": null,
+    "admin2": null,
+    "admin3": null,
+    "coordinates": []
+  },
+  "period": {
+    "gte": 1387083600000,
+    "lte": 1439179200000
+  },
+  "type": "model",
+  "stochastic": "true"
+}

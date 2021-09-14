@@ -16,6 +16,10 @@ from jinja2 import Template
 
 import glob
 
+import logging
+from logging import Logger
+logger: Logger = logging.getLogger(__name__)
+
 # Get latest version of mixmasta
 mixmasta_version = os.getenv('MIXMASTA_VERSION')
 print(f'mixmasta_version: {mixmasta_version}')
@@ -65,11 +69,14 @@ def rehydrate(ti, **kwargs):
     saveFolder =  f"/model_configs/{run_id}/"
     output_dir =kwargs['dag_run'].conf.get('model_output_directory')
 
+    # get the model
     req = requests.get(f"{dojo_url}/models/{model_id}")
     respData = json.loads(req.content)
     params = respData["parameters"]
     print(f'params: {params}')
-    
+
+    print(f'kwargs: {kwargs}')
+
     #build "type" dict:
     type_dict = {}
     for param in params:
@@ -142,6 +149,36 @@ def rehydrate(ti, **kwargs):
     print('done')
 
 
+def accessoryNodeTask(**kwargs):
+    """
+        If anything is in /results/{run.id}/accessories, push it to S3.
+    """
+    s3 = S3Hook(aws_conn_id="aws_default")
+    accessories_path = f"/results/{kwargs['dag_run'].conf.get('run_id')}/accessories"
+    logger.info(f'accessories_path: {accessories_path}')
+
+    for fpath in glob.glob(f'{accessories_path}/*'):
+        logger.info(f'fpath:{fpath}')
+        
+        fn = fpath.split("/")[-1]
+        logger.info(f'fn:{fn}')
+
+        # NOTE: objects stored to dmc_results are automatically made public
+        # per the S3 bucket's policy
+        # TODO: may need to address this with more fine grained controls in the future
+        bucket_dir = os.getenv('BUCKET_DIR')
+        key=f"{bucket_dir}/{kwargs['dag_run'].conf.get('run_id')}/{fn}"
+
+        logger.info('key:' + key)
+
+        s3.load_file(
+            filename=fpath,
+            key=key,
+            replace=True,
+            bucket_name=os.getenv('BUCKET')
+        )
+                  
+
 def s3copy(**kwargs):
     s3 = S3Hook(aws_conn_id="aws_default")
     results_path = f"/results/{kwargs['dag_run'].conf.get('run_id')}"
@@ -165,6 +202,7 @@ def s3copy(**kwargs):
         )
 
     return
+
 
 def getMapper(**kwargs):
     dojo_url = kwargs['dag_run'].conf.get('dojo_url')
@@ -196,18 +234,36 @@ def RunExit(**kwargs):
         fn = fpath.split("/")[-1]
         print(f'fn:{fn}')
         bucket_dir = os.getenv('BUCKET_DIR')
-
         pth.append(f"https://jataware-world-modelers.s3.amazonaws.com/{bucket_dir}/{run_id}/{fn}")
-    # TODO: handle additional output files
+
     print('pth array' ,pth)
     run['data_paths'] = pth
+
+    # Get any accessories and append their S3 URLS to run['pre_gen_output_paths']
+    accessories_array = []
+    for fpath in glob.glob(f'/results/{run_id}/accessories/*'):
+        print(f'fpath:{fpath}')
+        fn = fpath.split("/")[-1]
+        print(f'fn:{fn}')
+        bucket_dir = os.getenv('BUCKET_DIR')
+
+        accessories_array.append(f"https://jataware-world-modelers.s3.amazonaws.com/{bucket_dir}/{run_id}/{fn}")
+
+    accessories_array = [{"file":s3_url_path} for s3_url_path in accessories_array]
+    print('accessories_array', accessories_array)
+
+    run['pre_gen_output_paths'] = accessories_array
+
+    # Update attributes.executed_at.
     run['attributes']['executed_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    # Create the response, which is the response from the dojo api/runs PUT.
     response = requests.put(f"{dojo_url}/runs", json=run)
     print(response.text)
 
     # Notify Uncharted
     if os.getenv('DMC_DEBUG') == 'true':
-        print("Debug mode: no need to notify Uncharted")
+        print("testing Debug mode: no need to notify Uncharted")
         return
     else:
         print('Notifying Uncharted...')
@@ -217,7 +273,7 @@ def RunExit(**kwargs):
                                 auth=(causemos_user, causemos_pwd))
         print(f"Response from Uncharted: {response.text}")
         return
-
+    
 
 def post_failed_to_dojo(**kwargs):
 
@@ -229,9 +285,9 @@ def post_failed_to_dojo(**kwargs):
     # TODO: this should be conditional; if the other tasks fail
     # this should reflect the failure; job should always finish
     if 'attributes' not in run:
-        run['attributes'] = {'status': 'success'}
+        run['attributes'] = {'status': 'failed'}
     else:
-        run['attributes']['status'] = 'success'
+        run['attributes']['status'] = 'failed'
 
     response = requests.put(f"{dojo_url}/runs", json=run)
     print(response.text)
@@ -261,6 +317,12 @@ rehydrate_node = PythonOperator(task_id='rehydrate-task',
                              python_callable=rehydrate,
                              provide_context=True,
                              dag=dag)
+
+acccessory_node = PythonOperator(task_id='accessory-task',
+                             trigger_rule='all_success',
+                             python_callable=accessoryNodeTask,
+                             provide_context=True,
+                             dag=dag)                             
 
 s3_node = PythonOperator(task_id='s3push-task',
                              trigger_rule='all_success',
@@ -313,6 +375,6 @@ notify_failed_node = PythonOperator(task_id='failed-task',
                              provide_context=True,
                              dag=dag)
 
-rehydrate_node >> model_node >>  mapper_node >> transform_node >> s3_node
+rehydrate_node >> model_node >>  mapper_node >> transform_node >> acccessory_node >> s3_node
 s3_node >> notify_failed_node
 s3_node >> exit_node

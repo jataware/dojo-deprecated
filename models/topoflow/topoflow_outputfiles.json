@@ -1,0 +1,222 @@
+[
+    {
+      "id": "25d1d6ab-1e74-4084-8c18-692e6542aa49",
+      "model_id": "2ddd2cbe-364b-4520-a28e-a5691227db39",
+      "name": "Land Surface Water Depth",
+      "output_directory": "/home/clouseau/output/results",
+      "path": "Test1_2D-d-flood.nc",
+      "file_type": "csv",
+      "transform": {
+        "geo": [
+          {
+            "name": "Y",
+            "display_name": "Y",
+            "description": "longitude",
+            "type": "geo",
+            "geo_type": "latitude",
+            "primary_geo": true,
+            "is_geo_pair": "X"
+          },
+          {
+            "name": "X",
+            "display_name": "longitude",
+            "description": "longitude",
+            "type": "geo",
+            "geo_type": "longitude",
+            "primary_geo": true,
+            "is_geo_pair": "Y"
+          }
+        ],
+        "date": [
+          {
+            "name": "datetime",
+            "display_name": "Datetime",
+            "description": "datetime",
+            "type": "date",
+            "date_type": "date",
+            "time_format": "%Y-%m-%d %H:%M:%S",
+            "primary_date": true
+          }
+        ],
+        "feature": [
+          {
+            "name": "d_flood",
+            "display_name": "Land Surface Water Depth",
+            "description": "land surface water depth",
+            "type": "feature",
+            "feature_type": "float",
+            "units": "m",
+            "units_description": "land surface water depth"
+          }
+        ],
+        "meta": {
+          "ftype": "netcdf"
+        }
+      }
+    },
+    {
+      "id": "e489d023-58c3-4544-8ae1-bb9cfa987e23",
+      "model_id": "2ddd2cbe-364b-4520-a28e-a5691227db39",
+      "name": "Volumetric Discharge",
+      "output_directory": "/home/clouseau/output/results",
+      "path": "Test1_2D-Q.nc",
+      "file_type": "csv",
+      "transform": {
+        "geo": [
+          {
+            "name": "Y",
+            "display_name": "Y",
+            "description": "longitude",
+            "type": "geo",
+            "geo_type": "latitude",
+            "primary_geo": true,
+            "is_geo_pair": "X"
+          },
+          {
+            "name": "X",
+            "display_name": "longitude",
+            "description": "longitude",
+            "type": "geo",
+            "geo_type": "longitude",
+            "primary_geo": true,
+            "is_geo_pair": "Y"
+          }
+        ],
+        "date": [
+          {
+            "name": "datetime",
+            "display_name": "Datetime",
+            "description": "date time",
+            "type": "date",
+            "date_type": "date",
+            "time_format": "%Y-%m-%d %H:%M:%S",
+            "primary_date": true
+          }
+        ],
+        "feature": [
+          {
+            "name": "Q",
+            "display_name": "Volumetric Discharge [m^3/s]",
+            "description": "volumetric discharge grid",
+            "type": "feature",
+            "feature_type": "float",
+            "units": "m3/s",
+            "units_description": "volumetric discharge grid"
+          }
+        ],
+        "meta": {
+          "ftype": "netcdf"
+        }
+      }
+    },
+    {
+      "id": "7302d901-85b8-4fab-a3b2-b9e0b9646458",
+      "model_id": "2ddd2cbe-364b-4520-a28e-a5691227db39",
+      "name": "Max Channel Flow Depth",
+      "output_directory": "/home/clouseau/output/results",
+      "path": "Test1_2D-d.nc",
+      "file_type": "csv",
+      "transform": {
+        "geo": [
+          {
+            "name": "Y",
+            "display_name": "Y",
+            "description": "longitude",
+            "type": "geo",
+            "geo_type": "latitude",
+            "primary_geo": true,
+            "is_geo_pair": "X"
+          },
+          {
+            "name": "X",
+            "display_name": "longitude",
+            "description": "longitude",
+            "type": "geo",
+            "geo_type": "longitude",
+            "primary_geo": true,
+            "is_geo_pair": "Y"
+          }
+        ],
+        "date": [
+          {
+            "name": "datetime",
+            "display_name": "Datetime",
+            "description": "datetime",
+            "type": "date",
+            "date_type": "date",
+            "time_format": "%Y-%m-%d %H:%M:%S",
+            "primary_date": true
+          }
+        ],
+        "feature": [
+          {
+            "name": "d",
+            "display_name": "Max Channel Flow Depth",
+            "description": "max channel flow depth",
+            "type": "feature",
+            "feature_type": "float",
+            "units": "m",
+            "units_description": "meters"
+          }
+        ],
+        "meta": {
+          "ftype": "netcdf"
+        }
+      }
+    },
+    {
+      "id": "c925ad6e-5275-4a2c-b288-ba7c450a4b8f",
+      "model_id": "2ddd2cbe-364b-4520-a28e-a5691227db39",
+      "name": "Mean Channel Flow Velocity",
+      "output_directory": "/home/clouseau/output/results",
+      "path": "Test1_2D-u.nc",
+      "file_type": "csv",
+      "transform": {
+        "geo": [
+          {
+            "name": "Y",
+            "display_name": "Y",
+            "description": "longitude",
+            "type": "geo",
+            "geo_type": "latitude",
+            "primary_geo": true,
+            "is_geo_pair": "X"
+          },
+          {
+            "name": "X",
+            "display_name": "longitude",
+            "description": "longitude",
+            "type": "geo",
+            "geo_type": "longitude",
+            "primary_geo": true,
+            "is_geo_pair": "Y"
+          }
+        ],
+        "date": [
+          {
+            "name": "datetime",
+            "display_name": "Datetime",
+            "description": "datetime",
+            "type": "date",
+            "date_type": "date",
+            "time_format": "%Y-%m-%d %H:%M:%S",
+            "primary_date": true
+          }
+        ],
+        "feature": [
+          {
+            "name": "u",
+            "display_name": "Mean Channel Flow Velocity",
+            "description": "mean channel flow velocity",
+            "type": "feature",
+            "feature_type": "float",
+            "units": "m/s",
+            "units_description": "meters per sec"
+          }
+        ],
+        "meta": {
+          "ftype": "netcdf"
+        }
+      }
+    }
+  ]

@@ -68,9 +68,12 @@ def submit_run(model):
     causemos_user = os.getenv("CAUSEMOS_USER")
     causemos_pwd = os.getenv("CAUSEMOS_PWD")
 
-    params = {}
+    params = []
     for param in model.get("parameters",[]):
-        params[param['name']] = param['default']
+        param_obj = {}
+        param_obj['name'] = param['name']
+        param_obj['value'] = param['default']
+        params.append(param_obj)
 
     payload = {"model_id": model["id"],
                "model_name": model["name"],

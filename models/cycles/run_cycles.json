@@ -1,0 +1,29 @@
+{
+  "id": "cycles-test-run",
+  "model_name": "Cycles Results Kenya",
+  "model_id": "d50c52c5-a8c2-4538-8307-a94afec61ed8",
+  "created_at": 0,
+  "data_paths": [],
+  "pre_gen_output_paths": null,
+  "is_default_run": false,
+  "parameters": [
+    {
+      "name": "crop_name",
+      "value": "Maize"
+    },
+    {
+      "name": "start_planting_day",
+      "value": "61"
+    },
+    {
+      "name": "fertilizer_rate",
+      "value": "0"
+    },
+    {
+      "name": "weed_fraction",
+      "value": "0.2"
+    }
+  ],
+  "tags": [],
+  "attributes": {}
+}

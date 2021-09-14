@@ -22,12 +22,12 @@
     "parameters": [
         {
             "unit": "N/A",
-            "default": "2017-01-01-2017-06-01",
+            "default": "2017-05-01-2017-05-02",
             "min": null,
             "max": null,
             "name": "rainfall_scenario_time_range",
             "data_type": "freeform",
-            "description": "Rainfall scenario time range in YYYY-MM-DD-YYYY-MM-DD format. \nExample: 2015-05-01-2015-05-10\nChoose a time range from 2011-06-01 to 2019-04-01",
+            "description": "Rainfall scenario time range in YYYY-MM-DD-YYYY-MM-DD format. \nExample: 2017-05-01-2017-05-02\nChoose a time range from 2011-06-01 to 2019-04-01",
             "id": "2015-05-01-2015-05-10-512748",
             "unit_description": null,
             "display_name": "rainfall scenario time range",
@@ -36,12 +36,12 @@
         },
         {
             "unit": "N/A",
-            "default": "2017-05-01-2017-05-02",
+            "default": "2017-01-01-2017-06-01",
             "min": null,
             "max": null,
             "name": "time_range",
             "data_type": "freeform",
-            "description": "time range in YYYY-MM-DD-YYYY-MM-DD format. \nExample: 2015-05-01-2015-05-10\nChoose a time range from 2011-06-01 to 2019-04-01",
+            "description": "time range in YYYY-MM-DD-YYYY-MM-DD format. \nExample: 2017-01-01-2017-06-01\nChoose a time range from 2011-06-01 to 2019-04-01",
             "id": "2015-01-01-2015-06-01-310632",
             "unit_description": null,
             "display_name": "time range",
@@ -63,40 +63,6 @@
             "choices": [
                 "Ethiopia",
                 "South Sudan"
-            ]
-        },
-        {
-            "unit": "N/A",
-            "default": "ethiopia",
-            "min": null,
-            "max": null,
-            "name": "geography",
-            "data_type": "nominal",
-            "description": "choose geography",
-            "id": "ethiopia-778574",
-            "unit_description": null,
-            "display_name": "geography",
-            "type": "str",
-            "choices": [
-                "south_sudan",
-                "ethiopia"
-            ]
-        },
-        {
-            "unit": "N/A",
-            "default": "ethiopia",
-            "min": null,
-            "max": null,
-            "name": "rainfall_geography",
-            "data_type": "nominal",
-            "description": "choose rainfall geography",
-            "id": "ethiopia-744673",
-            "unit_description": null,
-            "display_name": "rainfall geography",
-            "type": "str",
-            "choices": [
-                "ethiopia",
-                "south_sudan"
             ]
         },
         {

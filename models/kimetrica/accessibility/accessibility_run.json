@@ -1,0 +1,41 @@
+{
+    "id": "accessibilty-test-run",
+    "model_name": "Accessibility Model",
+    "model_id": "6c30c05d-54cd-4048-832f-0fd09793f08e",
+    "created_at": 0,
+    "data_paths": [],
+    "pre_gen_output_paths": null,
+    "is_default_run": false,
+    "parameters": [
+      {
+        "name": "country",
+        "value": "Djibouti"
+      },
+      {
+        "name": "destination",
+        "value": "markets"
+      },
+      {
+        "name": "trunk_road_speed_offset",
+        "value": "0"
+      },
+      {
+        "name": "primary_road_speed_offset",
+        "value": "0"
+      },
+      {
+        "name": "secondary_road_speed_offset",
+        "value": "0"
+      },
+      {
+        "name": "tertiary_road_speed_offset",
+        "value": "0"
+      },
+      {
+        "name": "unclassified_road_speed_offset",
+        "value": "0"
+      }
+    ],
+    "tags": [],
+    "attributes": {}
+  }

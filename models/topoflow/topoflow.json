@@ -1,0 +1,1657 @@
+{
+    "id": "2ddd2cbe-364b-4520-a28e-a5691227db39",
+    "name": "Topoflow",
+    "family_name": "Topoflow",
+    "description": "TopoFlow is a powerful, spatially-distributed hydrologic model with a user-friendly point-and-click interface. Its main purpose is to model many different physical processes in a watershed with the goal of accurately predicting how various hydrologic variables will evolve in time in response to climatic forcings. Time evolutions for single pixels (such as hydrographs), collections of user-selected pixels, or entire grids (as animations) are all supported as output options. The currently supported physical processes are:\n",
+    "created_at": 1629232448726,
+    "category": [
+        "Hydrologic"
+    ],
+    "maintainer": {
+        "name": "Scott Peckham ",
+        "email": "scott.d.peckham@gmail.com",
+        "organization": "University of Colorado, Boulder",
+        "website": "https://github.com/mintproject/topoflow36"
+    },
+    "image": "jataware/dojo-publish:Topoflow-dev",
+    "observed_data": null,
+    "is_stochastic": false,
+    "parameters": [
+        {
+            "name": "basin",
+            "display_name": "basin",
+            "description": "basin",
+            "type": "str",
+            "unit": null,
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.7871600389480591
+                    },
+                    {
+                        "name": "wm/concept/plan",
+                        "score": 0.7807776927947998
+                    },
+                    {
+                        "name": "wm/concept/intervention",
+                        "score": 0.7766426801681519
+                    },
+                    {
+                        "name": "wm/concept/innovation",
+                        "score": 0.7349236011505127
+                    },
+                    {
+                        "name": "wm/concept/social_structure",
+                        "score": 0.7005846500396729
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/water_facilities",
+                        "score": 0.6886635422706604
+                    },
+                    {
+                        "name": "wm/concept/economy/labor",
+                        "score": 0.6884927749633789
+                    },
+                    {
+                        "name": "wm/concept/government/government_program",
+                        "score": 0.6852619051933289
+                    },
+                    {
+                        "name": "wm/concept/economy/economy",
+                        "score": 0.6738983392715454
+                    },
+                    {
+                        "name": "wm/concept/humanitarian_assistance/food_aid",
+                        "score": 0.6729475855827332
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/produce",
+                        "score": 0.722094714641571
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.7093434929847717
+                    },
+                    {
+                        "name": "wm/process/attempt",
+                        "score": 0.7005683183670044
+                    },
+                    {
+                        "name": "wm/process/planning",
+                        "score": 0.696356475353241
+                    },
+                    {
+                        "name": "wm/process/modify",
+                        "score": 0.6953815221786499
+                    },
+                    {
+                        "name": "wm/process/research",
+                        "score": 0.683476984500885
+                    },
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.6833311319351196
+                    },
+                    {
+                        "name": "wm/process/provide",
+                        "score": 0.6748148202896118
+                    },
+                    {
+                        "name": "wm/process/consume",
+                        "score": 0.6653640866279602
+                    },
+                    {
+                        "name": "wm/process/manipulate",
+                        "score": 0.653497576713562
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/preparedness",
+                        "score": 0.7455538511276245
+                    },
+                    {
+                        "name": "wm/property/common_understanding",
+                        "score": 0.7302557229995728
+                    },
+                    {
+                        "name": "wm/property/condition",
+                        "score": 0.6795089840888977
+                    },
+                    {
+                        "name": "wm/property/seasonality",
+                        "score": 0.6710363626480103
+                    },
+                    {
+                        "name": "wm/property/stability",
+                        "score": 0.6593976616859436
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/national",
+                        "score": 0.6508492231369019
+                    },
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.6395661234855652
+                    },
+                    {
+                        "name": "wm/property/coping_capacities",
+                        "score": 0.6308808922767639
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/global",
+                        "score": 0.6103379726409912
+                    }
+                ]
+            },
+            "is_drilldown": null,
+            "additional_options": null,
+            "data_type": "nominal",
+            "default": "tana",
+            "choices": [
+                "tana",
+                "galana"
+            ],
+            "min": null,
+            "max": null,
+            "id": "tana-190452"
+        },
+        {
+            "name": "start_date",
+            "display_name": "Start date",
+            "description": "The start date of the simulation",
+            "type": "str",
+            "unit": null,
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/plan",
+                        "score": 0.7848424315452576
+                    },
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.7805036306381226
+                    },
+                    {
+                        "name": "wm/concept/intervention",
+                        "score": 0.7670847177505493
+                    },
+                    {
+                        "name": "wm/concept/innovation",
+                        "score": 0.7360252141952515
+                    },
+                    {
+                        "name": "wm/concept/economy/labor",
+                        "score": 0.6923003792762756
+                    },
+                    {
+                        "name": "wm/concept/time/",
+                        "score": 0.6910178661346436
+                    },
+                    {
+                        "name": "wm/concept/social_structure",
+                        "score": 0.6908584237098694
+                    },
+                    {
+                        "name": "wm/concept/government/government_program",
+                        "score": 0.6884241700172424
+                    },
+                    {
+                        "name": "wm/concept/humanitarian_assistance/food_aid",
+                        "score": 0.6731279492378235
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/water_facilities",
+                        "score": 0.6664160490036011
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/produce",
+                        "score": 0.7218692302703857
+                    },
+                    {
+                        "name": "wm/process/attempt",
+                        "score": 0.7165671586990356
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.7114700675010681
+                    },
+                    {
+                        "name": "wm/process/modify",
+                        "score": 0.7052571177482605
+                    },
+                    {
+                        "name": "wm/process/planning",
+                        "score": 0.6990704536437988
+                    },
+                    {
+                        "name": "wm/process/research",
+                        "score": 0.682839035987854
+                    },
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.6795778870582581
+                    },
+                    {
+                        "name": "wm/process/provide",
+                        "score": 0.6765013933181763
+                    },
+                    {
+                        "name": "wm/process/",
+                        "score": 0.6623687744140625
+                    },
+                    {
+                        "name": "wm/process/consume",
+                        "score": 0.6620898246765137
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/preparedness",
+                        "score": 0.7450653910636902
+                    },
+                    {
+                        "name": "wm/property/common_understanding",
+                        "score": 0.7283200621604919
+                    },
+                    {
+                        "name": "wm/property/condition",
+                        "score": 0.6777939200401306
+                    },
+                    {
+                        "name": "wm/property/stability",
+                        "score": 0.661774754524231
+                    },
+                    {
+                        "name": "wm/property/seasonality",
+                        "score": 0.6615935564041138
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/national",
+                        "score": 0.6512392163276672
+                    },
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.6395859718322754
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/global",
+                        "score": 0.6100142002105713
+                    },
+                    {
+                        "name": "wm/property/coping_capacities",
+                        "score": 0.6073341965675354
+                    },
+                    {
+                        "name": "wm/property/aftermath",
+                        "score": 0.6022717356681824
+                    }
+                ]
+            },
+            "is_drilldown": null,
+            "additional_options": null,
+            "data_type": "nominal",
+            "default": "2015-01-01",
+            "choices": [
+                "2015-01-01"
+            ],
+            "min": null,
+            "max": null,
+            "id": "2015-01-01-649383"
+        },
+        {
+            "name": "end_date",
+            "display_name": "End date",
+            "description": "The end date of the simulation",
+            "type": "str",
+            "unit": null,
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/plan",
+                        "score": 0.7836487293243408
+                    },
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.7783441543579102
+                    },
+                    {
+                        "name": "wm/concept/intervention",
+                        "score": 0.7652678489685059
+                    },
+                    {
+                        "name": "wm/concept/innovation",
+                        "score": 0.7338299751281738
+                    },
+                    {
+                        "name": "wm/concept/economy/labor",
+                        "score": 0.6914507150650024
+                    },
+                    {
+                        "name": "wm/concept/social_structure",
+                        "score": 0.6910207271575928
+                    },
+                    {
+                        "name": "wm/concept/government/government_program",
+                        "score": 0.6889912486076355
+                    },
+                    {
+                        "name": "wm/concept/time/",
+                        "score": 0.687658429145813
+                    },
+                    {
+                        "name": "wm/concept/humanitarian_assistance/food_aid",
+                        "score": 0.670693039894104
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/water_facilities",
+                        "score": 0.6687579154968262
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/produce",
+                        "score": 0.7181880474090576
+                    },
+                    {
+                        "name": "wm/process/attempt",
+                        "score": 0.7103573083877563
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.7068423628807068
+                    },
+                    {
+                        "name": "wm/process/modify",
+                        "score": 0.7000268697738647
+                    },
+                    {
+                        "name": "wm/process/planning",
+                        "score": 0.6967418789863586
+                    },
+                    {
+                        "name": "wm/process/research",
+                        "score": 0.6799010038375854
+                    },
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.676995575428009
+                    },
+                    {
+                        "name": "wm/process/provide",
+                        "score": 0.6725170612335205
+                    },
+                    {
+                        "name": "wm/process/consume",
+                        "score": 0.6581482887268066
+                    },
+                    {
+                        "name": "wm/process/",
+                        "score": 0.6575271487236023
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/preparedness",
+                        "score": 0.743583083152771
+                    },
+                    {
+                        "name": "wm/property/common_understanding",
+                        "score": 0.7266009449958801
+                    },
+                    {
+                        "name": "wm/property/condition",
+                        "score": 0.6781947612762451
+                    },
+                    {
+                        "name": "wm/property/stability",
+                        "score": 0.6614380478858948
+                    },
+                    {
+                        "name": "wm/property/seasonality",
+                        "score": 0.6584499478340149
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/national",
+                        "score": 0.6546948552131653
+                    },
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.6407567858695984
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/global",
+                        "score": 0.610562264919281
+                    },
+                    {
+                        "name": "wm/property/coping_capacities",
+                        "score": 0.6075699925422668
+                    },
+                    {
+                        "name": "wm/property/aftermath",
+                        "score": 0.6066678762435913
+                    }
+                ]
+            },
+            "is_drilldown": null,
+            "additional_options": null,
+            "data_type": "nominal",
+            "default": "2015-01-10",
+            "choices": [
+                "2015-01-10",
+                "2016-01-01",
+                "2018-01-01"
+            ],
+            "min": null,
+            "max": null,
+            "id": "2015-01-10-792586"
+        }
+    ],
+    "outputs": [
+        {
+            "name": "Q",
+            "display_name": "Volumetric Discharge [m^3/s]",
+            "description": "volumetric discharge [m^3/s]",
+            "type": "float",
+            "unit": "m3/s",
+            "unit_description": "a cubic metre per second",
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.7824774384498596
+                    },
+                    {
+                        "name": "wm/concept/intervention",
+                        "score": 0.7780634164810181
+                    },
+                    {
+                        "name": "wm/concept/plan",
+                        "score": 0.7699260711669922
+                    },
+                    {
+                        "name": "wm/concept/innovation",
+                        "score": 0.7321271896362305
+                    },
+                    {
+                        "name": "wm/concept/social_structure",
+                        "score": 0.6944525837898254
+                    },
+                    {
+                        "name": "wm/concept/economy/labor",
+                        "score": 0.6877807378768921
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/water_facilities",
+                        "score": 0.6857455968856812
+                    },
+                    {
+                        "name": "wm/concept/government/government_program",
+                        "score": 0.6809927821159363
+                    },
+                    {
+                        "name": "wm/concept/humanitarian_assistance/food_aid",
+                        "score": 0.6725022196769714
+                    },
+                    {
+                        "name": "wm/concept/economy/economy",
+                        "score": 0.6711846590042114
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/produce",
+                        "score": 0.723386287689209
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.708177387714386
+                    },
+                    {
+                        "name": "wm/process/modify",
+                        "score": 0.6963194012641907
+                    },
+                    {
+                        "name": "wm/process/attempt",
+                        "score": 0.6888378858566284
+                    },
+                    {
+                        "name": "wm/process/planning",
+                        "score": 0.6841019988059998
+                    },
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.6822603344917297
+                    },
+                    {
+                        "name": "wm/process/provide",
+                        "score": 0.6797055006027222
+                    },
+                    {
+                        "name": "wm/process/research",
+                        "score": 0.6784908175468445
+                    },
+                    {
+                        "name": "wm/process/consume",
+                        "score": 0.6721925139427185
+                    },
+                    {
+                        "name": "wm/process/",
+                        "score": 0.6626711487770081
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/preparedness",
+                        "score": 0.7432523965835571
+                    },
+                    {
+                        "name": "wm/property/common_understanding",
+                        "score": 0.7261552810668945
+                    },
+                    {
+                        "name": "wm/property/condition",
+                        "score": 0.6803099513053894
+                    },
+                    {
+                        "name": "wm/property/seasonality",
+                        "score": 0.6734911799430847
+                    },
+                    {
+                        "name": "wm/property/stability",
+                        "score": 0.663250207901001
+                    },
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.6469147801399231
+                    },
+                    {
+                        "name": "wm/property/coping_capacities",
+                        "score": 0.6432620882987976
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/national",
+                        "score": 0.6410481333732605
+                    }
+                ]
+            },
+            "is_primary": true,
+            "additional_options": null,
+            "data_resolution": {
+                "temporal_resolution": "other",
+                "spatial_resolution": [
+                    1000,
+                    1000
+                ]
+            },
+            "choices": null,
+            "min": null,
+            "max": null
+        },
+        {
+            "name": "u",
+            "display_name": "Mean Channel Flow Velocity",
+            "description": "mean channel flow velocity",
+            "type": "float",
+            "unit": "m/s",
+            "unit_description": "meters per sec",
+            "ontologies": {
+                "concepts": [],
+                "processes": [],
+                "properties": []
+            },
+            "is_primary": true,
+            "additional_options": null,
+            "data_resolution": {
+                "temporal_resolution": "other",
+                "spatial_resolution": [
+                    1000,
+                    1000
+                ]
+            },
+            "choices": null,
+            "min": null,
+            "max": null                        
+          },  
+          {
+            "name": "d_flood",
+            "display_name": "Land Surface Water Depth",
+            "description": "land surface water depth",
+            "type": "float",
+            "unit": "m",
+            "unit_description": "land surface water depth",
+            "ontologies": {
+                "concepts": [],
+                "processes": [],
+                "properties": []
+            },
+            "is_primary": true,
+            "additional_options": null,
+            "data_resolution": {
+                "temporal_resolution": "other",
+                "spatial_resolution": [
+                    1000,
+                    1000
+                ]
+            },
+            "choices": null,
+            "min": null,
+            "max": null                        
+          },    
+          {
+            "name": "Q",
+            "display_name": "Volumetric Discharge [m^3/s]",
+            "description": "volumetric discharge grid",
+            "type": "float",
+            "unit": "m3/s",
+            "unit_description": "volumetric discharge grid",
+            "ontologies": {
+                "concepts": [],
+                "processes": [],
+                "properties": []
+            },
+            "is_primary": true,
+            "additional_options": null,
+            "data_resolution": {
+                "temporal_resolution": "other",
+                "spatial_resolution": [
+                    1000,
+                    1000
+                ]
+            },
+            "choices": null,
+            "min": null,
+            "max": null                        
+          }                      
+    ],
+    "qualifier_outputs": [
+        {
+            "name": "admin1",
+            "display_name": "admin1",
+            "description": "longitude",
+            "type": "admin1",
+            "unit": null,
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.7865251302719116
+                    },
+                    {
+                        "name": "wm/concept/plan",
+                        "score": 0.7778790593147278
+                    },
+                    {
+                        "name": "wm/concept/intervention",
+                        "score": 0.7756880521774292
+                    },
+                    {
+                        "name": "wm/concept/innovation",
+                        "score": 0.7358444333076477
+                    },
+                    {
+                        "name": "wm/concept/social_structure",
+                        "score": 0.701438844203949
+                    },
+                    {
+                        "name": "wm/concept/economy/labor",
+                        "score": 0.6890945434570312
+                    },
+                    {
+                        "name": "wm/concept/government/government_program",
+                        "score": 0.687465488910675
+                    },
+                    {
+                        "name": "wm/concept/time/",
+                        "score": 0.6732497215270996
+                    },
+                    {
+                        "name": "wm/concept/economy/economy",
+                        "score": 0.6710548996925354
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/water_facilities",
+                        "score": 0.6707693934440613
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/produce",
+                        "score": 0.7217460870742798
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.7117174863815308
+                    },
+                    {
+                        "name": "wm/process/attempt",
+                        "score": 0.7030550241470337
+                    },
+                    {
+                        "name": "wm/process/modify",
+                        "score": 0.700275182723999
+                    },
+                    {
+                        "name": "wm/process/planning",
+                        "score": 0.6916008591651917
+                    },
+                    {
+                        "name": "wm/process/research",
+                        "score": 0.6826044321060181
+                    },
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.6785387992858887
+                    },
+                    {
+                        "name": "wm/process/provide",
+                        "score": 0.6777227520942688
+                    },
+                    {
+                        "name": "wm/process/consume",
+                        "score": 0.66411292552948
+                    },
+                    {
+                        "name": "wm/process/manipulate",
+                        "score": 0.6557033061981201
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/preparedness",
+                        "score": 0.7426558136940002
+                    },
+                    {
+                        "name": "wm/property/common_understanding",
+                        "score": 0.731431782245636
+                    },
+                    {
+                        "name": "wm/property/condition",
+                        "score": 0.6778520345687866
+                    },
+                    {
+                        "name": "wm/property/seasonality",
+                        "score": 0.6680175065994263
+                    },
+                    {
+                        "name": "wm/property/stability",
+                        "score": 0.6597155332565308
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/national",
+                        "score": 0.6495250463485718
+                    },
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.6396570205688477
+                    },
+                    {
+                        "name": "wm/property/coping_capacities",
+                        "score": 0.6252105832099915
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/global",
+                        "score": 0.6128321290016174
+                    }
+                ]
+            },
+            "related_features": [
+                "Q"
+            ]
+        },
+        {
+            "name": "admin2",
+            "display_name": "admin2",
+            "description": "longitude",
+            "type": "admin2",
+            "unit": null,
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.7863755822181702
+                    },
+                    {
+                        "name": "wm/concept/plan",
+                        "score": 0.7778285145759583
+                    },
+                    {
+                        "name": "wm/concept/intervention",
+                        "score": 0.7750592231750488
+                    },
+                    {
+                        "name": "wm/concept/innovation",
+                        "score": 0.7351054549217224
+                    },
+                    {
+                        "name": "wm/concept/social_structure",
+                        "score": 0.7014493346214294
+                    },
+                    {
+                        "name": "wm/concept/economy/labor",
+                        "score": 0.6890107989311218
+                    },
+                    {
+                        "name": "wm/concept/government/government_program",
+                        "score": 0.687473475933075
+                    },
+                    {
+                        "name": "wm/concept/economy/economy",
+                        "score": 0.6716935634613037
+                    },
+                    {
+                        "name": "wm/concept/time/",
+                        "score": 0.6709302663803101
+                    },
+                    {
+                        "name": "wm/concept/humanitarian_assistance/food_aid",
+                        "score": 0.6690248847007751
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/produce",
+                        "score": 0.7192100882530212
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.7118754386901855
+                    },
+                    {
+                        "name": "wm/process/attempt",
+                        "score": 0.7005485892295837
+                    },
+                    {
+                        "name": "wm/process/modify",
+                        "score": 0.6999084949493408
+                    },
+                    {
+                        "name": "wm/process/planning",
+                        "score": 0.6905319690704346
+                    },
+                    {
+                        "name": "wm/process/research",
+                        "score": 0.6818913221359253
+                    },
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.6777935028076172
+                    },
+                    {
+                        "name": "wm/process/provide",
+                        "score": 0.6758087873458862
+                    },
+                    {
+                        "name": "wm/process/consume",
+                        "score": 0.6620091795921326
+                    },
+                    {
+                        "name": "wm/process/manipulate",
+                        "score": 0.6571083068847656
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/preparedness",
+                        "score": 0.7443447113037109
+                    },
+                    {
+                        "name": "wm/property/common_understanding",
+                        "score": 0.7294492721557617
+                    },
+                    {
+                        "name": "wm/property/condition",
+                        "score": 0.6747018098831177
+                    },
+                    {
+                        "name": "wm/property/seasonality",
+                        "score": 0.6677128672599792
+                    },
+                    {
+                        "name": "wm/property/stability",
+                        "score": 0.6612014770507812
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/national",
+                        "score": 0.6480302214622498
+                    },
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.6375730037689209
+                    },
+                    {
+                        "name": "wm/property/coping_capacities",
+                        "score": 0.6265738606452942
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/global",
+                        "score": 0.6123895049095154
+                    }
+                ]
+            },
+            "related_features": [
+                "Q"
+            ]
+        },
+        {
+            "name": "admin3",
+            "display_name": "admin3",
+            "description": "longitude",
+            "type": "admin3",
+            "unit": null,
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.7865251302719116
+                    },
+                    {
+                        "name": "wm/concept/plan",
+                        "score": 0.7778790593147278
+                    },
+                    {
+                        "name": "wm/concept/intervention",
+                        "score": 0.7756880521774292
+                    },
+                    {
+                        "name": "wm/concept/innovation",
+                        "score": 0.7358444333076477
+                    },
+                    {
+                        "name": "wm/concept/social_structure",
+                        "score": 0.701438844203949
+                    },
+                    {
+                        "name": "wm/concept/economy/labor",
+                        "score": 0.6890945434570312
+                    },
+                    {
+                        "name": "wm/concept/government/government_program",
+                        "score": 0.687465488910675
+                    },
+                    {
+                        "name": "wm/concept/time/",
+                        "score": 0.6732497215270996
+                    },
+                    {
+                        "name": "wm/concept/economy/economy",
+                        "score": 0.6710548996925354
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/water_facilities",
+                        "score": 0.6707693934440613
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/produce",
+                        "score": 0.7217460870742798
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.7117174863815308
+                    },
+                    {
+                        "name": "wm/process/attempt",
+                        "score": 0.7030550241470337
+                    },
+                    {
+                        "name": "wm/process/modify",
+                        "score": 0.700275182723999
+                    },
+                    {
+                        "name": "wm/process/planning",
+                        "score": 0.6916008591651917
+                    },
+                    {
+                        "name": "wm/process/research",
+                        "score": 0.6826044321060181
+                    },
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.6785387992858887
+                    },
+                    {
+                        "name": "wm/process/provide",
+                        "score": 0.6777227520942688
+                    },
+                    {
+                        "name": "wm/process/consume",
+                        "score": 0.66411292552948
+                    },
+                    {
+                        "name": "wm/process/manipulate",
+                        "score": 0.6557033061981201
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/preparedness",
+                        "score": 0.7426558136940002
+                    },
+                    {
+                        "name": "wm/property/common_understanding",
+                        "score": 0.731431782245636
+                    },
+                    {
+                        "name": "wm/property/condition",
+                        "score": 0.6778520345687866
+                    },
+                    {
+                        "name": "wm/property/seasonality",
+                        "score": 0.6680175065994263
+                    },
+                    {
+                        "name": "wm/property/stability",
+                        "score": 0.6597155332565308
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/national",
+                        "score": 0.6495250463485718
+                    },
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.6396570205688477
+                    },
+                    {
+                        "name": "wm/property/coping_capacities",
+                        "score": 0.6252105832099915
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/global",
+                        "score": 0.6128321290016174
+                    }
+                ]
+            },
+            "related_features": [
+                "Q"
+            ]
+        },
+        {
+            "name": "country",
+            "display_name": "country",
+            "description": "longitude",
+            "type": "country",
+            "unit": null,
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.7884151935577393
+                    },
+                    {
+                        "name": "wm/concept/plan",
+                        "score": 0.7806561589241028
+                    },
+                    {
+                        "name": "wm/concept/intervention",
+                        "score": 0.7755792737007141
+                    },
+                    {
+                        "name": "wm/concept/innovation",
+                        "score": 0.7362894415855408
+                    },
+                    {
+                        "name": "wm/concept/social_structure",
+                        "score": 0.7038218379020691
+                    },
+                    {
+                        "name": "wm/concept/economy/labor",
+                        "score": 0.6927929520606995
+                    },
+                    {
+                        "name": "wm/concept/government/government_program",
+                        "score": 0.6914128065109253
+                    },
+                    {
+                        "name": "wm/concept/economy/economy",
+                        "score": 0.6756794452667236
+                    },
+                    {
+                        "name": "wm/concept/time/",
+                        "score": 0.6750677227973938
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/water_facilities",
+                        "score": 0.6727516055107117
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/produce",
+                        "score": 0.7226284146308899
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.7119567394256592
+                    },
+                    {
+                        "name": "wm/process/attempt",
+                        "score": 0.706155002117157
+                    },
+                    {
+                        "name": "wm/process/modify",
+                        "score": 0.6998851895332336
+                    },
+                    {
+                        "name": "wm/process/planning",
+                        "score": 0.6923460960388184
+                    },
+                    {
+                        "name": "wm/process/research",
+                        "score": 0.6826754808425903
+                    },
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.680966317653656
+                    },
+                    {
+                        "name": "wm/process/provide",
+                        "score": 0.6777766346931458
+                    },
+                    {
+                        "name": "wm/process/consume",
+                        "score": 0.6650829911231995
+                    },
+                    {
+                        "name": "wm/process/manipulate",
+                        "score": 0.6563509702682495
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/preparedness",
+                        "score": 0.7434291243553162
+                    },
+                    {
+                        "name": "wm/property/common_understanding",
+                        "score": 0.7331340909004211
+                    },
+                    {
+                        "name": "wm/property/condition",
+                        "score": 0.6796296834945679
+                    },
+                    {
+                        "name": "wm/property/seasonality",
+                        "score": 0.6678186058998108
+                    },
+                    {
+                        "name": "wm/property/stability",
+                        "score": 0.6600313186645508
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/national",
+                        "score": 0.6593140363693237
+                    },
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.6407033205032349
+                    },
+                    {
+                        "name": "wm/property/coping_capacities",
+                        "score": 0.6242707371711731
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/global",
+                        "score": 0.6202006340026855
+                    }
+                ]
+            },
+            "related_features": [
+                "Q"
+            ]
+        },
+        {
+            "name": "lat",
+            "display_name": "lat",
+            "description": "longitude",
+            "type": "lat",
+            "unit": null,
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.7878835797309875
+                    },
+                    {
+                        "name": "wm/concept/plan",
+                        "score": 0.7766356468200684
+                    },
+                    {
+                        "name": "wm/concept/intervention",
+                        "score": 0.77332603931427
+                    },
+                    {
+                        "name": "wm/concept/innovation",
+                        "score": 0.7333059310913086
+                    },
+                    {
+                        "name": "wm/concept/social_structure",
+                        "score": 0.7000113129615784
+                    },
+                    {
+                        "name": "wm/concept/economy/labor",
+                        "score": 0.6900538206100464
+                    },
+                    {
+                        "name": "wm/concept/government/government_program",
+                        "score": 0.6866796612739563
+                    },
+                    {
+                        "name": "wm/concept/time/",
+                        "score": 0.6756083965301514
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/water_facilities",
+                        "score": 0.6720528602600098
+                    },
+                    {
+                        "name": "wm/concept/humanitarian_assistance/food_aid",
+                        "score": 0.6697346568107605
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/produce",
+                        "score": 0.7210972309112549
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.7104892134666443
+                    },
+                    {
+                        "name": "wm/process/attempt",
+                        "score": 0.7037453651428223
+                    },
+                    {
+                        "name": "wm/process/modify",
+                        "score": 0.702618420124054
+                    },
+                    {
+                        "name": "wm/process/planning",
+                        "score": 0.6906178593635559
+                    },
+                    {
+                        "name": "wm/process/research",
+                        "score": 0.6826287508010864
+                    },
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.678139328956604
+                    },
+                    {
+                        "name": "wm/process/provide",
+                        "score": 0.67649245262146
+                    },
+                    {
+                        "name": "wm/process/consume",
+                        "score": 0.6638786792755127
+                    },
+                    {
+                        "name": "wm/process/manipulate",
+                        "score": 0.6547636389732361
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/preparedness",
+                        "score": 0.7408817410469055
+                    },
+                    {
+                        "name": "wm/property/common_understanding",
+                        "score": 0.729401707649231
+                    },
+                    {
+                        "name": "wm/property/condition",
+                        "score": 0.6786064505577087
+                    },
+                    {
+                        "name": "wm/property/seasonality",
+                        "score": 0.6679818630218506
+                    },
+                    {
+                        "name": "wm/property/stability",
+                        "score": 0.6601935029029846
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/national",
+                        "score": 0.6508429646492004
+                    },
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.6382167339324951
+                    },
+                    {
+                        "name": "wm/property/coping_capacities",
+                        "score": 0.6250864863395691
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/global",
+                        "score": 0.6119661927223206
+                    }
+                ]
+            },
+            "related_features": [
+                "Q"
+            ]
+        },
+        {
+            "name": "lng",
+            "display_name": "lng",
+            "description": "longitude",
+            "type": "lng",
+            "unit": null,
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.787914514541626
+                    },
+                    {
+                        "name": "wm/concept/plan",
+                        "score": 0.7785617113113403
+                    },
+                    {
+                        "name": "wm/concept/intervention",
+                        "score": 0.7749320268630981
+                    },
+                    {
+                        "name": "wm/concept/innovation",
+                        "score": 0.7359961271286011
+                    },
+                    {
+                        "name": "wm/concept/social_structure",
+                        "score": 0.6998564004898071
+                    },
+                    {
+                        "name": "wm/concept/economy/labor",
+                        "score": 0.6909398436546326
+                    },
+                    {
+                        "name": "wm/concept/government/government_program",
+                        "score": 0.6876498460769653
+                    },
+                    {
+                        "name": "wm/concept/time/",
+                        "score": 0.6769859194755554
+                    },
+                    {
+                        "name": "wm/concept/infrastructure/water_facilities",
+                        "score": 0.6741834878921509
+                    },
+                    {
+                        "name": "wm/concept/humanitarian_assistance/food_aid",
+                        "score": 0.6720069050788879
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/produce",
+                        "score": 0.723094642162323
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.7124074697494507
+                    },
+                    {
+                        "name": "wm/process/attempt",
+                        "score": 0.7041230201721191
+                    },
+                    {
+                        "name": "wm/process/modify",
+                        "score": 0.7033870220184326
+                    },
+                    {
+                        "name": "wm/process/planning",
+                        "score": 0.6928817629814148
+                    },
+                    {
+                        "name": "wm/process/research",
+                        "score": 0.6845515370368958
+                    },
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.6795831918716431
+                    },
+                    {
+                        "name": "wm/process/provide",
+                        "score": 0.676443874835968
+                    },
+                    {
+                        "name": "wm/process/consume",
+                        "score": 0.6658775806427002
+                    },
+                    {
+                        "name": "wm/process/manipulate",
+                        "score": 0.6548094153404236
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/preparedness",
+                        "score": 0.7439931035041809
+                    },
+                    {
+                        "name": "wm/property/common_understanding",
+                        "score": 0.7329039573669434
+                    },
+                    {
+                        "name": "wm/property/condition",
+                        "score": 0.6799535155296326
+                    },
+                    {
+                        "name": "wm/property/seasonality",
+                        "score": 0.6683254837989807
+                    },
+                    {
+                        "name": "wm/property/stability",
+                        "score": 0.6603776812553406
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/national",
+                        "score": 0.651875913143158
+                    },
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.6411834955215454
+                    },
+                    {
+                        "name": "wm/property/coping_capacities",
+                        "score": 0.6262258887290955
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/global",
+                        "score": 0.614428699016571
+                    }
+                ]
+            },
+            "related_features": [
+                "Q"
+            ]
+        },
+        {
+            "name": "timestamp",
+            "display_name": "timestamp",
+            "description": "datetime",
+            "type": "datetime",
+            "unit": "date",
+            "unit_description": null,
+            "ontologies": {
+                "concepts": [
+                    {
+                        "name": "wm/concept/entity/field_reports",
+                        "score": 0.7839809656143188
+                    },
+                    {
+                        "name": "wm/concept/plan",
+                        "score": 0.7774632573127747
+                    },
+                    {
+                        "name": "wm/concept/intervention",
+                        "score": 0.7764275670051575
+                    },
+                    {
+                        "name": "wm/concept/innovation",
+                        "score": 0.7368778586387634
+                    },
+                    {
+                        "name": "wm/concept/social_structure",
+                        "score": 0.6999903917312622
+                    },
+                    {
+                        "name": "wm/concept/economy/labor",
+                        "score": 0.6896030306816101
+                    },
+                    {
+                        "name": "wm/concept/government/government_program",
+                        "score": 0.6876140832901001
+                    },
+                    {
+                        "name": "wm/concept/time/",
+                        "score": 0.6733529567718506
+                    },
+                    {
+                        "name": "wm/concept/economy/economy",
+                        "score": 0.6702818870544434
+                    },
+                    {
+                        "name": "wm/concept/humanitarian_assistance/food_aid",
+                        "score": 0.6680227518081665
+                    }
+                ],
+                "processes": [
+                    {
+                        "name": "wm/process/produce",
+                        "score": 0.7224045395851135
+                    },
+                    {
+                        "name": "wm/process/train/train",
+                        "score": 0.7103654146194458
+                    },
+                    {
+                        "name": "wm/process/attempt",
+                        "score": 0.7026597857475281
+                    },
+                    {
+                        "name": "wm/process/modify",
+                        "score": 0.7019283175468445
+                    },
+                    {
+                        "name": "wm/process/planning",
+                        "score": 0.6903087496757507
+                    },
+                    {
+                        "name": "wm/process/train/agriculture_training",
+                        "score": 0.679680585861206
+                    },
+                    {
+                        "name": "wm/process/research",
+                        "score": 0.6795690059661865
+                    },
+                    {
+                        "name": "wm/process/provide",
+                        "score": 0.6773463487625122
+                    },
+                    {
+                        "name": "wm/process/consume",
+                        "score": 0.6642968058586121
+                    },
+                    {
+                        "name": "wm/process/manipulate",
+                        "score": 0.6572719812393188
+                    }
+                ],
+                "properties": [
+                    {
+                        "name": "wm/property/preparedness",
+                        "score": 0.743294358253479
+                    },
+                    {
+                        "name": "wm/property/common_understanding",
+                        "score": 0.7304412126541138
+                    },
+                    {
+                        "name": "wm/property/condition",
+                        "score": 0.6758145093917847
+                    },
+                    {
+                        "name": "wm/property/seasonality",
+                        "score": 0.6658504009246826
+                    },
+                    {
+                        "name": "wm/property/stability",
+                        "score": 0.6596600413322449
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/national",
+                        "score": 0.6453952789306641
+                    },
+                    {
+                        "name": "wm/property/price_or_cost",
+                        "score": 0.6394750475883484
+                    },
+                    {
+                        "name": "wm/property/coping_capacities",
+                        "score": 0.6254063844680786
+                    },
+                    {
+                        "name": "wm/property/geographic_resolution/global",
+                        "score": 0.6101918816566467
+                    }
+                ]
+            },
+            "related_features": [
+                "Q"
+            ]
+        }
+    ],
+    "tags": null,
+    "geography": {
+        "country": null,
+        "admin1": null,
+        "admin2": null,
+        "admin3": null,
+        "coordinates": [
+            [
+                [
+                    "0.69",
+                    "40.75"
+                ],
+                [
+                    "-3.15",
+                    "36.4"
+                ]
+            ],
+            [
+                [
+                    "-0.94",
+                    "40.23"
+                ],
+                [
+                    "-3.56",
+                    "36.3"
+                ]
+            ]
+        ]
+    },
+    "period": {
+        "gte": 1420081200000,
+        "lte": 1546225200000
+    },
+    "stochastic": "false",
+    "type": "model"
+}

@@ -1,0 +1,67 @@
+{
+    "id": "1c33976c-ee2e-4597-b22b-06e4fd04e3ac",
+    "model_id": "897da460-6118-4a13-9d41-38e948792cb9",
+    "name": "CHIRPS Rainfall",
+    "output_directory": "/home/clouseau/results",
+    "path": "chirps.csv",
+    "file_type": "csv",
+    "transform": {
+        "geo": [
+            {
+                "name": "latitude",
+                "display_name": "latitude",
+                "description": "location",
+                "type": "geo",
+                "geo_type": "latitude",
+                "primary_geo": true,
+                "is_geo_pair": "longitude"
+            },
+            {
+                "name": "longitude",
+                "display_name": "Longitude",
+                "description": "location",
+                "type": "geo",
+                "geo_type": "longitude",
+                "primary_geo": true,
+                "is_geo_pair": "latitude"
+            }
+        ],
+        "date": [
+            {
+                "name": "date",
+                "display_name": "Date",
+                "description": "time",
+                "type": "date",
+                "date_type": "date",
+                "time_format": "%m/%d/%Y",
+                "primary_date": true
+            }
+        ],
+        "feature": [
+            {
+                "name": "rainfall",
+                "display_name": "Rainfall",
+                "description": "rainfall amount",
+                "type": "feature",
+                "feature_type": "float",
+                "units": "mm",
+                "units_description": ""
+            },
+            {
+                "name": "type",
+                "display_name": "Type",
+                "description": "type of rainfall measurement",
+                "type": "feature",
+                "feature_type": "string",
+                "units": "na",
+                "units_description": "",
+                "qualifies": [
+                    "rainfall"
+                ]
+            }
+        ],
+        "meta": {
+            "ftype": "csv"
+        }
+    }
+}

@@ -29,9 +29,12 @@ mapper = json.loads(open("mapper.json").read())
 outputfile = {
     "id": "dummy-outputfile-1",
     "model_id": "dummy-model-v0.1",
+    "output_directory": "/model/output",
+    "path": "output.csv",
     "name": "dummy-model",
     "file_type": "csv",
-    "path": "output_{{rainfall}}_{{temp}}.csv",
+    "output_directory": "/model/output",
+    "path": "output_*_*.csv",
     "transform": mapper,
 }
 resp = requests.post(f"{url}/dojo/outputfile", json=[outputfile])
@@ -40,4 +43,9 @@ print(resp.text)
 #### Add config
 config = json.loads(open("config_dummy_model.json").read())
 resp = requests.post(f"{url}/dojo/config", json=config)
+print(resp.text)
+
+#### Add accessories
+accessories = json.loads(open("dummy_accessories.json").read())
+resp = requests.put(f"{url}/dojo/accessories", json=accessories)
 print(resp.text)

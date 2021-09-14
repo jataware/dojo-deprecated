@@ -1,0 +1,140 @@
+[
+    {
+      "id": "226ec510-f786-405c-b173-a76bcba13570",
+      "model_id": "9f407b82-d2d2-4c38-a2c3-ae1bb483f476",
+      "name": "LPJmL crop production forecast for 2021-2022",
+      "output_directory": "/home/clouseau/output",
+      "path": "forecast_2021-2022.nc",
+      "file_type": "csv",
+      "transform": {
+        "geo": [
+          {
+            "name": "longitude",
+            "display_name": "longitude",
+            "description": "coordinates of the center of grid cell",
+            "type": "geo",
+            "geo_type": "longitude",
+            "primary_geo": true,
+            "is_geo_pair": "latitude"
+          },
+          {
+            "name": "latitude",
+            "display_name": "Latitude",
+            "description": "coordinates of the center of grid cell",
+            "type": "geo",
+            "geo_type": "latitude",
+            "primary_geo": true,
+            "is_geo_pair": "longitude"
+          }
+        ],
+        "date": [
+          {
+            "name": "sdate",
+            "display_name": "Sowing date",
+            "description": "date of planting",
+            "type": "date",
+            "date_type": "date",
+            "time_format": "%Y-%m-%d %H:%M:%S"
+          },
+          {
+            "name": "hdate",
+            "display_name": "Harvest date",
+            "description": "date of harvest",
+            "type": "date",
+            "date_type": "date",
+            "time_format": "%Y-%m-%d %H:%M:%S",
+            "primary_date": true
+          }
+        ],
+        "feature": [
+          {
+            "name": "harvested_area",
+            "display_name": "Harvested Area",
+            "description": "area from which the crop was harvested",
+            "type": "feature",
+            "feature_type": "float",
+            "units": "ha",
+            "units_description": "hectare"
+          },
+          {
+            "name": "crop_yield",
+            "display_name": "Crop Yield",
+            "description": "harvested biomass, expressed as dry matter",
+            "type": "feature",
+            "feature_type": "float",
+            "units": "kg/ha",
+            "units_description": "kilograms per hectare dry matter"
+          },
+          {
+            "name": "crop_production",
+            "display_name": "Crop Production",
+            "description": "crop production, expressed as dry matter",
+            "type": "feature",
+            "feature_type": "float",
+            "units": "t",
+            "units_description": "metric tons of dry matter"
+          },
+          {
+            "name": "irrigation_water",
+            "display_name": "Irrigation Water",
+            "description": "irrigation water applied to crop per growing season; does not include transport losses. always 0 for rainfed crops, applies only to irrigated crops.",
+            "type": "feature",
+            "feature_type": "float",
+            "units": "mm/season",
+            "units_description": "millimeters of irrigation water per growing season"
+          },
+          {
+            "name": "NameCrop",
+            "display_name": "Crop name",
+            "description": "crop name",
+            "type": "feature",
+            "feature_type": "string",
+            "units": "unitless",
+            "units_description": "",
+            "qualifies": [
+              "harvested_area",
+              "crop_yield",
+              "crop_production",
+              "irrigation_water",
+              "sdate"
+            ]
+          },
+          {
+            "name": "NameIrrigation",
+            "display_name": "Irrigation status",
+            "description": "irrigation status: either \"rainfed\" (no irrigation) or \"irrigated\". irrigation demand is determined by the model based on soil moisture deficit. ",
+            "type": "feature",
+            "feature_type": "string",
+            "units": "unitless",
+            "units_description": "",
+            "qualifies": [
+              "harvested_area",
+              "crop_yield",
+              "crop_production",
+              "irrigation_water",
+              "sdate"
+            ]
+          },
+          {
+            "name": "weather_year",
+            "display_name": "Weather Year",
+            "description": "historical weather analog used for forecast.",
+            "type": "feature",
+            "feature_type": "int",
+            "units": "year",
+            "units_description": "",
+            "qualifies": [
+              "harvested_area",
+              "crop_yield",
+              "crop_production",
+              "irrigation_water",
+              "sdate"
+            ]
+          }
+        ],
+        "meta": {
+          "ftype": "netcdf"
+        }
+      }
+    }
+  ]

@@ -1,0 +1,63 @@
+[
+    {
+      "id": "98de1557-dd0b-41ab-902a-e45738a4150b",
+      "model_id": "6c30c05d-54cd-4048-832f-0fd09793f08e",
+      "name": "shortest travel time to the nearest destination (urban centers or market)",
+      "output_directory": "/usr/src/app/output/final_targets/accessibility_model",
+      "path": "*_travel_time_*.tif",
+      "file_type": "geotiff",
+      "transform": {
+        "geo": [
+          {
+            "name": "latitude",
+            "display_name": "latitude",
+            "description": "data longitude",
+            "type": "geo",
+            "geo_type": "latitude",
+            "primary_geo": true,
+            "is_geo_pair": "longitude"
+          },
+          {
+            "name": "longitude",
+            "display_name": "Longitude",
+            "description": "data longitude",
+            "type": "geo",
+            "geo_type": "longitude",
+            "primary_geo": true,
+            "is_geo_pair": "latitude"
+          }
+        ],
+        "date": [
+          {
+              "name": "date",
+              "display_name": "Date",
+              "description": "year of date",
+              "type": "date",
+              "date_type": "year",
+              "time_format": "%Y",
+              "primary_date": true
+          }
+      ],
+        "feature": [
+          {
+            "name": "travel time",
+            "display_name": "Travel Time",
+            "description": "travel time to the nearest destination in minutes.",
+            "type": "feature",
+            "feature_type": "float",
+            "units": "minutes",
+            "units_description": "minutes required to travel to the nearest destination"
+          }
+        ],
+        "meta": {
+          "ftype": "geotiff",
+          "feature_name": "travel time",
+          "band_name": "1",
+          "band": "",
+          "null_val": "-9999",
+          "date": "2021",
+          "bands": {"1":"travel time"}
+        }
+      }
+    }
+  ]

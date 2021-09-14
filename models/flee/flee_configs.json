@@ -1,0 +1,14 @@
+[
+    {
+        "id": "dojo/shorthand_templates/ceedd3b0-f48f-43d2-b279-d74be695ed1c/48091583e9978ae45befb40307a1a671.template.txt",
+        "model_id": "ceedd3b0-f48f-43d2-b279-d74be695ed1c",
+        "s3_url": "https://jataware-world-modelers.s3.amazonaws.com/dojo/shorthand_templates/ceedd3b0-f48f-43d2-b279-d74be695ed1c/48091583e9978ae45befb40307a1a671.template.txt",
+        "path": "/home/clouseau/flee/flee/SimulationSettings.py"
+    },
+    {
+        "id": "dojo/shorthand_templates/ceedd3b0-f48f-43d2-b279-d74be695ed1c/0d39c72fd171383975586914a4cce1bf.template.txt",
+        "model_id": "ceedd3b0-f48f-43d2-b279-d74be695ed1c",
+        "s3_url": "https://jataware-world-modelers.s3.amazonaws.com/dojo/shorthand_templates/ceedd3b0-f48f-43d2-b279-d74be695ed1c/0d39c72fd171383975586914a4cce1bf.template.txt",
+        "path": "/home/clouseau/flee/Flee_scenarios/ssudan/simsetting.csv"
+    }
+]

@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, Response
 from pydantic import BaseModel
 
 from src.redisapi import redis_pool
+from src.dockerhub import get_image_tags
 
 
 logger: Logger = logging.getLogger(__name__)
@@ -33,10 +34,12 @@ async def ping_redis(redis: aioredis.Redis = Depends(redis_pool)) -> str:
     return Response(content=str(await redis.ping()), media_type="plain/text")
 
 
+
 @router.get("/base_images")
 async def get_base_images(redis: aioredis.Redis = Depends(redis_pool)) -> List[BaseImageItem]:
-    res = await redis.hgetall(BASE_IMAGES_KEY)
-    return sorted((json.loads(x) for x in res.values()), key=lambda x: x.get("sort_order", 100) or 100)
+    #res = await redis.hgetall(BASE_IMAGES_KEY)
+    #return sorted((json.loads(x) for x in res.values()), key=lambda x: x.get("sort_order", 100) or 100)
+    return get_image_tags()
 
 
 @router.post("/base_images")
@@ -49,4 +52,3 @@ async def add_base_image(item: BaseImageItem, redis: aioredis.Redis = Depends(re
 async def delete_base_image(item: BaseImageItem, redis: aioredis.Redis = Depends(redis_pool)) -> List[BaseImageItem]:
     await redis.hdel(BASE_IMAGES_KEY, item.hash())
     return await get_base_images(redis)
-

@@ -1,0 +1,41 @@
+{
+    "id": "chirps-test-run",
+    "model_name": "CHIRPS - Climate Hazards Center Infrared Precipitation with Stations",
+    "model_id": "897da460-6118-4a13-9d41-38e948792cb9",
+    "created_at": 0,
+    "data_paths": [],
+    "pre_gen_output_paths": [],
+    "is_default_run": false,
+    "tags": [],
+    "parameters": [
+      {
+        "name": "month",
+        "value": 1
+      },
+      {
+        "name":"year",
+        "value": 2020
+      },
+      {
+        "name":"left",
+        "value": 33.512234
+      },
+      {
+        "name":"bottom",
+        "value": 2.719907
+      },
+      {
+        "name":"right",
+        "value": 49.98171
+      },
+      {
+        "name":"top",
+        "value": 16.501768
+      },
+      {
+        "name":"statistic",
+        "value": "mm_data"
+      }                        
+    ],
+    "attributes":{}
+  }

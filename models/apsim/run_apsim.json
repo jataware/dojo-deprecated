@@ -1,0 +1,30 @@
+{
+    "id": "apsim-test-run",
+    "model_name": "APSIM",
+    "model_id": "deeaae7d-2820-4019-b7af-0e9ffd4455bb",
+    "created_at": 0,
+    "data_paths": [],
+    "pre_gen_output_paths": null,
+    "is_default_run": false,
+    "parameters": [
+      {
+        "name": "country",
+        "value": "ethiopia"
+      },
+      {
+        "name": "run_type",
+        "value": "forecast"
+      },
+      {
+        "name": "temporal_aggregation",
+        "value": "annual"
+      },
+      {
+        "name": "year",
+        "value": 2021
+      }      
+    ],
+    "tags": [],
+    "attributes": {
+    }
+  }

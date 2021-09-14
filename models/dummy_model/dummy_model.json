@@ -7,6 +7,7 @@
    "type":"model",
    "status":"current",
    "category":["Testing"],
+   "family_name" :"dummies",
    "maintainer":{
       "name":"Jataware",
       "email":"kyle@jataware.com",
@@ -60,7 +61,7 @@
               "black",
               "white"
            ],
-         "default":"blue",
+         "default":0.0,
          "tags":[
          ]
      }
@@ -68,6 +69,8 @@
    "outputs":[
       {
          "id":"dummy-output-1",
+         "ontologies": {"concepts": [], "processes": [], "properties": []},
+         "is_primary": true,
          "name":"latitude",
          "display_name":"Latitude",
          "description":"Fake latitude data",
@@ -83,6 +86,8 @@
       },
       {
          "id":"dummy-output-2",
+         "ontologies": {"concepts": [], "processes": [], "properties": []},
+         "is_primary": true,
          "name":"longitude",
          "display_name":"Longitude",
          "description":"Fake longitude data",
@@ -98,6 +103,8 @@
       },
       {
          "id":"dummy-output-3",
+         "ontologies": {"concepts": [], "processes": [], "properties": []},
+         "is_primary": true,
          "name":"date",
          "display_name":"date",
          "description":"Fake date data",
@@ -109,6 +116,8 @@
        },
      {
        "id": "dummy-output-4",
+       "ontologies": {"concepts": [], "processes": [], "properties": []},
+         "is_primary": true,
        "name": "value",
        "display_name": "Value",
        "description": "Fake value data",
