@@ -110,3 +110,71 @@ def register_model(model_id: str):
         status_code=status.HTTP_201_CREATED,
         content=f"Registered model to CauseMos with id = {model_id}"
     )
+
+
+@router.put("/models/version/{model_id}/{version_name}")
+def version_model(model_id : str, version_name :str, payload : dict):
+    #payload structure delete non present fields?
+    #endpoint to version a model, model_id = original_id - version_name
+    model = get_model(model_id)
+    
+    original_model_change = {}
+    original_model_change['original_id'] = model.get('original_id', model_id)
+    prev_version = model.get('version', '')
+    original_model_change['next_version'] = version_name
+    modify_model(model_id, original_model_change)
+    
+    model['id'] = f'{original_model_change["original_id"]}-{original_model_change["next_version"]}'
+    model['original_id'] = model.get('original_id' , model_id)
+    model['version'] = version_name
+    
+    for x in payload.keys():
+        model[x] = payload[x]
+    
+    if model.get('next_version', False):
+        del model['next_version']
+    
+    model['prev_version'] = prev_version
+    es.index(index="models", body=model, id=model['id'])
+    return True
+
+@router.get("/models/latest/{model_id}")
+def get_latest_model(model_id: str):
+    model = es.get(index="models", id=model_id)["_source"]
+    while model.get('next_version', False):
+        
+        model = es.get(index="models", id=f"{model_id}-{model['next_version']}")["_source"]
+    return model
+
+@router.get("/models/latest/")
+def get_latest_models(scroll_id=None, size=100):
+    search_param = {
+        'query': {
+            'bool':{
+            'must_not': {
+                'exists': {'field' : 'next_version'}
+            }}
+        }
+    }
+    
+    if not scroll_id:
+        # we need to kick off the query
+        results = es.search(index="models", size=size, scroll="2m", body=search_param)
+
+    else:
+        # otherwise, we can use the scroll
+        results = es.scroll(scroll_id=scroll_id, scroll="2m")
+
+    # get count
+
+
+    # if results are less than the page size (10) don't return a scroll_id
+    if len(results["hits"]["hits"]) < size:
+        scroll_id = None
+    else:
+        scroll_id = results.get("_scroll_id", None)
+    return {
+        "hits": len([i["_source"] for i in results["hits"]["hits"]]),
+        "scroll_id": scroll_id,
+        "results": [i["_source"] for i in results["hits"]["hits"]],
+    }
