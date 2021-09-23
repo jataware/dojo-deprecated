@@ -45,6 +45,11 @@ class ModelConfig(BaseModel):
         description="The S3 URL where the config file is located",
         example="https://jataware-world-modelers.s3.amazonaws.com/dummy-model/config.json",
     )
+    s3_url_rehydrated: str = Field(
+        title="S3 URL (rehydrated)",
+        description="The S3 URL where the rehydrated config file is located",
+        example="https://jataware-world-modelers.s3.amazonaws.com/dummy-model/rehydrated-config.json",
+    )
     path: str = Field(
         title="File Path",
         description="The file path where the conf file must be mounted.",
@@ -66,6 +71,11 @@ class ModelDirective(BaseModel):
         title="Model Container command",
         description="The model container command, templated using Jinja. Templated fields must correspond with the name of the model parameters.",
         example="python3 dssat.py --management_practice = {{ management_practice }}",
+    )
+    rehydrated_command: str = Field(
+        title="Model Container command",
+        description="The raw model container command",
+        example="python3 dssat.py --rainfall = .5 ",
     )
 
     class Config:
