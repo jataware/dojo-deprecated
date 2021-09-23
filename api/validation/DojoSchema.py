@@ -72,7 +72,7 @@ class ModelDirective(BaseModel):
         description="The model container command, templated using Jinja. Templated fields must correspond with the name of the model parameters.",
         example="python3 dssat.py --management_practice = {{ management_practice }}",
     )
-    rehydrated_command: str = Field(
+    command_rehydrated: str = Field(
         title="Model Container command",
         description="The raw model container command",
         example="python3 dssat.py --rainfall = .5 ",
