@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+import uuid
 import time
 from datetime import datetime
 import json
@@ -13,7 +13,7 @@ from fastapi.logger import logger
 from validation import ModelSchema, DojoSchema
 
 from src.settings import settings
-from src.dojo import search_and_scroll
+from src.dojo import search_and_scroll, copy_configs, copy_outputfiles
 from src.ontologies import get_ontologies
 from src.causemos import notify_causemos, submit_run
 
@@ -112,39 +112,28 @@ def register_model(model_id: str):
     )
 
 
-@router.put("/models/version/{model_id}/{version_name}")
-def version_model(model_id : str, version_name :str, payload : dict):
+@router.put("/models/version/{model_id}")
+def version_model(model_id : str, payload : dict):
     #payload structure delete non present fields?
     #endpoint to version a model, model_id = original_id - version_name
     model = get_model(model_id)
-    
-    original_model_change = {}
-    original_model_change['original_id'] = model.get('original_id', model_id)
-    prev_version = model.get('version', '')
-    original_model_change['next_version'] = version_name
-    modify_model(model_id, original_model_change)
-    
-    model['id'] = f'{original_model_change["original_id"]}-{original_model_change["next_version"]}'
-    model['original_id'] = model.get('original_id' , model_id)
-    model['version'] = version_name
-    
+    new_id = str(uuid.uuid4())
+    model['next_version'] = new_id
+    es.index(index="models", body=model, id=model['id'])
+
+    model['id'] = new_id
+    model['prev_version'] = model_id
+    del model['next_version']
     for x in payload.keys():
         model[x] = payload[x]
-    
-    if model.get('next_version', False):
-        del model['next_version']
-    
-    model['prev_version'] = prev_version
+
     es.index(index="models", body=model, id=model['id'])
+    copy_outputfiles(model_id, new_id)
+    copy_configs(model_id, new_id)
     return True
 
-@router.get("/models/latest/{model_id}")
-def get_latest_model(model_id: str):
-    model = es.get(index="models", id=model_id)["_source"]
-    while model.get('next_version', False):
-        
-        model = es.get(index="models", id=f"{model_id}-{model['next_version']}")["_source"]
-    return model
+
+
 
 @router.get("/models/latest/")
 def get_latest_models(scroll_id=None, size=100):

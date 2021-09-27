@@ -109,7 +109,6 @@ def create_configs(payload: List[DojoSchema.ModelConfig]):
         content=f"Created config(s) for model with id = {p.model_id}",
     )
 
-
 @router.get("/dojo/config/{model_id}")
 def get_configs(model_id: str) -> List[DojoSchema.ModelConfig]:
     results = es.search(index="configs", body=search_by_model(model_id))
@@ -120,6 +119,17 @@ def get_configs(model_id: str) -> List[DojoSchema.ModelConfig]:
             status_code=status.HTTP_404_NOT_FOUND,
             content=f"Config(s) for model {model_id} not found.",
         )
+
+def copy_configs(model_id: str, new_id: str):
+    """
+    Create one or more model `configs`. A `config` is a settings file which is used by the model to
+    set a specific parameter level. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
+    maps directly to the name of a specific `parameter.
+    """
+    configs = get_configs(model_id)
+    for i in range(len(configs)):
+        configs[i]['model_id'] = new_id
+    create_configs(configs)
 
 
 @router.post("/dojo/outputfile")
@@ -149,6 +159,17 @@ def get_outputfiles(model_id: str) -> List[DojoSchema.ModelOutputFile]:
             content=f"Outputfile(s) for model {model_id} not found.",
         )
 
+
+def copy_outputfiles(model_id: str, new_id: str):
+    """
+    Create one or more model `configs`. A `config` is a settings file which is used by the model to
+    set a specific parameter level. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
+    maps directly to the name of a specific `parameter.
+    """
+    outputfiles = get_outputfiles(model_id)
+    for i in range(len(outputfiles)):
+        outputfiles[i]['model_id'] = new_id
+    create_outputfiles(outputfiles)
 
 ### Accessories Endpoints
 
