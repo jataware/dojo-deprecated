@@ -131,7 +131,7 @@ def copy_configs(model_id: str, new_id: str):
         configs[i]['model_id'] = new_id
 
     for c in configs:
-        es.index(index="configs", body=p, id=p['id'])
+        es.index(index="configs", body=c, id=c['id'])
 
 
 @router.post("/dojo/outputfile")
