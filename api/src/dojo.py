@@ -100,7 +100,7 @@ def copy_directive(model_id: str, new_id: str):
     maps directly to the name of a specific `parameter.
     """
     directive = get_directive(model_id)
-    directive['id'] = new_id
+    directive['model_id'] = new_id
     es.index(index="directives", body=directive, id=new_id)
 
 @router.post("/dojo/config")
@@ -136,7 +136,7 @@ def copy_configs(model_id: str, new_id: str):
     maps directly to the name of a specific `parameter.
     """
     configs = get_configs(model_id)
-    
+
     for i in range(len(configs)):
         configs[i]['model_id'] = new_id
 
