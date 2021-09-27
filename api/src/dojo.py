@@ -99,11 +99,9 @@ def copy_directive(model_id: str, new_id: str):
     set a specific parameter level. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
     maps directly to the name of a specific `parameter.
     """
-    directives = get_directives(model_id)
-    for i in range(len(directives)):
-        directives[i]['id'] = new_id
-    for o in directives:
-        es.index(index="outputfiles", body=o, id=o['id'])
+    directive = get_directive(model_id)
+    directive['id'] = new_id
+    es.index(index="directives", body=directive, id=new_id)
 
 @router.post("/dojo/config")
 def create_configs(payload: List[DojoSchema.ModelConfig]):
@@ -138,11 +136,12 @@ def copy_configs(model_id: str, new_id: str):
     maps directly to the name of a specific `parameter.
     """
     configs = get_configs(model_id)
+    
     for i in range(len(configs)):
         configs[i]['model_id'] = new_id
 
     for c in configs:
-        es.index(index="configs", body=c, id=c['id'])
+        es.index(index="configs", body=c, id=c['model_id'])
 
 
 @router.post("/dojo/outputfile")

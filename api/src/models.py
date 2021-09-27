@@ -69,7 +69,7 @@ def modify_model(model_id: str, payload: dict = Body(...)):
 
 @router.get("/models", response_model=DojoSchema.ModelSearchResult)
 def search_models(
-    query: str = Query(None), size: int = 10, scroll_id: str = Query(None)
+    query: str = None, size: int = 10, scroll_id: str = Query(None)
 ) -> DojoSchema.ModelSearchResult:
     return search_and_scroll(
         index="models", size=size, query=query, scroll_id=scroll_id
@@ -119,7 +119,7 @@ def version_model(model_id : str, payload : dict):
     model = get_model(model_id)
     new_id = str(uuid.uuid4())
     model['next_version'] = new_id
-    es.index(index="models", body=model, id=model['id'])
+    es.index(index="models", body=model, id=model_id)
 
     model['id'] = new_id
     model['prev_version'] = model_id
@@ -127,7 +127,7 @@ def version_model(model_id : str, payload : dict):
     for x in payload.keys():
         model[x] = payload[x]
 
-    es.index(index="models", body=model, id=model['id'])
+    es.index(index="models", body=model, id=new_id)
     copy_outputfiles(model_id, new_id)
     copy_configs(model_id, new_id)
     copy_directive(model_id, new_id)
