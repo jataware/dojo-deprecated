@@ -93,6 +93,17 @@ def get_directive(model_id: str) -> DojoSchema.ModelDirective:
             content=f"Directive for model {model_id} not found.",
         )
 
+def copy_directive(model_id: str, new_id: str):
+    """
+    Create one or more model `configs`. A `config` is a settings file which is used by the model to
+    set a specific parameter level. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
+    maps directly to the name of a specific `parameter.
+    """
+    directives = get_directives(model_id)
+    for i in range(len(directives)):
+        directives[i]['id'] = new_id
+    for o in directives:
+        es.index(index="outputfiles", body=o, id=o['id'])
 
 @router.post("/dojo/config")
 def create_configs(payload: List[DojoSchema.ModelConfig]):
@@ -173,6 +184,7 @@ def copy_outputfiles(model_id: str, new_id: str):
         outputfiles[i]['model_id'] = new_id
     for o in outputfiles:
         es.index(index="outputfiles", body=o, id=o['id'])
+
 
 ### Accessories Endpoints
 

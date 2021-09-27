@@ -13,7 +13,7 @@ from fastapi.logger import logger
 from validation import ModelSchema, DojoSchema
 
 from src.settings import settings
-from src.dojo import search_and_scroll, copy_configs, copy_outputfiles
+from src.dojo import search_and_scroll, copy_configs, copy_outputfiles, copy_directive
 from src.ontologies import get_ontologies
 from src.causemos import notify_causemos, submit_run
 
@@ -130,7 +130,8 @@ def version_model(model_id : str, payload : dict):
     es.index(index="models", body=model, id=model['id'])
     copy_outputfiles(model_id, new_id)
     copy_configs(model_id, new_id)
-    return True
+    copy_directive(model_id, new_id)
+    return new_id
 
 
 
