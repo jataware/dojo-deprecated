@@ -129,7 +129,9 @@ def copy_configs(model_id: str, new_id: str):
     configs = get_configs(model_id)
     for i in range(len(configs)):
         configs[i]['model_id'] = new_id
-    create_configs(configs)
+
+    for c in configs:
+        es.index(index="configs", body=p, id=p['id'])
 
 
 @router.post("/dojo/outputfile")
@@ -169,7 +171,8 @@ def copy_outputfiles(model_id: str, new_id: str):
     outputfiles = get_outputfiles(model_id)
     for i in range(len(outputfiles)):
         outputfiles[i]['model_id'] = new_id
-    create_outputfiles(outputfiles)
+    for o in outputfiles:
+        es.index(index="outputfiles", body=o, id=o['id'])
 
 ### Accessories Endpoints
 
