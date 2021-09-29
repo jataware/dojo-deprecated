@@ -18,7 +18,6 @@ router = APIRouter()
 
 es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
 
-
 def search_by_model(model_id):
     q = {"query": {"term": {"model_id.keyword": {"value": model_id, "boost": 1.0}}}}
     return q
@@ -93,15 +92,18 @@ def get_directive(model_id: str) -> DojoSchema.ModelDirective:
             content=f"Directive for model {model_id} not found.",
         )
 
-def copy_directive(model_id: str, new_id: str):
+def copy_directive(model_id: str, new_model_id: str):
     """
-    Create one or more model `configs`. A `config` is a settings file which is used by the model to
-    set a specific parameter level. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
-    maps directly to the name of a specific `parameter.
+    Copy the directive from one model_id to a new_model_id
     """
+    ind_id = str(uuid.uuid4())
     directive = get_directive(model_id)
-    directive['model_id'] = new_id
-    es.index(index="directives", body=directive, id=new_id)
+    directive['model_id'] = new_model_id
+    directive['id'] = ind_id
+
+    d = ModelDirective.parseraw(str(directive))
+    create_directive(d)
+    #es.index(index="directives", body=directive, id=ind_id)
 
 @router.post("/dojo/config")
 def create_configs(payload: List[DojoSchema.ModelConfig]):
@@ -129,19 +131,22 @@ def get_configs(model_id: str) -> List[DojoSchema.ModelConfig]:
             content=f"Config(s) for model {model_id} not found.",
         )
 
-def copy_configs(model_id: str, new_id: str):
+def copy_configs(model_id: str, new_model_id: str):
     """
-    Create one or more model `configs`. A `config` is a settings file which is used by the model to
-    set a specific parameter level. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
-    maps directly to the name of a specific `parameter.
+    Copy config files for one model_id to a new_model_id
     """
     configs = get_configs(model_id)
+    models = []
 
     for i in range(len(configs)):
-        configs[i]['model_id'] = new_id
+        ind_id = str(uuid.uuid4())
+        configs[i]['model_id'] = new_model_id
+        configs[i]['id'] = ind_id
+        m = ModelConfig.parseraw(str(configs[i]))
+        models.append(m)
 
-    for c in configs:
-        es.index(index="configs", body=c, id=c['model_id'])
+    create_configs(models)
+
 
 
 @router.post("/dojo/outputfile")
@@ -172,17 +177,20 @@ def get_outputfiles(model_id: str) -> List[DojoSchema.ModelOutputFile]:
         )
 
 
-def copy_outputfiles(model_id: str, new_id: str):
+def copy_outputfiles(model_id: str, new_model_id: str):
     """
-    Create one or more model `configs`. A `config` is a settings file which is used by the model to
-    set a specific parameter level. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
-    maps directly to the name of a specific `parameter.
+    copy outputfiles for a single model_id to a new_model_id
     """
     outputfiles = get_outputfiles(model_id)
+    model_outputs = []
     for i in range(len(outputfiles)):
-        outputfiles[i]['model_id'] = new_id
-    for o in outputfiles:
-        es.index(index="outputfiles", body=o, id=o['id'])
+        ind_id = str(uuid.uuid4())
+        outputfiles[i]['model_id'] = new_model_id
+        outputfiles[i]['id'] = ind_id
+        m = ModelOutputFile.parseraw(str(outputfiles[i]))
+        model_outputs.append(m)
+
+    create_outputfiles(model_outputs)
 
 
 ### Accessories Endpoints
