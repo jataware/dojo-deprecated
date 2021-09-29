@@ -97,9 +97,10 @@ def copy_directive(model_id: str, new_model_id: str):
     Copy the directive from one model_id to a new_model_id
     """
     ind_id = str(uuid.uuid4())
+    directive['id'] = ind_id
+
     directive = get_directive(model_id)
     directive['model_id'] = new_model_id
-    directive['id'] = ind_id
 
     d = DojoSchema.ModelDirective(**directive)
     create_directive(d)
@@ -139,16 +140,17 @@ def copy_configs(model_id: str, new_model_id: str):
     Copy config files for one model_id to a new_model_id
     """
     configs = get_configs(model_id)
-    models = []
+    new_configs = []
 
     for i in range(len(configs)):
         ind_id = str(uuid.uuid4())
-        configs[i]['model_id'] = new_model_id
         configs[i]['id'] = ind_id
-        m = DojoSchema.ModelConfig(**configs[i])
-        models.append(m)
+        configs[i]['model_id'] = new_model_id
+        
+        c = DojoSchema.ModelConfig(**configs[i])
+        new_configs.append(m)
 
-    create_configs(models)
+    create_configs(new_configs)
 
 
 
@@ -195,8 +197,9 @@ def copy_outputfiles(model_id: str, new_model_id: str):
 
     for i in range(len(outputfiles)):
         ind_id = str(uuid.uuid4())
-        outputfiles[i]['model_id'] = new_model_id
         outputfiles[i]['id'] = ind_id
+
+        outputfiles[i]['model_id'] = new_model_id
         m = DojoSchema.ModelOutputFile(**outputfiles[i])
         model_outputs.append(m)
 
@@ -301,8 +304,8 @@ def copy_accessory_files(model_id: str, new_model_id: str):
     
     for f in range(len(a_files)):
         ind_id = str(uuid.uuid4())
-        a_files[f]['model_id'] = new_model_id
         a_files[f]['id'] = ind_id
+        a_files[f]['model_id'] = new_model_id
         ma = DojoSchema.ModelAccessory(**a_files[f])
         model_accessories.append(ma)
 
