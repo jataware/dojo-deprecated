@@ -193,11 +193,11 @@ def copy_outputfiles(model_id: str, new_model_id: str):
     outputfiles = get_outputfiles(model_id)
     model_outputs = []
 
-    for i in range(len(outputfiles)):
+    for i in len(range(outputfiles)):
         ind_id = str(uuid.uuid4())
         outputfiles[i]['model_id'] = new_model_id
         outputfiles[i]['id'] = ind_id
-        m = ModelOutputFile(**outputfiles[i])
+        m = DojoSchema.ModelOutputFile(**outputfiles[i])
         model_outputs.append(m)
 
     create_outputfiles(model_outputs)
@@ -299,7 +299,7 @@ def copy_accessory_files(model_id: str, new_model_id: str):
     a_files = get_accessory_files(model_id)
     model_accessories = []
     
-    for f in len(range(a_files)):
+    for f in range(len(a_files)):
         ind_id = str(uuid.uuid4())
         a_files[f]['model_id'] = new_model_id
         a_files[f]['id'] = ind_id
