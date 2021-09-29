@@ -306,4 +306,4 @@ def copy_accessory_files(model_id: str, new_model_id: str):
         ma = DojoSchema.ModelAccessory(**a_files[f])
         model_accessories.append(ma)
 
-    create_accessory_files(ma)
+    create_accessory_files(model_accessories)
