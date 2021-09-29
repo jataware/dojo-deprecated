@@ -103,7 +103,6 @@ def copy_directive(model_id: str, new_model_id: str):
 
     d = DojoSchema.ModelDirective(**directive)
     create_directive(d)
-    #es.index(index="directives", body=directive, id=ind_id)
 
 @router.post("/dojo/config")
 def create_configs(payload: List[DojoSchema.ModelConfig]):
@@ -189,7 +188,7 @@ def get_outputfiles(model_id: str) -> List[DojoSchema.ModelOutputFile]:
 
 def copy_outputfiles(model_id: str, new_model_id: str):
     """
-    copy outputfiles for a single model_id to a new_model_id
+    Copy outputfiles for a single model_id to a new_model_id
     """
     outputfiles = get_outputfiles(model_id)
     model_outputs = []
@@ -291,4 +290,20 @@ def create_accessory_files(payload: List[DojoSchema.ModelAccessory]):
         headers={"location": f"/api/dojo/accessory/{p.id}"},
         content=f"Created accessories(s) for model with id = {p.model_id}",
     )
+
+def copy_accessory_files(model_id: str, new_model_id: str):
+    """
+    Copy the accessory_files from one model_id to a new_model_id
+    """
     
+    a_files = get_accessory_files(model_id)
+    model_accessories = []
+    
+    for f in len(range(a_files)):
+        ind_id = str(uuid.uuid4())
+        a_files[f]['model_id'] = new_model_id
+        a_files[f]['id'] = ind_id
+        ma = DojoSchema.ModelAccessory(**directive)
+        model_accessories.append(ma)
+
+    create_accessory_files(ma)

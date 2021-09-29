@@ -514,3 +514,12 @@ class ModelMetadataSchema(BaseModel):
     period: Optional[Period] = Field(
         None, description="Data ranges covered by the run", title="Run time period"
     )
+    
+    next_version: Optional[str] = Field(
+        None, description="UUID of the next version", title="next model version"
+    )
+
+    prev_version: Optional[str] = Field(
+        None, description="UUID of the pervious version", title="previous model version"
+    )
+
