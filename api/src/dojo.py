@@ -101,7 +101,7 @@ def copy_directive(model_id: str, new_model_id: str):
     directive['model_id'] = new_model_id
     directive['id'] = ind_id
 
-    d = ModelDirective.parseraw(str(directive))
+    d = DojoSchema.ModelDirective(**directive)
     create_directive(d)
     #es.index(index="directives", body=directive, id=ind_id)
 
@@ -112,8 +112,12 @@ def create_configs(payload: List[DojoSchema.ModelConfig]):
     set a specific parameter level. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
     maps directly to the name of a specific `parameter.
     """
+    if len(payload) == 0:
+        return Response(status_code=status.HTTP_400_BAD_REQUEST,content=f"No payload")
+
     for p in payload:
         es.index(index="configs", body=p.json(), id=p.id)
+    p = payload[0]
     return Response(
         status_code=status.HTTP_201_CREATED,
         headers={"location": f"/api/dojo/config/{p.id}"},
@@ -142,7 +146,7 @@ def copy_configs(model_id: str, new_model_id: str):
         ind_id = str(uuid.uuid4())
         configs[i]['model_id'] = new_model_id
         configs[i]['id'] = ind_id
-        m = ModelConfig.parseraw(str(configs[i]))
+        m = DojoSchema.ModelConfig(**configs[i])
         models.append(m)
 
     create_configs(models)
@@ -156,8 +160,14 @@ def create_outputfiles(payload: List[DojoSchema.ModelOutputFile]):
     execution. Here we store key metadata about the `outputfile` which enables us to find it within the container and
     normalize it into a CauseMos compliant format.
     """
+    if len(payload) == 0:
+        return Response(status_code=status.HTTP_400_BAD_REQUEST,content=f"No payload")
+
     for p in payload:
         es.index(index="outputfiles", body=p.json(), id=p.id)
+
+    p = payload[-1]
+
     return Response(
         status_code=status.HTTP_201_CREATED,
         headers={"location": f"/api/dojo/outputfile/{p.id}"},
@@ -183,11 +193,12 @@ def copy_outputfiles(model_id: str, new_model_id: str):
     """
     outputfiles = get_outputfiles(model_id)
     model_outputs = []
+
     for i in range(len(outputfiles)):
         ind_id = str(uuid.uuid4())
         outputfiles[i]['model_id'] = new_model_id
         outputfiles[i]['id'] = ind_id
-        m = ModelOutputFile.parseraw(str(outputfiles[i]))
+        m = ModelOutputFile(**outputfiles[i])
         model_outputs.append(m)
 
     create_outputfiles(model_outputs)
