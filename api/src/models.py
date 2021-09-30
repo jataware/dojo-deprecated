@@ -42,7 +42,37 @@ def create_model(payload: ModelSchema.ModelMetadataSchema):
         headers={"location": f"/api/models/{model_id}"},
         content=f"Created model with id = {model_id}",
     )
+    
+@router.get("/models/latest")
+def get_latest_models(size=10, scroll_id=None):
+    q = {
+        'query': {
+            'bool':{
+            'must_not': {
+                'exists': {'field' : 'next_version'}
+            }}
+        }
+    }
+    if not scroll_id:
+        # we need to kick off the query
+        results = es.search(index='models', body=q, scroll="2m", size=size)
+    else:
+        # otherwise, we can use the scroll
+        results = es.scroll(scroll_id=scroll_id, scroll="2m")
 
+    # get count
+    count = es.count(index='models', body=q)
+
+    # if results are less than the page size (10) don't return a scroll_id
+    if len(results["hits"]["hits"]) < size:
+        scroll_id = None
+    else:
+        scroll_id = results.get("_scroll_id", None)
+    return {
+        "hits": count["count"],
+        "scroll_id": scroll_id,
+        "results": [i["_source"] for i in results["hits"]["hits"]],
+    }
 
 @router.put("/models/{model_id}")
 def update_model(model_id: str, payload: ModelSchema.ModelMetadataSchema):
@@ -137,34 +167,3 @@ def version_model(model_id : str, payload : dict):
     copy_directive(model_id, new_id)
     copy_accessory_files(model_id, new_id)
     return new_id
-
-@router.get("/models/latest")
-def get_latest_models(size=10, scroll_id=None):
-    q = {
-        'query': {
-            'bool':{
-            'must_not': {
-                'exists': {'field' : 'next_version'}
-            }}
-        }
-    }
-    if not scroll_id:
-        # we need to kick off the query
-        results = es.search(index='models', body=q, scroll="2m", size=size)
-    else:
-        # otherwise, we can use the scroll
-        results = es.scroll(scroll_id=scroll_id, scroll="2m")
-
-    # get count
-    count = es.count(index='models', body=q)
-
-    # if results are less than the page size (10) don't return a scroll_id
-    if len(results["hits"]["hits"]) < size:
-        scroll_id = None
-    else:
-        scroll_id = results.get("_scroll_id", None)
-    return {
-        "hits": count["count"],
-        "scroll_id": scroll_id,
-        "results": [i["_source"] for i in results["hits"]["hits"]],
-    }
