@@ -42,8 +42,8 @@ def create_model(payload: ModelSchema.ModelMetadataSchema):
         headers={"location": f"/api/models/{model_id}"},
         content=f"Created model with id = {model_id}",
     )
-    
-@router.get("/models/latest")
+
+@router.get("/latest/models")
 def get_latest_models(size=10, scroll_id=None):
     q = {
         'query': {
@@ -64,7 +64,7 @@ def get_latest_models(size=10, scroll_id=None):
     count = es.count(index='models', body=q)
 
     # if results are less than the page size (10) don't return a scroll_id
-    if len(results["hits"]["hits"]) < size:
+    if len(results["hits"]["hits"]) < int(size):
         scroll_id = None
     else:
         scroll_id = results.get("_scroll_id", None)
