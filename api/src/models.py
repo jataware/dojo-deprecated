@@ -154,13 +154,13 @@ def get_latest_models(scroll_id=None, size=100) -> DojoSchema.ModelSearchResult:
 
     if not scroll_id:
         # we need to kick off the query
-        results = es.search(index=index, body=search_param, scroll="2m", size=size)
+        results = es.search(index='models', body=search_param, scroll="2m", size=size)
     else:
         # otherwise, we can use the scroll
         results = es.scroll(scroll_id=scroll_id, scroll="2m")
 
     # get count
-    count = es.count(index=index, body=search_param)
+    count = es.count(index='models', body=search_param)
 
     # if results are less than the page size (10) don't return a scroll_id
     if len(results["hits"]["hits"]) < size:
