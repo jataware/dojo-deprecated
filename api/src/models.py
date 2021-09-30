@@ -113,17 +113,22 @@ def register_model(model_id: str):
 
 
 @router.put("/models/version/{model_id}")
-def version_model(model_id : str):
+def version_model(model_id : str, payload : dict):
     #payload structure delete non present fields?
     #endpoint to version a model, model_id = original_id - version_name
     model = get_model(model_id)
     new_id = str(uuid.uuid4())
-    modify_model(id=model_id, payload={'next_version':new_id})
+    model['next_version'] = new_id
+    m = ModelSchema.ModelMetadataSchema(**model)
+    create_model(m)
 
     model['id'] = new_id
     model['prev_version'] = model_id
     del model['next_version']
     
+    for x in payload.keys():
+        model[x] = payload[x]
+
     m = ModelSchema.ModelMetadataSchema(**model)
     create_model(m)
 
@@ -131,14 +136,12 @@ def version_model(model_id : str):
     copy_configs(model_id, new_id)
     copy_directive(model_id, new_id)
     copy_accessory_files(model_id, new_id)
-    return Response(
-        status_code=status.HTTP_200_OK,
-        headers={"location": f"/api/models/{model_id}"},
-        content=new_id,
-    )
+    return new_id
 
 
-@router.get("/models/latest", response_model=DojoSchema.ModelSearchResult)
+
+
+@router.get("/models/latest/", response_model=DojoSchema.ModelSearchResult)
 def get_latest_models(scroll_id=None, size=100) -> DojoSchema.ModelSearchResult:
     search_param = {
         'query': {
@@ -148,4 +151,24 @@ def get_latest_models(scroll_id=None, size=100) -> DojoSchema.ModelSearchResult:
             }}
         }
     }
-    return search_models(search_param, scroll_id=scroll_id, size=size)
+
+    if not scroll_id:
+        # we need to kick off the query
+        results = es.search(index=index, body=search_param, scroll="2m", size=size)
+    else:
+        # otherwise, we can use the scroll
+        results = es.scroll(scroll_id=scroll_id, scroll="2m")
+
+    # get count
+    count = es.count(index=index, body=search_param)
+
+    # if results are less than the page size (10) don't return a scroll_id
+    if len(results["hits"]["hits"]) < size:
+        scroll_id = None
+    else:
+        scroll_id = results.get("_scroll_id", None)
+    return {
+        "hits": count["count"],
+        "scroll_id": scroll_id,
+        "results": [i["_source"] for i in results["hits"]["hits"]],
+    }
