@@ -119,7 +119,7 @@ def version_model(model_id : str):
     model = get_model(model_id)
     new_id = str(uuid.uuid4())
     modify_model(id=model_id, payload={'next_version':new_id})
-    
+
     model['id'] = new_id
     model['prev_version'] = model_id
     del model['next_version']
@@ -131,7 +131,7 @@ def version_model(model_id : str):
     copy_configs(model_id, new_id)
     copy_directive(model_id, new_id)
     copy_accessory_files(model_id, new_id)
-    return return Response(
+    return Response(
         status_code=status.HTTP_200_OK,
         headers={"location": f"/api/models/{model_id}"},
         content=new_id,
