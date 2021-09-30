@@ -138,12 +138,9 @@ def version_model(model_id : str, payload : dict):
     copy_accessory_files(model_id, new_id)
     return new_id
 
-
-
-
-@router.get("/models/latest", response_model=DojoSchema.ModelSearchResult)
-def get_latest_models(scroll_id=None, size=100) -> DojoSchema.ModelSearchResult:
-    search_param = {
+@router.get("/models/latest")
+def get_latest_models(size=10, scroll_id=None):
+    q = {
         'query': {
             'bool':{
             'must_not': {
@@ -151,16 +148,15 @@ def get_latest_models(scroll_id=None, size=100) -> DojoSchema.ModelSearchResult:
             }}
         }
     }
-
     if not scroll_id:
         # we need to kick off the query
-        results = es.search(index='models', body=search_param, scroll="2m", size=size)
+        results = es.search(index='models', body=q, scroll="2m", size=size)
     else:
         # otherwise, we can use the scroll
         results = es.scroll(scroll_id=scroll_id, scroll="2m")
 
     # get count
-    count = es.count(index='models', body=search_param)
+    count = es.count(index='models', body=q)
 
     # if results are less than the page size (10) don't return a scroll_id
     if len(results["hits"]["hits"]) < size:
