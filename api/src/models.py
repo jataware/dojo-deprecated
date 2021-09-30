@@ -141,7 +141,7 @@ def version_model(model_id : str, payload : dict):
 
 
 
-@router.get("/models/latest/", response_model=DojoSchema.ModelSearchResult)
+@router.get("/models/latest", response_model=DojoSchema.ModelSearchResult)
 def get_latest_models(scroll_id=None, size=100) -> DojoSchema.ModelSearchResult:
     search_param = {
         'query': {
