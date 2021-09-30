@@ -118,10 +118,8 @@ def version_model(model_id : str):
     #endpoint to version a model, model_id = original_id - version_name
     model = get_model(model_id)
     new_id = str(uuid.uuid4())
-    model['next_version'] = new_id
-    m = ModelSchema.ModelMetadataSchema(**model)
-    create_model(m)
-
+    modify_model(id=model_id, payload={'next_version':new_id})
+    
     model['id'] = new_id
     model['prev_version'] = model_id
     del model['next_version']
