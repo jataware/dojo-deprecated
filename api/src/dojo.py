@@ -115,7 +115,7 @@ def create_configs(payload: List[DojoSchema.ModelConfig]):
 
     for p in payload:
         es.index(index="configs", body=p.json(), id=p.id)
-    p = payload[0]
+
     return Response(
         status_code=status.HTTP_201_CREATED,
         headers={"location": f"/api/dojo/config/{p.id}"},
@@ -140,11 +140,11 @@ def copy_configs(model_id: str, new_model_id: str):
     configs = get_configs(model_id)
     new_configs = []
 
-    for i in range(len(configs)):
-        configs[i]['id'] = str(uuid.uuid4())
-        configs[i]['model_id'] = new_model_id
+    for config in configs:
+        config['id'] = str(uuid.uuid4())
+        config['model_id'] = new_model_id
         
-        c = DojoSchema.ModelConfig(**configs[i])
+        c = DojoSchema.ModelConfig(**config)
         new_configs.append(c)
 
     create_configs(new_configs)
@@ -163,8 +163,6 @@ def create_outputfiles(payload: List[DojoSchema.ModelOutputFile]):
 
     for p in payload:
         es.index(index="outputfiles", body=p.json(), id=p.id)
-
-    p = payload[-1]
 
     return Response(
         status_code=status.HTTP_201_CREATED,
@@ -192,11 +190,11 @@ def copy_outputfiles(model_id: str, new_model_id: str):
     outputfiles = get_outputfiles(model_id)
     model_outputs = []
 
-    for i in range(len(outputfiles)):
-        outputfiles[i]['id'] = str(uuid.uuid4())
-        outputfiles[i]['model_id'] = new_model_id
+    for f in outputfiles:
+        f['id'] = str(uuid.uuid4())
+        f['model_id'] = new_model_id
 
-        m = DojoSchema.ModelOutputFile(**outputfiles[i])
+        m = DojoSchema.ModelOutputFile(**f)
         model_outputs.append(m)
 
     create_outputfiles(model_outputs)
@@ -298,10 +296,10 @@ def copy_accessory_files(model_id: str, new_model_id: str):
     a_files = get_accessory_files(model_id)
     model_accessories = []
     
-    for f in range(len(a_files)):
-        a_files[f]['id'] = str(uuid.uuid4())
-        a_files[f]['model_id'] = new_model_id
-        ma = DojoSchema.ModelAccessory(**a_files[f])
+    for f in a_files:
+        f['id'] = str(uuid.uuid4())
+        f['model_id'] = new_model_id
+        ma = DojoSchema.ModelAccessory(**f)
         model_accessories.append(ma)
 
     create_accessory_files(model_accessories)

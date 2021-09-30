@@ -113,7 +113,7 @@ def register_model(model_id: str):
 
 
 @router.put("/models/version/{model_id}")
-def version_model(model_id : str, payload : dict):
+def version_model(model_id : str):
     #payload structure delete non present fields?
     #endpoint to version a model, model_id = original_id - version_name
     model = get_model(model_id)
@@ -126,9 +126,6 @@ def version_model(model_id : str, payload : dict):
     model['prev_version'] = model_id
     del model['next_version']
     
-    for x in payload.keys():
-        model[x] = payload[x]
-
     m = ModelSchema.ModelMetadataSchema(**model)
     create_model(m)
 
@@ -136,13 +133,15 @@ def version_model(model_id : str, payload : dict):
     copy_configs(model_id, new_id)
     copy_directive(model_id, new_id)
     copy_accessory_files(model_id, new_id)
-    return new_id
+    return return Response(
+        status_code=status.HTTP_200_OK,
+        headers={"location": f"/api/models/{model_id}"},
+        content=new_id,
+    )
 
 
-
-
-@router.get("/models/latest/")
-def get_latest_models(scroll_id=None, size=100):
+@router.get("/models/latest", response_model=DojoSchema.ModelSearchResult)
+def get_latest_models(scroll_id=None, size=100) -> DojoSchema.ModelSearchResult:
     search_param = {
         'query': {
             'bool':{
@@ -151,25 +150,4 @@ def get_latest_models(scroll_id=None, size=100):
             }}
         }
     }
-    
-    if not scroll_id:
-        # we need to kick off the query
-        results = es.search(index="models", size=size, scroll="2m", body=search_param)
-
-    else:
-        # otherwise, we can use the scroll
-        results = es.scroll(scroll_id=scroll_id, scroll="2m")
-
-    # get count
-
-
-    # if results are less than the page size (10) don't return a scroll_id
-    if len(results["hits"]["hits"]) < size:
-        scroll_id = None
-    else:
-        scroll_id = results.get("_scroll_id", None)
-    return {
-        "hits": len([i["_source"] for i in results["hits"]["hits"]]),
-        "scroll_id": scroll_id,
-        "results": [i["_source"] for i in results["hits"]["hits"]],
-    }
+    return search_models(search_param, scroll_id=scroll_id, size=size)
