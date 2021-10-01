@@ -152,6 +152,8 @@ def version_model(model_id : str):
 
     model['id'] = new_id
     model['prev_version'] = model_id
+    if model.get('next_version', False):
+        del model['next_version']
     
     m = ModelSchema.ModelMetadataSchema(**model)
     create_model(m)
