@@ -152,7 +152,6 @@ def version_model(model_id : str):
 
     model['id'] = new_id
     model['prev_version'] = model_id
-    del model['next_version']
     
     m = ModelSchema.ModelMetadataSchema(**model)
     create_model(m)
