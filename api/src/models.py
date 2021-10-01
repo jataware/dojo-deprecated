@@ -142,7 +142,7 @@ def register_model(model_id: str):
     )
 
 
-@router.put("/models/version/{model_id}")
+@router.get("/models/version/{model_id}")
 def version_model(model_id : str):
     #payload structure delete non present fields?
     #endpoint to version a model, model_id = original_id - version_name
