@@ -164,6 +164,6 @@ def version_model(model_id : str):
     copy_accessory_files(model_id, new_id)
     return Response(
         status_code=status.HTTP_200_OK,
-        headers={"location": f"/api/models/{model_id}"},
+        headers={"location": f"/api/models/{model_id}", "Content-Type": "text/plain"},
         content=new_id
     )
