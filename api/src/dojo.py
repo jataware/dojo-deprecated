@@ -97,6 +97,8 @@ def copy_directive(model_id: str, new_model_id: str):
     Copy the directive from one model_id to a new_model_id
     """
     directive = get_directive(model_id)
+    if type(directive) == Response:
+        return False
     directive['id'] = str(uuid.uuid4())
     directive['model_id'] = new_model_id
 
