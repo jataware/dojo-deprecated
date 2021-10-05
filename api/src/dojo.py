@@ -102,10 +102,10 @@ def create_configs(payload: List[DojoSchema.ModelConfig]):
     maps directly to the name of a specific `parameter.
     """
     for p in payload:
-        es.index(index="configs", body=p.json(), id=p.id)
+        es.index(index="configs", body=p.json(), id=p.path)
     return Response(
         status_code=status.HTTP_201_CREATED,
-        headers={"location": f"/api/dojo/config/{p.id}"},
+        headers={"location": f"/dojo/config/{p.model_id}"},
         content=f"Created config(s) for model with id = {p.model_id}",
     )
 
