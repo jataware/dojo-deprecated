@@ -144,7 +144,7 @@ def copy_configs(model_id: str, new_model_id: str):
         return False
     new_configs = []
 
-    for config  :
+    for config in configs:
         config['id'] = str(uuid.uuid4())
         config['model_id'] = new_model_id
         
