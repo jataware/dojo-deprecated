@@ -140,9 +140,11 @@ def copy_configs(model_id: str, new_model_id: str):
     Copy config files for one model_id to a new_model_id
     """
     configs = get_configs(model_id)
+    if type(configs) == Response:
+        return False
     new_configs = []
 
-    for config in configs:
+    for config  :
         config['id'] = str(uuid.uuid4())
         config['model_id'] = new_model_id
         
@@ -190,6 +192,8 @@ def copy_outputfiles(model_id: str, new_model_id: str):
     Copy outputfiles for a single model_id to a new_model_id
     """
     outputfiles = get_outputfiles(model_id)
+    if type(outputfiles) == Response:
+        return False
     model_outputs = []
 
     for f in outputfiles:
@@ -296,6 +300,10 @@ def copy_accessory_files(model_id: str, new_model_id: str):
     """
     
     a_files = get_accessory_files(model_id)
+
+    if type(a_files) == Response:
+        return False
+    
     model_accessories = []
     
     for f in a_files:
