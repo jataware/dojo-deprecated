@@ -44,7 +44,7 @@ def create_model(payload: ModelSchema.ModelMetadataSchema):
     )
 
 @router.get("/models/latest", response_model=DojoSchema.ModelSearchResult)
-def get_latest_models(size=10, scroll_id=None) -> DojoSchema.ModelSearchResult:
+def get_latest_models(size=100, scroll_id=None) -> DojoSchema.ModelSearchResult:
     q = {
         'query': {
             'bool':{
