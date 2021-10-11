@@ -144,6 +144,11 @@ def register_model(model_id: str):
 
 @router.get("/models/version/{model_id}")
 def version_model(model_id : str):
+    """
+    This endpoint creates a new version of a model. It is primarily used as part of the model
+    editing workflow. When a modeler wishes to edit their model, a new version is created
+    and the modelers edits are made against this new (cloned) model.
+    """
     #payload structure delete non present fields?
     #endpoint to version a model, model_id = original_id - version_name
     model = get_model(model_id)
