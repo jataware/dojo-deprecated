@@ -28,12 +28,13 @@ def current_milli_time():
 
 
 @router.post("/models")
-def create_model(payload: ModelSchema.ModelMetadataSchema):
+def create_model(payload: ModelSchema.ModelMetadataSchema, get_ontologies=True):
     model_id = payload.id
     payload.created_at = current_milli_time()
     body = payload.json()
     
-    model = get_ontologies(json.loads(body), type="model")
+    if get_ontologies:
+        model = get_ontologies(json.loads(body), type="model")
     logger.info(f"Sent model to UAZ")
     es.index(index="models", body=model, id=model_id)
 
@@ -161,7 +162,7 @@ def version_model(model_id : str):
         del model['next_version']
     
     m = ModelSchema.ModelMetadataSchema(**model)
-    create_model(m)
+    create_model(m, get_ontologies=False)
 
     copy_outputfiles(model_id, new_id)
     copy_configs(model_id, new_id)
