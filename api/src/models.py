@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import logging
 import uuid
 import time
 from datetime import datetime
@@ -115,6 +117,12 @@ def get_model(model_id: str) -> Model:
     return model
 
 
+def delete_model(model_id: str) -> None:
+    try:
+        es.delete(index="models", id=model_id)
+    except:
+        pass
+
 @router.post("/models/register/{model_id}")
 def register_model(model_id: str):
     """
@@ -153,7 +161,6 @@ def version_model(model_id : str):
     #endpoint to version a model, model_id = original_id - version_name
     model = get_model(model_id)
     new_id = str(uuid.uuid4())
-    modify_model(model_id=model_id, payload={'next_version':new_id})
 
     model['id'] = new_id
     model['prev_version'] = model_id
@@ -163,10 +170,21 @@ def version_model(model_id : str):
     m = ModelSchema.ModelMetadataSchema(**model)
     create_model(m)
 
-    copy_outputfiles(model_id, new_id)
-    copy_configs(model_id, new_id)
-    copy_directive(model_id, new_id)
-    copy_accessory_files(model_id, new_id)
+    try:
+        copy_outputfiles(model_id, new_id)
+        copy_configs(model_id, new_id)
+        copy_directive(model_id, new_id)
+        copy_accessory_files(model_id, new_id)
+
+        # Only set next version once the cloning is successful
+        modify_model(model_id=model_id, payload={'next_version': new_id})
+    except Exception as e:
+        logging.error(e)
+        delete_model(new_id)
+        return Response(
+            status_code=500
+        )
+
     return Response(
         status_code=status.HTTP_200_OK,
         headers={"location": f"/api/models/{model_id}", "Content-Type": "text/plain"},
