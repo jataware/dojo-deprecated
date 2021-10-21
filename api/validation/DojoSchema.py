@@ -75,6 +75,11 @@ class ModelDirective(BaseModel):
         description="The raw model container command",
         example="python3 dssat.py --rainfall = .5 ",
     )
+    cwd: str = Field(
+        title="Current Working Directory",
+        description="Current Working Directory for Model Container command",
+        example="/home/clouseau/model",
+    )
 
     class Config:
         extra = "allow"
@@ -96,7 +101,7 @@ class ModelOutputFile(BaseModel):
         title="Model Output Directory",
         description="The location of the model outputs within the model container. This will be mounted in order to retriee output files.",
         example="/results",
-    )    
+    )
     path: str = Field(
         title="Output File Path",
         description="The relative file path of the output file within the model's `output_directory`",
