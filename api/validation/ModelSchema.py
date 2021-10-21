@@ -146,14 +146,14 @@ class Period(BaseModel):
     class Config:
         extra = Extra.allow
 
-    gte: int = Field(
-        ...,
+    gte: Optional[int] = Field(
+        None,
         description="Start Time (inclusive)",
         examples=[1234567890000],
         title="Start Time",
     )
-    lte: int = Field(
-        ...,
+    lte: Optional[int] = Field(
+        None,
         description="End Time (inclusive)",
         examples=[1234567890000],
         title="End Time",
@@ -514,3 +514,12 @@ class ModelMetadataSchema(BaseModel):
     period: Optional[Period] = Field(
         None, description="Data ranges covered by the run", title="Run time period"
     )
+    
+    next_version: Optional[str] = Field(
+        None, description="UUID of the next version", title="next model version"
+    )
+
+    prev_version: Optional[str] = Field(
+        None, description="UUID of the pervious version", title="previous model version"
+    )
+

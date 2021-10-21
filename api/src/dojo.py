@@ -18,7 +18,6 @@ router = APIRouter()
 
 es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
 
-
 def search_by_model(model_id):
     q = {"query": {"term": {"model_id.keyword": {"value": model_id, "boost": 1.0}}}}
     return q
@@ -93,6 +92,18 @@ def get_directive(model_id: str) -> DojoSchema.ModelDirective:
             content=f"Directive for model {model_id} not found.",
         )
 
+def copy_directive(model_id: str, new_model_id: str):
+    """
+    Copy the directive from one model_id to a new_model_id
+    """
+    directive = get_directive(model_id)
+    if type(directive) == Response:
+        return False
+    directive['id'] = str(uuid.uuid4())
+    directive['model_id'] = new_model_id
+
+    d = DojoSchema.ModelDirective(**directive)
+    create_directive(d)
 
 @router.post("/dojo/config")
 def create_configs(payload: List[DojoSchema.ModelConfig]):
@@ -101,14 +112,16 @@ def create_configs(payload: List[DojoSchema.ModelConfig]):
     set a specific parameter level. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
     maps directly to the name of a specific `parameter.
     """
+    if len(payload) == 0:
+        return Response(status_code=status.HTTP_400_BAD_REQUEST,content=f"No payload")
+
     for p in payload:
-        es.index(index="configs", body=p.json(), id=p.id)
+        es.index(index="configs", body=p.json(), id=p.path)
     return Response(
         status_code=status.HTTP_201_CREATED,
-        headers={"location": f"/api/dojo/config/{p.id}"},
+        headers={"location": f"/dojo/config/{p.model_id}"},
         content=f"Created config(s) for model with id = {p.model_id}",
     )
-
 
 @router.get("/dojo/config/{model_id}")
 def get_configs(model_id: str) -> List[DojoSchema.ModelConfig]:
@@ -121,6 +134,25 @@ def get_configs(model_id: str) -> List[DojoSchema.ModelConfig]:
             content=f"Config(s) for model {model_id} not found.",
         )
 
+def copy_configs(model_id: str, new_model_id: str):
+    """
+    Copy config files for one model_id to a new_model_id
+    """
+    configs = get_configs(model_id)
+    if type(configs) == Response:
+        return False
+    new_configs = []
+
+    for config in configs:
+        config['id'] = str(uuid.uuid4())
+        config['model_id'] = new_model_id
+        
+        c = DojoSchema.ModelConfig(**config)
+        new_configs.append(c)
+
+    create_configs(new_configs)
+
+
 
 @router.post("/dojo/outputfile")
 def create_outputfiles(payload: List[DojoSchema.ModelOutputFile]):
@@ -129,8 +161,12 @@ def create_outputfiles(payload: List[DojoSchema.ModelOutputFile]):
     execution. Here we store key metadata about the `outputfile` which enables us to find it within the container and
     normalize it into a CauseMos compliant format.
     """
+    if len(payload) == 0:
+        return Response(status_code=status.HTTP_400_BAD_REQUEST,content=f"No payload")
+
     for p in payload:
         es.index(index="outputfiles", body=p.json(), id=p.id)
+
     return Response(
         status_code=status.HTTP_201_CREATED,
         headers={"location": f"/api/dojo/outputfile/{p.id}"},
@@ -148,6 +184,25 @@ def get_outputfiles(model_id: str) -> List[DojoSchema.ModelOutputFile]:
             status_code=status.HTTP_404_NOT_FOUND,
             content=f"Outputfile(s) for model {model_id} not found.",
         )
+
+
+def copy_outputfiles(model_id: str, new_model_id: str):
+    """
+    Copy outputfiles for a single model_id to a new_model_id
+    """
+    outputfiles = get_outputfiles(model_id)
+    if type(outputfiles) == Response:
+        return False
+    model_outputs = []
+
+    for f in outputfiles:
+        f['id'] = str(uuid.uuid4())
+        f['model_id'] = new_model_id
+
+        m = DojoSchema.ModelOutputFile(**f)
+        model_outputs.append(m)
+
+    create_outputfiles(model_outputs)
 
 
 ### Accessories Endpoints
@@ -237,4 +292,23 @@ def create_accessory_files(payload: List[DojoSchema.ModelAccessory]):
         headers={"location": f"/api/dojo/accessory/{p.id}"},
         content=f"Created accessories(s) for model with id = {p.model_id}",
     )
+
+def copy_accessory_files(model_id: str, new_model_id: str):
+    """
+    Copy the accessory_files from one model_id to a new_model_id
+    """
     
+    a_files = get_accessory_files(model_id)
+
+    if type(a_files) == Response:
+        return False
+    
+    model_accessories = []
+    
+    for f in a_files:
+        f['id'] = str(uuid.uuid4())
+        f['model_id'] = new_model_id
+        ma = DojoSchema.ModelAccessory(**f)
+        model_accessories.append(ma)
+
+    create_accessory_files(model_accessories)

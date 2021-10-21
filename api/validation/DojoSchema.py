@@ -34,7 +34,6 @@ class ModelAccessory(BaseModel):
 
 
 class ModelConfig(BaseModel):
-    id: str
     model_id: str = Field(
         title="Model ID",
         description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
@@ -44,6 +43,11 @@ class ModelConfig(BaseModel):
         title="S3 URL",
         description="The S3 URL where the config file is located",
         example="https://jataware-world-modelers.s3.amazonaws.com/dummy-model/config.json",
+    )
+    s3_url_raw: str = Field(
+        title="S3 URL (raw)",
+        description="The S3 URL where the raw config file is located",
+        example="https://jataware-world-modelers.s3.amazonaws.com/dummy-model/raw-config.json",
     )
     path: str = Field(
         title="File Path",
@@ -56,7 +60,6 @@ class ModelConfig(BaseModel):
 
 
 class ModelDirective(BaseModel):
-    id: str
     model_id: str = Field(
         title="Model ID",
         description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
@@ -66,6 +69,16 @@ class ModelDirective(BaseModel):
         title="Model Container command",
         description="The model container command, templated using Jinja. Templated fields must correspond with the name of the model parameters.",
         example="python3 dssat.py --management_practice = {{ management_practice }}",
+    )
+    command_raw: str = Field(
+        title="Model Container command",
+        description="The raw model container command",
+        example="python3 dssat.py --rainfall = .5 ",
+    )
+    cwd: str = Field(
+        title="Current Working Directory",
+        description="Current Working Directory for Model Container command",
+        example="/home/clouseau/model",
     )
 
     class Config:
@@ -88,7 +101,7 @@ class ModelOutputFile(BaseModel):
         title="Model Output Directory",
         description="The location of the model outputs within the model container. This will be mounted in order to retriee output files.",
         example="/results",
-    )    
+    )
     path: str = Field(
         title="Output File Path",
         description="The relative file path of the output file within the model's `output_directory`",
