@@ -119,6 +119,11 @@ class ModelOutputFile(BaseModel):
         description="A dictionary of SpaceTag generated transform directives that are used to convert the model output file into a CauseMos compliant schema",
         example={"x": "lng", "y": "lat"},
     )
+    prev_id: Optional[str] = Field(
+        title="Previous output file id",
+        description="If this is not the original version what was the last model outputfile ID",
+        example="fjd23k-s1a0j2-fds...",
+    )
 
     class Config:
         extra = "allow"

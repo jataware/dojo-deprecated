@@ -253,8 +253,10 @@ def copy_outputfiles(model_id: str, new_model_id: str):
     model_outputs = []
 
     for f in outputfiles:
+        old_id = f['id']
         f['id'] = str(uuid.uuid4())
         f['model_id'] = new_model_id
+        f['prev_id'] = old_id
 
         m = DojoSchema.ModelOutputFile(**f)
         model_outputs.append(m)
