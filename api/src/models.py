@@ -153,17 +153,20 @@ def register_model(model_id: str):
 
 def apply_changed_uuid(model, new_id, changed_uuids):
     model = model.dict()
+
     for old_id in changed_uuids.keys():
-        for o in model['outputs']:
-            if o['uuid'] == old_id:
-                o['uuid'] = changed_uuids[old_id]
+        for x in ['outputs', 'qualifier_outputs']
+            for o in model.get(x, []):
+                if o['uuid'] == old_id:
+                    o['uuid'] = changed_uuids[old_id]
+
     # Only set next version once the cloning is successful
     payload = {'next_version': new_id}
 
     if model.get('outputs', False):
-        payload['outputs'] = m['outputs']
+        payload['outputs'] = model['outputs']
     if model.get('qualifier_outputs', False):
-        payload['outputs'] = m['outputs']
+        payload['outputs'] = model['outputs']
 
     return payload
 
