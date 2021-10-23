@@ -251,17 +251,21 @@ def copy_outputfiles(model_id: str, new_model_id: str):
     if type(outputfiles) == Response:
         return False
     model_outputs = []
+    changed_uuids = {}
 
     for f in outputfiles:
         old_id = f['id']
         f['id'] = str(uuid.uuid4())
+        changed_uuids[old_id] = f['id']
         f['model_id'] = new_model_id
         f['prev_id'] = old_id
+        requests.get(f'localhost:8001/version?old_uuid={old_id}&new_uuid={f["id"]}&new_model_id={new_model_id}')
 
         m = DojoSchema.ModelOutputFile(**f)
         model_outputs.append(m)
 
     create_outputfiles(model_outputs)
+    return changed_uuids
 
 
 ### Accessories Endpoints
