@@ -10,7 +10,6 @@ from elasticsearch.exceptions import NotFoundError
 from fastapi import APIRouter, Response, status
 from validation import DojoSchema
 from src.settings import settings
-
 import logging
 
 logger = logging.getLogger(__name__)
