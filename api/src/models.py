@@ -152,6 +152,7 @@ def register_model(model_id: str):
 
 
 def apply_changed_uuid(model, new_id, changed_uuids):
+    model = model.dict()
     for old_id in changed_uuids.keys():
         for o in model['outputs']:
             if o['uuid'] == old_id:
@@ -192,7 +193,6 @@ def version_model(model_id : str):
         copy_directive(model_id, new_id)
         copy_accessory_files(model_id, new_id)
         payload = apply_changed_uuid(m, new_id, changed_uuids)
-        print(payload)
         logging.info(payload)
         logging.info(changed_uuids)
         modify_model(model_id=model_id, payload=payload)
