@@ -184,7 +184,7 @@ def version_model(model_id : str):
     
     m = ModelSchema.ModelMetadataSchema(**model)
     create_model(m)
-
+    changed_uuids = None
     try:
         changed_uuids = copy_outputfiles(model_id, new_id)
         copy_configs(model_id, new_id)
