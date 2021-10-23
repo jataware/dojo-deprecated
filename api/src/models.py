@@ -184,13 +184,13 @@ def version_model(model_id : str):
     
     m = ModelSchema.ModelMetadataSchema(**model)
     create_model(m)
-    changed_uuids = None
+
     try:
         changed_uuids = copy_outputfiles(model_id, new_id)
         copy_configs(model_id, new_id)
         copy_directive(model_id, new_id)
         copy_accessory_files(model_id, new_id)
-        payload = apply_changed_uuid(m, new_id, changed_uuids)
+        apply_changed_uuid(m, new_id, changed_uuids)
         modify_model(model_id=model_id, payload=payload)
     except Exception as e:
         logging.error(e)
@@ -202,5 +202,5 @@ def version_model(model_id : str):
     return Response(
         status_code=status.HTTP_200_OK,
         headers={"location": f"/api/models/{model_id}", "Content-Type": "text/plain"},
-        content=f'{new_id} {changed_uuids}'
+        content=new_id
     )
