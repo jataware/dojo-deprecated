@@ -171,13 +171,21 @@ def version_model(model_id : str):
     create_model(m)
 
     try:
-        copy_outputfiles(model_id, new_id)
+        changed_uuids = copy_outputfiles(model_id, new_id)
         copy_configs(model_id, new_id)
         copy_directive(model_id, new_id)
         copy_accessory_files(model_id, new_id)
-
+        for old_id in changed_uuids.keys():
+            for o in m['outputs']:
+                if o['uuid'] == old_id:
+                    o['uuid'] = changed_uuids[old_id]
         # Only set next version once the cloning is successful
-        modify_model(model_id=model_id, payload={'next_version': new_id})
+        payload = {'next_version': new_id}
+        if m.get('outputs', False):
+            payload['outputs'] = m['outputs']
+        if m.get('qualifier_outputs', False):
+            payload['outputs'] = m['outputs']
+        modify_model(model_id=model_id, payload=)
     except Exception as e:
         logging.error(e)
         delete_model(new_id)
