@@ -192,6 +192,7 @@ def version_model(model_id : str):
         copy_directive(model_id, new_id)
         copy_accessory_files(model_id, new_id)
         payload = apply_changed_uuid(m, new_id, changed_uuids)
+        print(payload)
         logging.info(payload)
         logging.info(changed_uuids)
         modify_model(model_id=model_id, payload=payload)
