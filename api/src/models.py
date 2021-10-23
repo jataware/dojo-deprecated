@@ -22,6 +22,7 @@ from src.causemos import notify_causemos, submit_run
 router = APIRouter()
 
 es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
+logger = logging.getLogger(__name__)
 
 
 # For created_at times in epoch milliseconds
