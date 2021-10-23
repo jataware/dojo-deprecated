@@ -150,6 +150,21 @@ def register_model(model_id: str):
     )
 
 
+def apply_changed_uuid(model, new_id, changed_uuids):
+    for old_id in changed_uuids.keys():
+        for o in model['outputs']:
+            if o['uuid'] == old_id:
+                o['uuid'] = changed_uuids[old_id]
+    # Only set next version once the cloning is successful
+    payload = {'next_version': new_id}
+
+    if model.get('outputs', False):
+        payload['outputs'] = m['outputs']
+    if model.get('qualifier_outputs', False):
+        payload['outputs'] = m['outputs']
+
+    return payload
+
 @router.get("/models/version/{model_id}")
 def version_model(model_id : str):
     """
@@ -175,17 +190,8 @@ def version_model(model_id : str):
         copy_configs(model_id, new_id)
         copy_directive(model_id, new_id)
         copy_accessory_files(model_id, new_id)
-        for old_id in changed_uuids.keys():
-            for o in m['outputs']:
-                if o['uuid'] == old_id:
-                    o['uuid'] = changed_uuids[old_id]
-        # Only set next version once the cloning is successful
-        payload = {'next_version': new_id}
-        if m.get('outputs', False):
-            payload['outputs'] = m['outputs']
-        if m.get('qualifier_outputs', False):
-            payload['outputs'] = m['outputs']
-        modify_model(model_id=model_id, payload=)
+        payload = apply_changed_uuid(m, new_id, changed_uuids)
+        modify_model(model_id=model_id, payload=payload)
     except Exception as e:
         logging.error(e)
         delete_model(new_id)
