@@ -190,7 +190,9 @@ def version_model(model_id : str):
         copy_configs(model_id, new_id)
         copy_directive(model_id, new_id)
         copy_accessory_files(model_id, new_id)
-        apply_changed_uuid(m, new_id, changed_uuids)
+        payload = apply_changed_uuid(m, new_id, changed_uuids)
+        logging.info(payload)
+        logging.info(changed_uuids)
         modify_model(model_id=model_id, payload=payload)
     except Exception as e:
         logging.error(e)
