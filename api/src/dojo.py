@@ -262,7 +262,8 @@ def copy_outputfiles(model_id: str, new_model_id: str):
         try:
             requests.get(f'localhost:8001/version?old_uuid={old_id}&new_uuid={f["id"]}&new_model_id={new_model_id}')
         except Exception as e:
-            print(e)
+            logging.error(e)
+            return {}
 
         m = DojoSchema.ModelOutputFile(**f)
         model_outputs.append(m)
