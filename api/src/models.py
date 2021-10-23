@@ -202,5 +202,5 @@ def version_model(model_id : str):
     return Response(
         status_code=status.HTTP_200_OK,
         headers={"location": f"/api/models/{model_id}", "Content-Type": "text/plain"},
-        content=new_id
+        content=f'{new_id} {changed_uuids}'
     )
