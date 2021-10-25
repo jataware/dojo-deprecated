@@ -35,7 +35,7 @@ def create_model(payload: ModelSchema.ModelMetadataSchema):
     model_id = payload.id
     payload.created_at = current_milli_time()
     body = payload.json()
-    
+
     model = get_ontologies(json.loads(body), type="model")
     logger.info(f"Sent model to UAZ")
     es.index(index="models", body=model, id=model_id)
@@ -127,7 +127,7 @@ def delete_model(model_id: str) -> None:
 @router.post("/models/register/{model_id}")
 def register_model(model_id: str):
     """
-    This endpoint finalizes the registration of a model by notifying 
+    This endpoint finalizes the registration of a model by notifying
     Uncharted and submitting to them a default run for the model.
     """
     logger.info("Updating model with latest ontologies.")
@@ -161,7 +161,7 @@ def apply_changed_uuid(model, new_id, changed_uuids):
     model = model.dict()
 
     for old_id in changed_uuids.keys():
-        for x in ['outputs', 'qualifier_outputs']
+        for x in ['outputs', 'qualifier_outputs']:
             for o in model.get(x, []):
                 if o['uuid'] == old_id:
                     o['uuid'] = changed_uuids[old_id]
@@ -193,7 +193,7 @@ def version_model(model_id : str):
     model['prev_version'] = model_id
     if model.get('next_version', False):
         del model['next_version']
-    
+
     m = ModelSchema.ModelMetadataSchema(**model)
     create_model(m)
 
