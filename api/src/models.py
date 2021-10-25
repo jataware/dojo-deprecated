@@ -152,6 +152,12 @@ def register_model(model_id: str):
 
 
 def apply_changed_uuid(model, new_id, changed_uuids):
+    """
+    Each output or qualifier output has a uuid corresponding to the outputfile idx
+    this function changes the uuids in the models outputs and qualifiers to the new model version
+    outputfiles uuid. This is the uuid used by spacetag.
+    """
+
     model = model.dict()
 
     for old_id in changed_uuids.keys():
@@ -165,8 +171,9 @@ def apply_changed_uuid(model, new_id, changed_uuids):
 
     if model.get('outputs', False):
         payload['outputs'] = model['outputs']
+
     if model.get('qualifier_outputs', False):
-        payload['outputs'] = model['outputs']
+        payload['qualifier_outputs'] = model['qualifier_outputs']
 
     return payload
 
@@ -195,6 +202,8 @@ def version_model(model_id : str):
         copy_configs(model_id, new_id)
         copy_directive(model_id, new_id)
         copy_accessory_files(model_id, new_id)
+
+        #TODO apply changed uuid to outputs
         payload = apply_changed_uuid(m, new_id, changed_uuids)
         logging.info(payload)
         logging.info(changed_uuids)
