@@ -117,7 +117,9 @@ def create_configs(payload: List[DojoSchema.ModelConfig]):
         return Response(status_code=status.HTTP_400_BAD_REQUEST,content=f"No payload")
 
     for p in payload:
-        es.index(index="configs", body=p.json(), id=p.path)
+        config_id = str(uuid.uuid4())
+        p.id = config_id
+        es.index(index="configs", body=p.json(), id=p.id)
     return Response(
         status_code=status.HTTP_201_CREATED,
         headers={"location": f"/dojo/config/{p.model_id}"},
