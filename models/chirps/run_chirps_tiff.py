@@ -15,6 +15,7 @@ import json
 import sys
 import warnings
 from mixmasta import mixmasta as mix
+from datetime import datetime
 
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
@@ -25,21 +26,23 @@ class CHIRPSController(object):
     A controller to manage CHIRPS model execution.
     """
 
-    def __init__(self, name, month, year, bbox, statistic):
+    def __init__(self, name, month, year, bbox, statistic, day_of_year=None):
         logging.basicConfig(level=logging.INFO)        
         self.name = name
         self.stat = statistic
+        self.day_of_year = day_of_year
         self.month = month
         self.year = year
         self.bbox = json.loads(bbox)
         self.min_pt, self.max_pt = self.convert_bbox(self.bbox)
+        stat_secondary = {'mm_data': 'Data'}
         self.url = f"https://chc-ewx2.chc.ucsb.edu/proxies/wcsProxy.php?layerNameToUse=chirps:"\
                    f"chirps_africa_1-month-{self.month}-{self.year}_{self.stat}"\
                    f"&lowerLeftXToUse={self.min_pt[0]}&lowerLeftYToUse={self.min_pt[1]}"\
                    f"&upperRightXToUse={self.max_pt[0]}&upperRightYToUse={self.max_pt[1]}"\
                    f"&wcsURLToUse=https://chc-ewx2.chc.ucsb.edu:8443/geoserver/wcs?&resolution=0.05&srsToUse=EPSG:3857&outputSrsToUse=EPSG:4326"
-        self.url_gefs = f"https://chc-ewx2.chc.ucsb.edu/proxies/wcsProxy.php?layerNameToUse="\
-                        f"chirpsgefslast:chirpsgefslast_africa_1-month-{self.month}-{self.year}_{self.stat}"\
+        self.url_gefs = f"https://chc-ewx2.chc.ucsb.edu/proxies/wcsProxy.php?layerNameToUse=chirpsgefs15day2:chirpsgefs15day2_africa_1"\
+                        f"-day-{self.day_of_year}-{self.year}_{self.stat}&TILED=true&mapperWMSURL="\
                         f"&lowerLeftXToUse={self.min_pt[0]}&lowerLeftYToUse={self.min_pt[1]}"\
                         f"&upperRightXToUse={self.max_pt[0]}&upperRightYToUse={self.max_pt[1]}"\
                         f"&wcsURLToUse=https://chc-ewx2.chc.ucsb.edu:8443/geoserver/wcs?&resolution=0.05&srsToUse=EPSG:3857&outputSrsToUse=EPSG:4326"
@@ -65,7 +68,7 @@ class CHIRPSController(object):
         """
         Obtain CHIRPS data
         """
-        logging.info(self.url)
+        logging.info(self.url_gefs)
         try:
             # if CHIRPS-GEFS, use that URL
             if self.name == 'CHIRPS-GEFS':
@@ -99,6 +102,7 @@ class CHIRPSController(object):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'CHIRPS runner')
     parser.add_argument('--name', type=str, help='CHIRPS or CHIRPS-GEFS')
+    parser.add_argument('--day_of_year', type=str, help='day of year (1 to 365)', default=None)
     parser.add_argument('--month', type=int, help='month')
     parser.add_argument('--year', type=int, help='Year')
     parser.add_argument('--bbox', type=str, help='The bounding box to obtain')
@@ -110,9 +114,13 @@ if __name__ == '__main__':
     else:
         month = args.month
 
-    runner = CHIRPSController(args.name, month, args.year, args.bbox, args.statistic)
+    runner = CHIRPSController(args.name, month, args.year, args.bbox, args.statistic, args.day_of_year)
     runner.run_model()
 
-    df = mix.raster2df('results/chirps.tiff', feature_name='rainfall', band=1, date=f"{month}/01/{args.year}")
+    if args.name == 'CHIRPS-GEFS':
+        date = datetime.strptime(f"{args.year}-{args.day_of_year}", "%Y-%j").strftime("%m-%d-%Y")
+    else:
+        date = f"{month}/01/{args.year}"
+    df = mix.raster2df('results/chirps.tiff', feature_name='rainfall', band=1, date=date)
     df['type'] = runner.features[args.statistic]['feature_name']
     df.to_csv('results/chirps.csv', index=False)
