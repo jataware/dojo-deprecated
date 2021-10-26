@@ -1,4 +1,5 @@
 
+import hashlib
 import uuid
 
 from typing import List
@@ -134,6 +135,38 @@ def get_configs(model_id: str) -> List[DojoSchema.ModelConfig]:
             content=f"Config(s) for model {model_id} not found.",
         )
 
+
+@router.delete("/dojo/config/{config_id}")
+def delete_config(config_id: str):
+    """
+    Delete a model `configs`. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
+    maps directly to the name of a specific `parameter.
+    """
+
+    try:
+        # TODO: Delete from S3?
+        es.delete(index="configs", id=config_id)
+        return Response(
+            status_code=status.HTTP_200_OK,
+            headers={"location": f"/dojo/config/{config_id}"},
+            content=f"Created config for model with id = {config_id}",
+        )
+    except NotFoundError:
+        all_configs = [result.get('_source') for result in es.search(index="configs")['hits']['hits']]
+        for config in all_configs:
+            logging.warning(config)
+            path_hash = hashlib.sha1(config.get("path", b"").encode()).hexdigest().strip()
+            if config_id == path_hash:
+                logging.info(f"Deleting {config['path']}")
+                es.delete(index="configs", id=config["path"])
+            break
+        return Response(
+            status_code=status.HTTP_200_OK,
+            headers={"location": f"/dojo/config/{config_id}"},
+            content=f"Deleted config for model with id = {config_id}",
+        )
+
+
 def copy_configs(model_id: str, new_model_id: str):
     """
     Copy config files for one model_id to a new_model_id
@@ -184,6 +217,28 @@ def get_outputfiles(model_id: str) -> List[DojoSchema.ModelOutputFile]:
             status_code=status.HTTP_404_NOT_FOUND,
             content=f"Outputfile(s) for model {model_id} not found.",
         )
+
+
+@router.delete("/dojo/outputfile/{outputfile_id}")
+def delete_outputfile(outputfile_id: str):
+    """
+    Delete a model's `outputfiles`.
+    """
+
+    try:
+        es.delete(index="outputfiles", id=outputfile_id)
+        return Response(
+            status_code=status.HTTP_200_OK,
+            headers={"location": f"/dojo/outputfile/{outputfile_id}"},
+            content=f"Deleted outputfile for model with id = {outputfile_id}",
+        )
+    except NotFoundError:
+        return Response(
+            status_code=status.HTTP_200_OK,
+            headers={"location": f"/dojo/outputfile/{outputfile_id}"},
+            content=f"Deleted outputfile for model with id = {outputfile_id}",
+        )
+
 
 
 def copy_outputfiles(model_id: str, new_model_id: str):
@@ -273,8 +328,8 @@ def create_accessory_files(payload: List[DojoSchema.ModelAccessory]):
     """
     if len(payload) == 0:
         return Response(status_code=status.HTTP_400_BAD_REQUEST,content=f"No payload")
-    
-    # Delete previous entries.  
+
+    # Delete previous entries.
     try:
         results = es.search(index="accessories", body=search_by_model(payload[0].model_id))
         for i in results["hits"]["hits"]:
@@ -292,6 +347,30 @@ def create_accessory_files(payload: List[DojoSchema.ModelAccessory]):
         headers={"location": f"/api/dojo/accessory/{p.id}"},
         content=f"Created accessories(s) for model with id = {p.model_id}",
     )
+
+
+@router.delete("/dojo/accessories/{accessory_id}")
+def delete_accessory(accessory_id: str):
+    """
+    Delete a model `accessory`.
+    """
+
+    try:
+        es.delete(index="accessories", id=accessory_id)
+        print(f"{accessory_id} deleted")
+        return Response(
+            status_code=status.HTTP_200_OK,
+            headers={"location": f"/dojo/accessory/{accessory_id}"},
+            content=f"Deleted accessory for model with id = {accessory_id}",
+        )
+    except NotFoundError:
+        print(f"{accessory_id} not found")
+        return Response(
+            status_code=status.HTTP_200_OK,
+            headers={"location": f"/dojo/accessory/{accessory_id}"},
+            content=f"Deleted accessory for model with id = {accessory_id}",
+        )
+
 
 def copy_accessory_files(model_id: str, new_model_id: str):
     """
