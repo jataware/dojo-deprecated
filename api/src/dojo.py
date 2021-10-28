@@ -1,5 +1,7 @@
 
 import hashlib
+import os
+import requests
 import uuid
 
 from typing import List
@@ -10,7 +12,6 @@ from elasticsearch.exceptions import NotFoundError
 from fastapi import APIRouter, Response, status
 from validation import DojoSchema
 from src.settings import settings
-
 import logging
 
 logger = logging.getLogger(__name__)
@@ -181,7 +182,7 @@ def copy_configs(model_id: str, new_model_id: str):
     for config in configs:
         config['id'] = str(uuid.uuid4())
         config['model_id'] = new_model_id
-        
+
         c = DojoSchema.ModelConfig(**config)
         new_configs.append(c)
 
@@ -251,15 +252,21 @@ def copy_outputfiles(model_id: str, new_model_id: str):
     if type(outputfiles) == Response:
         return False
     model_outputs = []
+    changed_uuids = {}
 
     for f in outputfiles:
+        old_id = f['id']
         f['id'] = str(uuid.uuid4())
+        changed_uuids[old_id] = f['id']
         f['model_id'] = new_model_id
+        f['prev_id'] = old_id
 
+        requests.get(f'{os.getenv("SPACETAG_URL")}/version?old_uuid={old_id}&new_uuid={f["id"]}&new_model_id={new_model_id}')
         m = DojoSchema.ModelOutputFile(**f)
         model_outputs.append(m)
 
     create_outputfiles(model_outputs)
+    return changed_uuids
 
 
 ### Accessories Endpoints
@@ -269,12 +276,12 @@ def get_accessory_files(model_id: str) -> List[DojoSchema.ModelAccessory]:
     """
     Get the `accessory files` for a model.
 
-    Each `accessory file` represents a single file that is created to be 
-    associated with the model. Here we store key metadata about the 
-    `accessory file` which  enables us to find it within the container and 
+    Each `accessory file` represents a single file that is created to be
+    associated with the model. Here we store key metadata about the
+    `accessory file` which  enables us to find it within the container and
     provide it to Uncharted.
     """
-    
+
     try:
         results = es.search(index="accessories", body=search_by_model(model_id))
         return [i["_source"] for i in results["hits"]["hits"]]
@@ -288,13 +295,13 @@ def get_accessory_files(model_id: str) -> List[DojoSchema.ModelAccessory]:
 @router.post("/dojo/accessories")
 def create_accessory_file(payload: DojoSchema.ModelAccessory):
     """
-    Create or update an `accessory file` for a model. 
-    
+    Create or update an `accessory file` for a model.
+
     `id` is optional and will be assigned a uuid by the API.
 
-    Each `accessory file` represents a single file that is created to be 
-    associated with the model. Here we store key metadata about the 
-    `accessory file` which  enables us to find it within the container and 
+    Each `accessory file` represents a single file that is created to be
+    associated with the model. Here we store key metadata about the
+    `accessory file` which  enables us to find it within the container and
     provide it to Uncharted.
     """
     try:
@@ -321,11 +328,11 @@ def create_accessory_files(payload: List[DojoSchema.ModelAccessory]):
 
     For each, create an `accessory file` for a model.
 
-    `id` is optional and will be assigned a uuid by the API. 
-    
-    Each `accessory file` represents a single file that is created to be 
-    associated with the model. Here we store key metadata about the 
-    `accessory file` which  enables us to find it within the container and 
+    `id` is optional and will be assigned a uuid by the API.
+
+    Each `accessory file` represents a single file that is created to be
+    associated with the model. Here we store key metadata about the
+    `accessory file` which  enables us to find it within the container and
     provide it to Uncharted.
     """
     if len(payload) == 0:
@@ -378,14 +385,14 @@ def copy_accessory_files(model_id: str, new_model_id: str):
     """
     Copy the accessory_files from one model_id to a new_model_id
     """
-    
+
     a_files = get_accessory_files(model_id)
 
     if type(a_files) == Response:
         return False
-    
+
     model_accessories = []
-    
+
     for f in a_files:
         f['id'] = str(uuid.uuid4())
         f['model_id'] = new_model_id

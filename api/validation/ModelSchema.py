@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
@@ -523,3 +524,21 @@ class ModelMetadataSchema(BaseModel):
         None, description="UUID of the pervious version", title="previous model version"
     )
 
+
+class ModelMetadataPatchSchema(BaseModel):
+    # This class is used for patching the ModelMetadataPatchSchema using the logic below.
+    # It sets all of the fields to be optional.
+    # This methodology allows us to use FastAPI/Pydantics validation on any provided fields, without having to redefine
+    # all of the fields
+    ...
+
+
+# Dynamically set the fields to be patched based on the ModelMetadataSchema class definitions
+for field_name, field_def in ModelMetadataSchema.__fields__.items():
+    # Don't allow editing of the model id, models should be versioned
+    if field_name in ('id',):
+        continue
+    # Copy all other fields over, setting them to be optional
+    new_field = deepcopy(field_def)
+    new_field.required = False
+    ModelMetadataPatchSchema.__fields__[field_name] = new_field
