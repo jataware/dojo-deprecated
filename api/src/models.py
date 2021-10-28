@@ -3,9 +3,10 @@ from __future__ import annotations
 import logging
 import uuid
 import time
+from copy import deepcopy
 from datetime import datetime
 import json
-from typing import Any, Dict, Generator, List, Optional
+from typing import Any, Dict, Generator, List, Optional, Union
 
 from elasticsearch import Elasticsearch
 from pydantic import BaseModel, Field
@@ -91,8 +92,10 @@ def update_model(model_id: str, payload: ModelSchema.ModelMetadataSchema):
 
 
 @router.patch("/models/{model_id}")
-def modify_model(model_id: str, payload: dict = Body(...)):
-    es.update(index="models", body={"doc": payload}, id=model_id)
+def modify_model(model_id: str, payload: ModelSchema.ModelMetadataPatchSchema):
+    body = json.loads(payload.json(exclude_unset=True))
+    logging.info(body)
+    es.update(index="models", body={"doc": body}, id=model_id)
     return Response(
         status_code=status.HTTP_200_OK,
         headers={"location": f"/api/models/{model_id}"},
@@ -151,32 +154,6 @@ def register_model(model_id: str):
     )
 
 
-def apply_changed_uuid(model, new_id, changed_uuids):
-    """
-    Each output or qualifier output has a uuid corresponding to the outputfile idx
-    this function changes the uuids in the models outputs and qualifiers to the new model version
-    outputfiles uuid. This is the uuid used by spacetag.
-    """
-
-    model = model.dict()
-
-    for old_id in changed_uuids.keys():
-        for x in ['outputs', 'qualifier_outputs']:
-            for o in model.get(x, []):
-                if o['uuid'] == old_id:
-                    o['uuid'] = changed_uuids[old_id]
-
-    # Only set next version once the cloning is successful
-    payload = {'next_version': new_id}
-
-    if model.get('outputs', False):
-        payload['outputs'] = model['outputs']
-
-    if model.get('qualifier_outputs', False):
-        payload['qualifier_outputs'] = model['qualifier_outputs']
-
-    return payload
-
 @router.get("/models/version/{model_id}")
 def version_model(model_id : str):
     """
@@ -184,36 +161,61 @@ def version_model(model_id : str):
     editing workflow. When a modeler wishes to edit their model, a new version is created
     and the modelers edits are made against this new (cloned) model.
     """
-    #payload structure delete non present fields?
-    #endpoint to version a model, model_id = original_id - version_name
-    model = get_model(model_id)
+
+    def get_updated_outputs(
+            outputs: List[Union[ModelSchema.Output, ModelSchema.QualifierOutput]],
+            uuid_mapping: Dict[str, str]
+    ):
+        """
+        Helper function to remap Outputs to their new uuids
+
+        Each output or qualifier output has a uuid corresponding to the outputfile idx
+        this function changes the uuids in the models outputs and qualifiers to the new model version
+        outputfiles uuid. This is the uuid used by spacetag.
+        """
+        updated_outputs = []
+        for output in deepcopy(outputs):
+            original_uuid = output.uuid
+            new_uuid = uuid_mapping.get(original_uuid)
+            if new_uuid:
+                output.uuid = new_uuid
+                updated_outputs.append(output)
+        return updated_outputs
+
+    original_model_definition = get_model(model_id)
     new_id = str(uuid.uuid4())
 
-    model['id'] = new_id
-    model['prev_version'] = model_id
-    if model.get('next_version', False):
-        del model['next_version']
+    # Update required fields from the original definition
+    original_model_definition['id'] = new_id
+    original_model_definition['prev_version'] = model_id
+    if original_model_definition.get('next_version', False):
+        del original_model_definition['next_version']
 
-    m = ModelSchema.ModelMetadataSchema(**model)
-    create_model(m)
+    # Create a new pydantic model for processing
+    new_model = ModelSchema.ModelMetadataSchema(**original_model_definition)
 
     try:
-        changed_uuids = copy_outputfiles(model_id, new_id)
+        # Make copies of related items
+        outputfile_uuid_mapping = copy_outputfiles(model_id, new_id)
         copy_configs(model_id, new_id)
         copy_directive(model_id, new_id)
         copy_accessory_files(model_id, new_id)
 
-        #TODO apply changed uuid to outputs
-        payload = apply_changed_uuid(m, new_id, changed_uuids)
-        logging.info(payload)
-        logging.info(changed_uuids)
-        modify_model(model_id=model_id, payload=payload)
+        # Update the created model with the changes related to copying
+        if new_model.outputs:
+            new_model.outputs = get_updated_outputs(new_model.outputs, outputfile_uuid_mapping)
+        if new_model.qualifier_outputs:
+            new_model.qualifier_outputs = get_updated_outputs(new_model.qualifier_outputs, outputfile_uuid_mapping)
+
+        # Save model
+        create_model(new_model)
+
     except Exception as e:
-        logging.error(e)
+        # Delete partially created model
+        # TODO: Clean up copies configs, directives, accessories, and output file data which may exist even if the
+        # TODO: model was never actually created due to error
         delete_model(new_id)
-        return Response(
-            status_code=500
-        )
+        raise
 
     return Response(
         status_code=status.HTTP_200_OK,

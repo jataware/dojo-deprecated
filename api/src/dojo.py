@@ -1,5 +1,6 @@
 
 import hashlib
+import os
 import requests
 import uuid
 
@@ -260,8 +261,7 @@ def copy_outputfiles(model_id: str, new_model_id: str):
         f['model_id'] = new_model_id
         f['prev_id'] = old_id
 
-        #TODO: localhost:8001 -> spacetag_url via environ variable
-        requests.get(f'http://app.world-modelers:8000/version?old_uuid={old_id}&new_uuid={f["id"]}&new_model_id={new_model_id}')
+        requests.get(f'{os.getenv("SPACETAG_URL")}/version?old_uuid={old_id}&new_uuid={f["id"]}&new_model_id={new_model_id}')
         m = DojoSchema.ModelOutputFile(**f)
         model_outputs.append(m)
 
