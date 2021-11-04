@@ -139,35 +139,41 @@ def get_configs(model_id: str) -> List[DojoSchema.ModelConfig]:
         )
 
 
-@router.delete("/dojo/config/{config_id}")
-def delete_config(config_id: str):
+@router.delete("/dojo/config/{model_id}")
+def delete_config(model_id: str, path: str):
     """
     Delete a model `configs`. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
     maps directly to the name of a specific `parameter.
     """
 
-    try:
-        # TODO: Delete from S3?
-        es.delete(index="configs", id=config_id)
-        return Response(
-            status_code=status.HTTP_200_OK,
-            headers={"location": f"/dojo/config/{config_id}"},
-            content=f"Created config for model with id = {config_id}",
-        )
-    except NotFoundError:
-        all_configs = [result.get('_source') for result in es.search(index="configs")['hits']['hits']]
-        for config in all_configs:
-            logging.warning(config)
-            path_hash = hashlib.sha1(config.get("path", b"").encode()).hexdigest().strip()
-            if config_id == path_hash:
-                logging.info(f"Deleting {config['path']}")
-                es.delete(index="configs", id=config["path"])
-            break
-        return Response(
-            status_code=status.HTTP_200_OK,
-            headers={"location": f"/dojo/config/{config_id}"},
-            content=f"Deleted config for model with id = {config_id}",
-        )
+    response = es.delete_by_query(index="configs", body={
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "match": {
+                            "model_id": {
+                                "query": model_id,
+                            },
+                        },
+                    },
+                    {
+                        "match": {
+                            "path": {
+                                "query": path,
+                            },
+                        },
+                    }
+                ]
+            }
+        }
+    })
+    return Response(
+        status_code=status.HTTP_200_OK,
+        headers={"location": f"/dojo/config/{model_id}"},
+        content=f"Deleted {response['deleted']} config(s) for model {model_id} with path = {path}",
+    )
+
 
 
 def copy_configs(model_id: str, new_model_id: str):
