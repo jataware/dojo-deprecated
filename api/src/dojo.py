@@ -197,6 +197,8 @@ def delete_config(model_id: str, path: str):
             params.remove(param)
 
         modify_model(config["model_id"], ModelSchema.ModelMetadataPatchSchema(parameters=params))
+
+        # TODO remove s3_url and s3_url_raw from s3?
         es.delete(index="configs", id=hit["_id"])
 
     return Response(
