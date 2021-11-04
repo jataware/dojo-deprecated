@@ -24,6 +24,31 @@ def search_by_model(model_id):
     q = {"query": {"term": {"model_id.keyword": {"value": model_id, "boost": 1.0}}}}
     return q
 
+def search_for_config(model_id, path):
+    q = {
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "match": {
+                            "model_id": {
+                                "query": model_id,
+                            },
+                        },
+                    },
+                    {
+                        "match": {
+                            "path": {
+                                "query": path,
+                            },
+                        },
+                    }
+                ]
+            }
+        }
+    }
+    return q
+
 
 def search_and_scroll(index, query=None, size=10, scroll_id=None):
     if query:
@@ -145,28 +170,7 @@ def delete_config(model_id: str, path: str):
     """
     from src.models import get_model, modify_model  # import at runtime to avoid circular import error
 
-    response = es.search(index="configs", body={
-        "query": {
-            "bool": {
-                "must": [
-                    {
-                        "match": {
-                            "model_id": {
-                                "query": model_id,
-                            },
-                        },
-                    },
-                    {
-                        "match": {
-                            "path": {
-                                "query": path,
-                            },
-                        },
-                    }
-                ]
-            }
-        }
-    })
+    response = es.search(index="configs", body=search_for_config(model_id, path))
 
     config_count, param_count = 0, 0
     for hit in response["hits"]["hits"]:
