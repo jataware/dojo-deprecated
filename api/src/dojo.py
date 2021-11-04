@@ -143,6 +143,12 @@ def create_configs(payload: List[DojoSchema.ModelConfig]):
         return Response(status_code=status.HTTP_400_BAD_REQUEST,content=f"No payload")
 
     for p in payload:
+
+        # remove existing configs with this model_id and path
+        response = es.search(index="configs", body=search_for_config(p.model_id, p.path))
+        for hit in response["hits"]["hits"]:
+            es.delete(index="configs", id=hit["_id"])
+
         es.index(index="configs", body=p.json())
     return Response(
         status_code=status.HTTP_201_CREATED,
