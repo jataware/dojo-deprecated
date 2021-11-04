@@ -10,7 +10,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 
 from fastapi import APIRouter, Response, status
-from validation import DojoSchema
+from validation import DojoSchema, ModelSchema
 from src.settings import settings
 import logging
 
@@ -145,8 +145,9 @@ def delete_config(model_id: str, path: str):
     Delete a model `configs`. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
     maps directly to the name of a specific `parameter.
     """
+    from src.models import get_model, modify_model  # import at runtime to avoid circular import error
 
-    response = es.delete_by_query(index="configs", body={
+    response = es.search(index="configs", body={
         "query": {
             "bool": {
                 "must": [
@@ -168,10 +169,31 @@ def delete_config(model_id: str, path: str):
             }
         }
     })
+
+    config_count, param_count = 0, 0
+    for hit in response["hits"]["hits"]:
+        config = hit["_source"]
+        config_count += 1
+
+        # search the model for params in this config and remove those
+        model = get_model(config["model_id"])
+        params = model.get("parameters", [])
+        params_to_delete = []
+        for param in params:
+            if param.get("template", {}).get("path") == path:
+                params_to_delete.append(param)
+
+        for param in params_to_delete:
+            param_count += 1
+            params.remove(param)
+
+        modify_model(config["model_id"], ModelSchema.ModelMetadataPatchSchema(parameters=params))
+        es.delete(index="configs", id=hit["_id"])
+
     return Response(
         status_code=status.HTTP_200_OK,
         headers={"location": f"/dojo/config/{model_id}"},
-        content=f"Deleted {response['deleted']} config(s) for model {model_id} with path = {path}",
+        content=f"Deleted {config_count} config(s) and {param_count} param(s) for model {model_id} with path = {path}",
     )
 
 
