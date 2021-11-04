@@ -181,6 +181,7 @@ def delete_config(model_id: str, path: str):
         params_to_delete = []
         for param in params:
             if param.get("template", {}).get("path") == path:
+                # TODO: see if this same param exists in other configs or directives?
                 params_to_delete.append(param)
 
         for param in params_to_delete:
