@@ -272,13 +272,13 @@ def delete_outputfile(outputfile_id: str):
         return Response(
             status_code=status.HTTP_200_OK,
             headers={"location": f"/dojo/outputfile/{outputfile_id}"},
-            content=f"Deleted outputfile for model with id = {outputfile_id}",
+            content=f"Deleted outputfile with id = {outputfile_id}",
         )
     except NotFoundError:
         return Response(
-            status_code=status.HTTP_200_OK,
+            status_code=status.HTTP_404_NOT_FOUND,
             headers={"location": f"/dojo/outputfile/{outputfile_id}"},
-            content=f"Deleted outputfile for model with id = {outputfile_id}",
+            content=f"Couldn't find the output file with id = {outputfile_id}",
         )
 
 
