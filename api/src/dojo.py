@@ -84,8 +84,14 @@ def search_and_scroll(index, query=None, size=10, scroll_id=None):
     }
 
 
-@router.get("/dojo/es-mappings/import")
-def import_outputfiles():
+@router.get("/dojo/import")
+def import_json_data():
+    """
+    In order to facilitate testing, you can place json files in the `es-mappings/import` directory
+    with the ES index name as the file name, such as `es-mappings/import/models.json`. Visiting this endpoint
+    will import the data in those files and save it to the local elasticsearch instances.
+    """
+
     from glob import glob
     import json
 
