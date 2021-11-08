@@ -84,6 +84,33 @@ def search_and_scroll(index, query=None, size=10, scroll_id=None):
     }
 
 
+@router.get("/dojo/es-mappings/import")
+def import_outputfiles():
+    from glob import glob
+    import json
+
+    for file in glob("es-mappings/import/*", recursive=True):
+
+        index = file.split("/")[-1].split(".json")[0]
+
+        print(f"Importing {file} into {index}", flush=True)
+        data = json.loads(open(file).read())
+        if type(data) != list:
+            print(data, flush=True)
+            result = es.index(index=index, body=data, id=data["id"])
+        else:
+            for x in data:
+                result = es.index(index=index, body=x, id=x["id"])
+
+        # result = es.indices.create(index, body=data)
+        # result = es.index(index=index, body=data)
+        # print(result)
+    return Response(
+        status_code=status.HTTP_200_OK,
+        content=f"Imported",
+    )
+
+
 @router.post("/dojo/directive")
 def create_directive(payload: DojoSchema.ModelDirective):
     """
