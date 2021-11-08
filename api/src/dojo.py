@@ -291,11 +291,20 @@ def delete_outputfile(outputfile_id: str):
     """
 
     try:
+
+        outputfile = es.get(index="outputfiles", id=outputfile_id)["_source"]
+
+        # search the model for outputs that use this outputfile's ID
+        def output_matches(output):
+            return output.get("uuid") == outputfile_id
+        output_count = delete_matching_records_from_model(outputfile["model_id"], "outputs", output_matches)
+
         es.delete(index="outputfiles", id=outputfile_id)
+
         return Response(
             status_code=status.HTTP_200_OK,
             headers={"location": f"/dojo/outputfile/{outputfile_id}"},
-            content=f"Deleted outputfile with id = {outputfile_id}",
+            content=f"Deleted outputfile and {output_count} output(s) with id = {outputfile_id}",
         )
     except NotFoundError:
         return Response(
