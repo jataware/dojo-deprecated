@@ -10,8 +10,9 @@ from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 
 from fastapi import APIRouter, Response, status
-from validation import DojoSchema, ModelSchema
+from validation import DojoSchema
 from src.settings import settings
+from src.utils import delete_matching_records_from_model
 import logging
 
 logger = logging.getLogger(__name__)
@@ -174,7 +175,6 @@ def delete_config(model_id: str, path: str):
     Delete a model `configs`. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
     maps directly to the name of a specific `parameter.
     """
-    from src.models import get_model, modify_model  # import at runtime to avoid circular import error
 
     response = es.search(index="configs", body=search_for_config(model_id, path))
 
@@ -184,19 +184,9 @@ def delete_config(model_id: str, path: str):
         config_count += 1
 
         # search the model for params in this config and remove those
-        model = get_model(config["model_id"])
-        params = model.get("parameters", [])
-        params_to_delete = []
-        for param in params:
-            if param.get("template", {}).get("path") == path:
-                # TODO: see if this same param exists in other configs or directives?
-                params_to_delete.append(param)
-
-        for param in params_to_delete:
-            param_count += 1
-            params.remove(param)
-
-        modify_model(config["model_id"], ModelSchema.ModelMetadataPatchSchema(parameters=params))
+        def param_matches(param):
+            return param.get("template", {}).get("path") == path
+        param_count += delete_matching_records_from_model(config["model_id"], "parameters", param_matches)
 
         # TODO remove s3_url and s3_url_raw from s3?
         es.delete(index="configs", id=hit["_id"])
