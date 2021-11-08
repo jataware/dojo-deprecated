@@ -31,6 +31,11 @@ class ModelAccessory(BaseModel):
         description="The file path where the accessory file must be mounted.",
         example="/model/settings/my_img.png",
     )
+    caption: Optional[str] = Field(
+        title="accessory caption",
+        description="A caption for the accessory file",
+        example="This is an image of a flooding forecast",        
+    )
 
 
 class ModelConfig(BaseModel):
