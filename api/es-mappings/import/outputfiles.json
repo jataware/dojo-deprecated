@@ -1,0 +1,58 @@
+[
+  {
+    "id": "883f2e1e-e7aa-49b6-beac-7f851c901860",
+    "model_id": "2d7b130d-4909-4338-9ac7-ebedc65cb603",
+    "name": "asdf",
+    "output_directory": "/home/clouseau/dummy-model/output",
+    "path": "output_*_*.csv",
+    "file_type": "csv",
+    "transform": {
+      "geo": [
+        {
+          "name": "longitude",
+          "display_name": "longitude",
+          "description": "adsf",
+          "type": "geo",
+          "geo_type": "longitude",
+          "primary_geo": true,
+          "is_geo_pair": "latitude"
+        },
+        {
+          "name": "latitude",
+          "display_name": "Latitude",
+          "description": "adsf",
+          "type": "geo",
+          "geo_type": "latitude",
+          "primary_geo": true,
+          "is_geo_pair": "longitude"
+        }
+      ],
+      "date": [
+        {
+          "name": "date",
+          "display_name": "Date",
+          "description": "asdf",
+          "type": "date",
+          "date_type": "date",
+          "time_format": "%Y-%m-%d",
+          "primary_date": true
+        }
+      ],
+      "feature": [
+        {
+          "name": "value",
+          "display_name": "Value",
+          "description": "asdf",
+          "type": "feature",
+          "feature_type": "float",
+          "units": "asdf",
+          "units_description": ""
+        }
+      ],
+      "meta": {
+        "ftype": "csv"
+      }
+    },
+    "prev_id": null
+  }
+]

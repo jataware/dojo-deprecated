@@ -39,7 +39,6 @@ class ModelAccessory(BaseModel):
 
 
 class ModelConfig(BaseModel):
-    id: Optional[str]
     model_id: str = Field(
         title="Model ID",
         description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",

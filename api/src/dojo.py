@@ -12,6 +12,7 @@ from elasticsearch.exceptions import NotFoundError
 from fastapi import APIRouter, Response, status
 from validation import DojoSchema
 from src.settings import settings
+from src.utils import delete_matching_records_from_model
 import logging
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,31 @@ es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_POR
 
 def search_by_model(model_id):
     q = {"query": {"term": {"model_id.keyword": {"value": model_id, "boost": 1.0}}}}
+    return q
+
+def search_for_config(model_id, path):
+    q = {
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "match": {
+                            "model_id": {
+                                "query": model_id,
+                            },
+                        },
+                    },
+                    {
+                        "match": {
+                            "path": {
+                                "query": path,
+                            },
+                        },
+                    }
+                ]
+            }
+        }
+    }
     return q
 
 
@@ -56,6 +82,35 @@ def search_and_scroll(index, query=None, size=10, scroll_id=None):
         "scroll_id": scroll_id,
         "results": [i["_source"] for i in results["hits"]["hits"]],
     }
+
+
+@router.get("/dojo/import")
+def import_json_data():
+    """
+    In order to facilitate testing, you can place json files in the `es-mappings/import` directory
+    with the ES index name as the file name, such as `es-mappings/import/models.json`. Visiting this endpoint
+    will import the data in those files and save it to the local elasticsearch instances.
+    """
+
+    from glob import glob
+    import json
+
+    for file in glob("es-mappings/import/*", recursive=True):
+
+        index = file.split("/")[-1].split(".json")[0]
+
+        print(f"Importing {file} into {index}", flush=True)
+        data = json.loads(open(file).read())
+        if type(data) == list:
+            for x in data:
+                result = es.index(index=index, body=x, id=x["id"])
+        else:
+            result = es.index(index=index, body=data, id=data["id"])
+
+    return Response(
+        status_code=status.HTTP_200_OK,
+        content=f"Imported",
+    )
 
 
 @router.post("/dojo/directive")
@@ -118,9 +173,13 @@ def create_configs(payload: List[DojoSchema.ModelConfig]):
         return Response(status_code=status.HTTP_400_BAD_REQUEST,content=f"No payload")
 
     for p in payload:
-        config_id = str(uuid.uuid4())
-        p.id = config_id
-        es.index(index="configs", body=p.json(), id=p.id)
+
+        # remove existing configs with this model_id and path
+        response = es.search(index="configs", body=search_for_config(p.model_id, p.path))
+        for hit in response["hits"]["hits"]:
+            es.delete(index="configs", id=hit["_id"])
+
+        es.index(index="configs", body=p.json())
     return Response(
         status_code=status.HTTP_201_CREATED,
         headers={"location": f"/dojo/config/{p.model_id}"},
@@ -139,35 +198,34 @@ def get_configs(model_id: str) -> List[DojoSchema.ModelConfig]:
         )
 
 
-@router.delete("/dojo/config/{config_id}")
-def delete_config(config_id: str):
+@router.delete("/dojo/config/{model_id}")
+def delete_config(model_id: str, path: str):
     """
     Delete a model `configs`. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
     maps directly to the name of a specific `parameter.
     """
 
-    try:
-        # TODO: Delete from S3?
-        es.delete(index="configs", id=config_id)
-        return Response(
-            status_code=status.HTTP_200_OK,
-            headers={"location": f"/dojo/config/{config_id}"},
-            content=f"Created config for model with id = {config_id}",
-        )
-    except NotFoundError:
-        all_configs = [result.get('_source') for result in es.search(index="configs")['hits']['hits']]
-        for config in all_configs:
-            logging.warning(config)
-            path_hash = hashlib.sha1(config.get("path", b"").encode()).hexdigest().strip()
-            if config_id == path_hash:
-                logging.info(f"Deleting {config['path']}")
-                es.delete(index="configs", id=config["path"])
-            break
-        return Response(
-            status_code=status.HTTP_200_OK,
-            headers={"location": f"/dojo/config/{config_id}"},
-            content=f"Deleted config for model with id = {config_id}",
-        )
+    response = es.search(index="configs", body=search_for_config(model_id, path))
+
+    config_count, param_count = 0, 0
+    for hit in response["hits"]["hits"]:
+        config = hit["_source"]
+        config_count += 1
+
+        # search the model for params in this config and remove those
+        def param_matches(param):
+            return param.get("template", {}).get("path") == path
+        param_count += delete_matching_records_from_model(config["model_id"], "parameters", param_matches)
+
+        # TODO remove s3_url and s3_url_raw from s3?
+        es.delete(index="configs", id=hit["_id"])
+
+    return Response(
+        status_code=status.HTTP_200_OK,
+        headers={"location": f"/dojo/config/{model_id}"},
+        content=f"Deleted {config_count} config(s) and {param_count} param(s) for model {model_id} with path = {path}",
+    )
+
 
 
 def copy_configs(model_id: str, new_model_id: str):
@@ -229,17 +287,27 @@ def delete_outputfile(outputfile_id: str):
     """
 
     try:
+
+        outputfile = es.get(index="outputfiles", id=outputfile_id)["_source"]
+
+        # search the model for outputs that use this outputfile's ID
+        def output_matches(output):
+            return output.get("uuid") == outputfile_id
+        output_count = delete_matching_records_from_model(outputfile["model_id"], "outputs", output_matches)
+        qualifier_output_count = delete_matching_records_from_model(outputfile["model_id"], "qualifier_outputs", output_matches)
+
         es.delete(index="outputfiles", id=outputfile_id)
+
         return Response(
             status_code=status.HTTP_200_OK,
             headers={"location": f"/dojo/outputfile/{outputfile_id}"},
-            content=f"Deleted outputfile for model with id = {outputfile_id}",
+            content=f"Deleted outputfile, {output_count} output(s) and {qualifier_output_count} qualifier output(s) with outputfile_id = {outputfile_id}",
         )
     except NotFoundError:
         return Response(
-            status_code=status.HTTP_200_OK,
+            status_code=status.HTTP_404_NOT_FOUND,
             headers={"location": f"/dojo/outputfile/{outputfile_id}"},
-            content=f"Deleted outputfile for model with id = {outputfile_id}",
+            content=f"Couldn't find the output file with id = {outputfile_id}",
         )
 
 
