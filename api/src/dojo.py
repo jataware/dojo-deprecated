@@ -101,16 +101,12 @@ def import_json_data():
 
         print(f"Importing {file} into {index}", flush=True)
         data = json.loads(open(file).read())
-        if type(data) != list:
-            print(data, flush=True)
-            result = es.index(index=index, body=data, id=data["id"])
-        else:
+        if type(data) == list:
             for x in data:
                 result = es.index(index=index, body=x, id=x["id"])
+        else:
+            result = es.index(index=index, body=data, id=data["id"])
 
-        # result = es.indices.create(index, body=data)
-        # result = es.index(index=index, body=data)
-        # print(result)
     return Response(
         status_code=status.HTTP_200_OK,
         content=f"Imported",
