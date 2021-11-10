@@ -22,7 +22,6 @@ import os
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
 
-
 # Statistic : Output Column-Name dictionary.
 stat_choices = { 'mm_data': 'rainfall', 'mm_anomaly': 'anomaly', 'none_z-score': 'z-score'}
 
@@ -91,7 +90,11 @@ class CHIRPSController(object):
 
 
     def __init__(self, name, month, year, bbox, statistic, day_of_year=None):
-        logging.basicConfig(level=logging.INFO)        
+        logging.basicConfig(level=logging.INFO)  
+
+        if not os.path.exists('results'):
+            os.makedirs('results')
+
         self.name = name
         self.stat = statistic
         self.day_of_year = day_of_year
