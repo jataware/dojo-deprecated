@@ -1,9 +1,12 @@
 from __future__ import annotations
+
+import logging
 import uuid
 import time
+from copy import deepcopy
 from datetime import datetime
 import json
-from typing import Any, Dict, Generator, List, Optional
+from typing import Any, Dict, Generator, List, Optional, Union
 
 from elasticsearch import Elasticsearch
 from pydantic import BaseModel, Field
@@ -20,6 +23,7 @@ from src.causemos import notify_causemos, submit_run
 router = APIRouter()
 
 es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
+logger = logging.getLogger(__name__)
 
 
 # For created_at times in epoch milliseconds
@@ -32,13 +36,14 @@ def create_model(payload: ModelSchema.ModelMetadataSchema, get_ontologies=True):
     model_id = payload.id
     payload.created_at = current_milli_time()
     body = payload.json()
-    
+
     if get_ontologies:
         model = get_ontologies(json.loads(body), type="model")
         logger.info(f"Sent model to UAZ")
     else:
         model = json.loads(body)
         logger.info(f"Cloning model; not re-sending to UAZ")
+        
     es.index(index="models", body=model, id=model_id)
 
     return Response(
@@ -92,8 +97,10 @@ def update_model(model_id: str, payload: ModelSchema.ModelMetadataSchema):
 
 
 @router.patch("/models/{model_id}")
-def modify_model(model_id: str, payload: dict = Body(...)):
-    es.update(index="models", body={"doc": payload}, id=model_id)
+def modify_model(model_id: str, payload: ModelSchema.ModelMetadataPatchSchema):
+    body = json.loads(payload.json(exclude_unset=True))
+    logging.info(body)
+    es.update(index="models", body={"doc": body}, id=model_id)
     return Response(
         status_code=status.HTTP_200_OK,
         headers={"location": f"/api/models/{model_id}"},
@@ -119,10 +126,16 @@ def get_model(model_id: str) -> Model:
     return model
 
 
+def delete_model(model_id: str) -> None:
+    try:
+        es.delete(index="models", id=model_id)
+    except:
+        pass
+
 @router.post("/models/register/{model_id}")
 def register_model(model_id: str):
     """
-    This endpoint finalizes the registration of a model by notifying 
+    This endpoint finalizes the registration of a model by notifying
     Uncharted and submitting to them a default run for the model.
     """
     logger.info("Updating model with latest ontologies.")
@@ -153,24 +166,62 @@ def version_model(model_id : str):
     editing workflow. When a modeler wishes to edit their model, a new version is created
     and the modelers edits are made against this new (cloned) model.
     """
-    #payload structure delete non present fields?
-    #endpoint to version a model, model_id = original_id - version_name
-    model = get_model(model_id)
+
+    def get_updated_outputs(
+            outputs: List[Union[ModelSchema.Output, ModelSchema.QualifierOutput]],
+            uuid_mapping: Dict[str, str]
+    ):
+        """
+        Helper function to remap Outputs to their new uuids
+
+        Each output or qualifier output has a uuid corresponding to the outputfile idx
+        this function changes the uuids in the models outputs and qualifiers to the new model version
+        outputfiles uuid. This is the uuid used by spacetag.
+        """
+        updated_outputs = []
+        for output in deepcopy(outputs):
+            original_uuid = output.uuid
+            new_uuid = uuid_mapping.get(original_uuid)
+            if new_uuid:
+                output.uuid = new_uuid
+                updated_outputs.append(output)
+        return updated_outputs
+
+    original_model_definition = get_model(model_id)
     new_id = str(uuid.uuid4())
-    modify_model(model_id=model_id, payload={'next_version':new_id})
 
-    model['id'] = new_id
-    model['prev_version'] = model_id
-    if model.get('next_version', False):
-        del model['next_version']
-    
-    m = ModelSchema.ModelMetadataSchema(**model)
-    create_model(m, get_ontologies=False)
+    # Update required fields from the original definition
+    original_model_definition['id'] = new_id
+    original_model_definition['prev_version'] = model_id
+    if original_model_definition.get('next_version', False):
+        del original_model_definition['next_version']
 
-    copy_outputfiles(model_id, new_id)
-    copy_configs(model_id, new_id)
-    copy_directive(model_id, new_id)
-    copy_accessory_files(model_id, new_id)
+    # Create a new pydantic model for processing
+    new_model = ModelSchema.ModelMetadataSchema(**original_model_definition)
+
+    try:
+        # Make copies of related items
+        outputfile_uuid_mapping = copy_outputfiles(model_id, new_id)
+        copy_configs(model_id, new_id)
+        copy_directive(model_id, new_id)
+        copy_accessory_files(model_id, new_id)
+
+        # Update the created model with the changes related to copying
+        if new_model.outputs:
+            new_model.outputs = get_updated_outputs(new_model.outputs, outputfile_uuid_mapping)
+        if new_model.qualifier_outputs:
+            new_model.qualifier_outputs = get_updated_outputs(new_model.qualifier_outputs, outputfile_uuid_mapping)
+
+        # Save model
+        create_model(new_model, get_ontologies=False)
+
+    except Exception as e:
+        # Delete partially created model
+        # TODO: Clean up copies configs, directives, accessories, and output file data which may exist even if the
+        # TODO: model was never actually created due to error
+        delete_model(new_id)
+        raise
+
     return Response(
         status_code=status.HTTP_200_OK,
         headers={"location": f"/api/models/{model_id}", "Content-Type": "text/plain"},

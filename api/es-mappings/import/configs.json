@@ -1,0 +1,16 @@
+[
+  {
+    "id": "8584cfa0-a88a-40d6-9e49-acb0d9c259a0",
+    "model_id": "2d7b130d-4909-4338-9ac7-ebedc65cb603",
+    "s3_url": "https://jataware-world-modelers.s3.amazonaws.com/dojo/shorthand_templates/2d7b130d-4909-4338-9ac7-ebedc65cb603/home/clouseau/dummy-model/configFiles/parameters.json.template.txt",
+    "s3_url_raw": "https://jataware-world-modelers.s3.amazonaws.com/dojo/shorthand_templates/2d7b130d-4909-4338-9ac7-ebedc65cb603/home/clouseau/dummy-model/configFiles/parameters.json.raw.txt",
+    "path": "/home/clouseau/dummy-model/configFiles/parameters.json"
+  },
+  {
+    "id": "9e6a30b7-ca6e-43a1-99a9-a11322e17aaa",
+    "model_id": "2d7b130d-4909-4338-9ac7-ebedc65cb603",
+    "s3_url": "https://jataware-world-modelers.s3.amazonaws.com/dojo/shorthand_templates/2d7b130d-4909-4338-9ac7-ebedc65cb603/home/clouseau/dummy-model/configFiles/fakeDataType.json.template.txt",
+    "s3_url_raw": "https://jataware-world-modelers.s3.amazonaws.com/dojo/shorthand_templates/2d7b130d-4909-4338-9ac7-ebedc65cb603/home/clouseau/dummy-model/configFiles/fakeDataType.json.raw.txt",
+    "path": "/home/clouseau/dummy-model/configFiles/fakeDataType.json"
+  }
+]

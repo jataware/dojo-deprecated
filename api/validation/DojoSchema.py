@@ -31,6 +31,11 @@ class ModelAccessory(BaseModel):
         description="The file path where the accessory file must be mounted.",
         example="/model/settings/my_img.png",
     )
+    caption: Optional[str] = Field(
+        title="accessory caption",
+        description="A caption for the accessory file",
+        example="This is an image of a flooding forecast",        
+    )
 
 
 class ModelConfig(BaseModel):
@@ -75,6 +80,11 @@ class ModelDirective(BaseModel):
         description="The raw model container command",
         example="python3 dssat.py --rainfall = .5 ",
     )
+    cwd: str = Field(
+        title="Current Working Directory",
+        description="Current Working Directory for Model Container command",
+        example="/home/clouseau/model",
+    )
 
     class Config:
         extra = "allow"
@@ -96,7 +106,7 @@ class ModelOutputFile(BaseModel):
         title="Model Output Directory",
         description="The location of the model outputs within the model container. This will be mounted in order to retriee output files.",
         example="/results",
-    )    
+    )
     path: str = Field(
         title="Output File Path",
         description="The relative file path of the output file within the model's `output_directory`",
@@ -112,6 +122,11 @@ class ModelOutputFile(BaseModel):
         title="SpaceTag Transform Directives",
         description="A dictionary of SpaceTag generated transform directives that are used to convert the model output file into a CauseMos compliant schema",
         example={"x": "lng", "y": "lat"},
+    )
+    prev_id: Optional[str] = Field(
+        title="Previous output file id",
+        description="If this is not the original version what was the last model outputfile ID",
+        example="fjd23k-s1a0j2-fds...",
     )
 
     class Config:
