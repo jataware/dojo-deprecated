@@ -35,7 +35,10 @@ def create_model(payload: ModelSchema.ModelMetadataSchema, get_ontologies=True):
     
     if get_ontologies:
         model = get_ontologies(json.loads(body), type="model")
-    logger.info(f"Sent model to UAZ")
+        logger.info(f"Sent model to UAZ")
+    else:
+        model = json.loads(body)
+        logger.info(f"Cloning model; not re-sending to UAZ")
     es.index(index="models", body=model, id=model_id)
 
     return Response(
