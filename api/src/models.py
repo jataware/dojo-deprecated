@@ -32,14 +32,14 @@ def current_milli_time():
 
 
 @router.post("/models")
-def create_model(payload: ModelSchema.ModelMetadataSchema, get_ontologies=True):
+def create_model(payload: ModelSchema.ModelMetadataSchema, fetch_ontologies=True):
     model_id = payload.id
     payload.created_at = current_milli_time()
     body = payload.json()
-
-    if get_ontologies:
-        model = get_ontologies(json.loads(body), type="model")
+    
+    if fetch_ontologies:
         logger.info(f"Sent model to UAZ")
+        model = get_ontologies(json.loads(body), type="model")        
     else:
         model = json.loads(body)
         logger.info(f"Cloning model; not re-sending to UAZ")
@@ -213,7 +213,7 @@ def version_model(model_id : str):
             new_model.qualifier_outputs = get_updated_outputs(new_model.qualifier_outputs, outputfile_uuid_mapping)
 
         # Save model
-        create_model(new_model, get_ontologies=False)
+        create_model(new_model, fetch_ontologies=False)
 
     except Exception as e:
         # Delete partially created model
