@@ -51,12 +51,13 @@ def get_ontologies(data, type="indicator"):
                 return data
                 
         else:
-            logger.debug(f"else response: {response}")
-            return response
+            logger.debug(f"Failed to fetch ontologies: {response}")
+            return data
 
     except Exception as e:
         logger.error(f"Encountered problems communicating with UAZ service: {e}")
         logger.exception(e)
+        return data
 
 
 def indicator_ontologies(data, ontologies):
