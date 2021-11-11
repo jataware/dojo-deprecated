@@ -43,9 +43,11 @@ class Type(Enum):
     float = "float"
     str = "str"
     boolean = "boolean"
-    datetime = "datetime"
     lat = "lat"
     lng = "lng"
+    date = "date"
+    daterange = "daterange"
+    geo = "geo"
 
 
 class DataType(Enum):
