@@ -36,14 +36,14 @@ def create_model(payload: ModelSchema.ModelMetadataSchema, fetch_ontologies=True
     model_id = payload.id
     payload.created_at = current_milli_time()
     body = payload.json()
-    
+
     if fetch_ontologies:
         logger.info(f"Sent model to UAZ")
-        model = get_ontologies(json.loads(body), type="model")        
+        model = get_ontologies(json.loads(body), type="model")
     else:
         model = json.loads(body)
         logger.info(f"Cloning model; not re-sending to UAZ")
-        
+
     es.index(index="models", body=model, id=model_id)
 
     return Response(
@@ -214,6 +214,9 @@ def version_model(model_id : str):
 
         # Save model
         create_model(new_model, fetch_ontologies=False)
+
+        # Assign next_version id to original model after save
+        modify_model(model_id=model_id, payload=ModelSchema.ModelMetadataPatchSchema(next_version=new_id))
 
     except Exception as e:
         # Delete partially created model
