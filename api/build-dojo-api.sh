@@ -2,7 +2,7 @@
 
 DT=$(date +"%Y%m%d")
 GIT=${DT}.git.$(git rev-parse --short HEAD)
-VERSION="0.1.6"
+VERSION="0.1.7"
 TAG="api_${VERSION}"
 
 GROUP=jataware
