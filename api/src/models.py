@@ -200,8 +200,7 @@ def version_model(model_id : str):
         copy_configs(model_id, new_id)
         copy_directive(model_id, new_id)
         copy_accessory_files(model_id, new_id)
-        modify_model(model_id=model_id, payload={'next_version': new_id})
-
+        
         # Update the created model with the changes related to copying
         if new_model.outputs:
             new_model.outputs = get_updated_outputs(new_model.outputs, outputfile_uuid_mapping)
@@ -210,6 +209,9 @@ def version_model(model_id : str):
 
         # Save model
         create_model(new_model)
+        
+        # Assign next_version id to original model after save
+        modify_model(model_id=model_id, payload={'next_version': new_id})
 
     except Exception as e:
         # Delete partially created model
