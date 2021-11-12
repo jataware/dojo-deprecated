@@ -211,7 +211,7 @@ def version_model(model_id : str):
         create_model(new_model)
         
         # Assign next_version id to original model after save
-        modify_model(model_id=model_id, payload={'next_version': new_id})
+        modify_model(model_id=model_id, payload=ModelSchema.ModelMetadataPatchSchema(next_version=new_id))
 
     except Exception as e:
         # Delete partially created model
