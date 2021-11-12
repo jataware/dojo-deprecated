@@ -200,6 +200,7 @@ def version_model(model_id : str):
         copy_configs(model_id, new_id)
         copy_directive(model_id, new_id)
         copy_accessory_files(model_id, new_id)
+        modify_model(model_id=model_id, payload={'next_version': new_id})
 
         # Update the created model with the changes related to copying
         if new_model.outputs:
