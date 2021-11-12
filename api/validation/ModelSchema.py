@@ -47,6 +47,7 @@ class Type(Enum):
     lng = "lng"
     date = "date"
     daterange = "daterange"
+    datetime = "datetime"
     geo = "geo"
 
 
@@ -517,7 +518,7 @@ class ModelMetadataSchema(BaseModel):
     period: Optional[Period] = Field(
         None, description="Data ranges covered by the run", title="Run time period"
     )
-    
+
     next_version: Optional[str] = Field(
         None, description="UUID of the next version", title="next model version"
     )
