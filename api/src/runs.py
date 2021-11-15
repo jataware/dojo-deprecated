@@ -81,7 +81,7 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
     if not param_filters:
         return results  # no need to filter params
 
-    print(f"filtering by params: {param_filters}", flush=True)
+    # print(f"filtering by params: {param_filters}", flush=True)
 
     to_return = []
     for result in results:
@@ -90,22 +90,21 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
         for param in result.get("parameters", []):
             run_params[ param["name"] ] = param["value"]
 
-        print(run_params, flush=True)
+        # print(f" -> found these params for this run: {run_params}", flush=True)
 
-        for k, v in param_filters.items():
-            if v.lower() in run_params.get(k, "").lower():
-                to_return.append(result)
+        for filter_key, filter_value in param_filters.items():
+            run_param_value = run_params.get(filter_key)
+            if run_param_value:
+                if type(run_param_value) == str:  # do a "case-insensitive string contains" match
+                    if filter_value.lower() in run_param_value.lower():
+                        to_return.append(result)
+                else:  # not a string (could be int, etc), look for string-ish match
+                    if filter_value == str(run_param_value):
+                        to_return.append(result)
 
-    return to_return
-
-    # try:
-
-    #     return
-    # except:
-    #     return Response(
-    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-    #         content="No runs available.",
-    #     )
+    if len(to_return):
+        return to_return
+    return []  # no results matched the param filters
 
 
 @router.get("/runs/{run_id}")
