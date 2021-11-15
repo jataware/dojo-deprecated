@@ -13,7 +13,7 @@ from typing import Any, Dict, Generator, List, Optional
 from elasticsearch import Elasticsearch
 from jinja2 import Template
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status, Request
 
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -54,11 +54,13 @@ headers = {"Content-Type": "application/json"}
 
 
 @router.get("/runs")
-def search_runs(model_name: str = Query(None), model_id: str = Query(None)) -> List[RunSchema.ModelRunSchema]:
+def search_runs(request: Request, model_name: str = Query(None), model_id: str = Query(None)) -> List[RunSchema.ModelRunSchema]:
     """
     Allows users to search for runs. Note that a `model_name` or `model_id` query argument
     will be used to filter the records in elasticsearch. Any other arbitrary `&key=value` pairs
-    will be used to filter the runs based on parameters and values, in python.
+    will be used to filter the runs based on parameters and values, in python. Since we can't
+    know ahead of time what all of the possible key/values are that people might search for in
+    the model's parameters, we're accessing the raw FastAPI/Starlette request object's query args.
     """
     if model_name:
         q = {"query": {"term": {"model_name.keyword": {"value": model_name, "boost": 1.0}}}}
@@ -67,14 +69,43 @@ def search_runs(model_name: str = Query(None), model_id: str = Query(None)) -> L
     else:  # no model name specified
         q = {"query": {"match_all": {}}}
 
-    try:
-        results = es.search(index="runs", body=q)
-        return [i["_source"] for i in results["hits"]["hits"]]
-    except:
-        return Response(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="No runs available.",
-        )
+    response = es.search(index="runs", body=q)
+    results = [i["_source"] for i in response["hits"]["hits"]]
+
+    param_filters = {}
+    for key, value in request.query_params.items():
+        if key in ["model_id", "model_name"]:
+            continue  # skip the args we're already searching with, above
+        param_filters[key] = value
+
+    if not param_filters:
+        return results  # no need to filter params
+
+    print(f"filtering by params: {param_filters}", flush=True)
+
+    to_return = []
+    for result in results:
+
+        run_params = {}  # convert run's params into dict for quick lookups
+        for param in result.get("parameters", []):
+            run_params[ param["name"] ] = param["value"]
+
+        print(run_params, flush=True)
+
+        for k, v in param_filters.items():
+            if v.lower() in run_params.get(k, "").lower():
+                to_return.append(result)
+
+    return to_return
+
+    # try:
+
+    #     return
+    # except:
+    #     return Response(
+    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         content="No runs available.",
+    #     )
 
 
 @router.get("/runs/{run_id}")
