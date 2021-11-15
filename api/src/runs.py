@@ -54,17 +54,19 @@ headers = {"Content-Type": "application/json"}
 
 
 @router.get("/runs")
-def search_runs(query: str = Query(None)) -> List[RunSchema.ModelRunSchema]:
-    if query:
-        q = {
-            "query": {
-                "query_string": {
-                    "query": query,
-                }
-            }
-        }
-    else:
+def search_runs(model_name: str = Query(None), model_id: str = Query(None)) -> List[RunSchema.ModelRunSchema]:
+    """
+    Allows users to search for runs. Note that a `model_name` or `model_id` query argument
+    will be used to filter the records in elasticsearch. Any other arbitrary `&key=value` pairs
+    will be used to filter the runs based on parameters and values, in python.
+    """
+    if model_name:
+        q = {"query": {"term": {"model_name.keyword": {"value": model_name, "boost": 1.0}}}}
+    elif model_id:
+        q = {"query": {"term": {"model_id.keyword": {"value": model_id, "boost": 1.0}}}}
+    else:  # no model name specified
         q = {"query": {"match_all": {}}}
+
     try:
         results = es.search(index="runs", body=q)
         return [i["_source"] for i in results["hits"]["hits"]]
