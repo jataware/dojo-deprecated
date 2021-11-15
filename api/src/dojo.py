@@ -27,22 +27,36 @@ def search_by_model(model_id):
 
 def search_for_config(model_id, path):
     q = {
-        "query": {
-            "bool": {
-                "must": [
+        "query":{
+            "bool":{
+                "filter":[
                     {
-                        "match": {
-                            "model_id": {
-                                "query": model_id,
+                    "bool":{
+                        "filter":[
+                            {
+                                "bool":{
+                                "should":[
+                                    {
+                                        "match_phrase":{
+                                            "path": path
+                                        }
+                                    }
+                                ],
+                                }
                             },
-                        },
-                    },
-                    {
-                        "match": {
-                            "path": {
-                                "query": path,
-                            },
-                        },
+                            {
+                                "bool":{
+                                "should":[
+                                    {
+                                        "match_phrase":{
+                                            "model_id": model_id
+                                        }
+                                    }
+                                ],
+                                }
+                            }
+                        ]
+                    }
                     }
                 ]
             }
