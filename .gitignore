@@ -110,3 +110,5 @@ ENV/
 **/logs/*
 
 **/results/*
+
+api/es-mappings/import/*.json
