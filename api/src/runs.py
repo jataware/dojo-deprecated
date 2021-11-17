@@ -174,6 +174,8 @@ def create_run(run: RunSchema.ModelRunSchema):
 
     ### Handle accessory files.
     accessoryFiles = get_accessory_files(run.model_id) # call dojo.py API method directly.
+    if accessoryFiles.status_code == 404:
+        accessoryFiles = []
     logger.info(accessoryFiles)
     accessory_dirs = {}
     for accessoryFile in accessoryFiles:
@@ -249,7 +251,7 @@ def create_run(run: RunSchema.ModelRunSchema):
         "params": param_dict,
         "s3_config_files": model_config_s3_path_objects,
         "volumes": json.dumps(volumeArray),
-        "mixmasta_cmd": f"causemosify-multi --inputs='{json.dumps(mixmasta_inputs)}' --geo=admin3 --output-file=/tmp/{run.id}_{run.model_id}",
+        "mixmasta_cmd": f"causemosify-multi --inputs='{json.dumps(mixmasta_inputs)}' --output-file=/tmp/{run.id}_{run.model_id}",
     }
 
     logging.debug(f"run_conf: {run_conf}")
