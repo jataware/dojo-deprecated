@@ -72,11 +72,11 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
     response = es.search(index="runs", body=q)
     results = [i["_source"] for i in response["hits"]["hits"]]
 
-    param_filters = {}
-    for key, value in request.query_params.items():
-        if key in ["model_id", "model_name"]:
-            continue  # skip the args we're already searching with, above
-        param_filters[key] = value
+    param_filters = dict(request.query_params)
+
+    # don't use these keys to filter params
+    for reserved_param in ["model_id", "model_name"]:
+        param_filters.pop(reserved_param, None)
 
     if not param_filters:
         return results  # no need to filter params
@@ -94,7 +94,7 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
                 if type(run_param_value) == str:  # do a "case-insensitive string contains" match
                     if filter_value.lower() in run_param_value.lower():
                         to_return.append(result)
-                else:  # not a string (could be int, etc), look for string-ish match
+                else:  # not a string (could be int, etc), look for an exact string-ified match
                     if filter_value == str(run_param_value):
                         to_return.append(result)
 
