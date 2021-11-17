@@ -60,7 +60,7 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
     will be used to filter the records in elasticsearch. Any other arbitrary `&key=value` pairs
     will be used to filter the runs based on parameters and values, in python. Since we can't
     know ahead of time what all of the possible key/values are that people might search for in
-    the model's parameters, we're accessing the raw FastAPI/Starlette request object's query args.
+    the run's parameters, we're accessing the raw FastAPI/Starlette request object's query args.
     """
     if model_name:
         q = {"query": {"term": {"model_name.keyword": {"value": model_name, "boost": 1.0}}}}
@@ -81,16 +81,12 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
     if not param_filters:
         return results  # no need to filter params
 
-    # print(f"filtering by params: {param_filters}", flush=True)
-
     to_return = []
     for result in results:
 
         run_params = {}  # convert run's params into dict for quick lookups
         for param in result.get("parameters", []):
             run_params[ param["name"] ] = param["value"]
-
-        # print(f" -> found these params for this run: {run_params}", flush=True)
 
         for filter_key, filter_value in param_filters.items():
             run_param_value = run_params.get(filter_key)
@@ -102,9 +98,7 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
                     if filter_value == str(run_param_value):
                         to_return.append(result)
 
-    if len(to_return):
-        return to_return
-    return []  # no results matched the param filters
+    return to_return
 
 
 @router.get("/runs/{run_id}")
