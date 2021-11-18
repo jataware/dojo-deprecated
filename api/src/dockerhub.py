@@ -4,63 +4,61 @@
     see https://github.com/jataware/dojo/issues/77
     Requires credentials for Pro or Team plan.
 """
-import json
 from logging import Logger
 import logging
-import os
 import requests
+
+from src.settings import settings
 
 logger: Logger = logging.getLogger(__name__)
 
 
 def authenticate() -> str:
     """
-        Description
-        -----------
-        Basic authentication of Docker Hub Api. Uses base url and credentials
-        stored in .env settings.
+    Description
+    -----------
+    Basic authentication of Docker Hub Api. Uses base url and credentials
+    stored in .env settings.
 
-        Returns
-        -------
-        str: JWT Token
+    Returns
+    -------
+    str: JWT Token
     """
 
-    url = f'{os.getenv("DOCKERHUB_URL")}/users/login'
-    dockerhub_user = os.getenv("DOCKERHUB_USER")
-    dockerhub_pwd = os.getenv("DOCKERHUB_PWD")
+    url = f"{settings.DOCKERHUB_URL}/users/login"
+    dockerhub_user = settings.DOCKERHUB_USER
+    dockerhub_pwd = settings.DOCKERHUB_PWD
     auth_body = {"username": dockerhub_user, "password": dockerhub_pwd}
 
-    response = requests.post(url, json = auth_body, headers = {'Content-Type':'application/json'})
+    response = requests.post(url, json=auth_body, headers={"Content-Type": "application/json"})
     resp_json = response.json()
 
-    if 'token' in resp_json:
-        return resp_json['token']
+    if "token" in resp_json:
+        return resp_json["token"]
     else:
         logger.error(f"Could not authenticate {url} with user {dockerhub_user}: {resp_json}")
-        return None
+        raise
 
 
-def get_image_tags():
+def get_image_tags(repo):
     """
-        Description
-        -----------
-        Called by phantom.py get_base_images() to scrape DockerHub for
-        Jataware/dojo-publish images.
+    Description
+    -----------
+    Called by phantom.py get_base_images() to scrape DockerHub for
+    Jataware/dojo-publish images.
 
-        Returns
-        -------
-        JSON Array of
-            {
-                "sort_order": int,
-                "display_name": "string",
-                "image": "string"
-            }
+    Returns
+    -------
+    JSON Array of
+        {
+            "sort_order": int,
+            "display_name": "string",
+            "image": "string"
+        }
 
     """
 
     auth_token = authenticate()
-    if not auth_token:
-        return "" # authenticate() above will log the error
 
     """
         Docker Hub Url options for Get details of repository's images:
@@ -73,19 +71,23 @@ def get_image_tags():
             Prefixing with - sorts by descending order.
     """
 
-    url = f'{os.getenv("DOCKERHUB_URL")}/namespaces/jataware/repositories/dojo-publish/images?ordering=last_activity&page_size=100&currently_tagged=true'
-    headers = {"Accept" :"application/json", "Authorization": f"Bearer {auth_token}"}
+    url = (f"{settings.DOCKERHUB_URL}/namespaces/"
+           f"{settings.DOCKERHUB_ORG}/repositories/"
+           f"{repo}/images?ordering=last_activity&page_size=100&currently_tagged=true")
+
+    headers = {"Accept": "application/json", "Authorization": f"Bearer {auth_token}"}
 
     # Get list of image tag dicts.
     image_tags = get_repo_image_details(url, headers, [])
 
     # Remove the Ubuntu dict from the list
     ubuntu = next((item for item in image_tags if item["display_name"] == "Ubuntu"), None)
-    image_tags[:] = [d for d in image_tags if d.get('display_name') != "Ubuntu"]
+    image_tags[:] = [d for d in image_tags if d.get("display_name") != "Ubuntu"]
 
     # Sort the list based on Display Names, and add Ubuntu to the front.
     image_tags.sort(key=lambda item: item.get("display_name"))
-    image_tags.insert(0, ubuntu)
+    if ubuntu:
+        image_tags.insert(0, ubuntu)
 
     # Enumerate and set sort_order; although, Phantom does not seem to use this.
     for idx, d in enumerate(image_tags):
@@ -96,31 +98,31 @@ def get_image_tags():
 
 def get_repo_image_details(url: str, headers: dict, image_tags) -> list:
     """
-        Description
-        -----------
-        GET request at Docker Hub to Get details of repository's images.
+    Description
+    -----------
+    GET request at Docker Hub to Get details of repository's images.
 
-        Parameters
-        ----------
-        url: str
-            Constructed url for GET.
-        headers: dict
-            Authentication headers.
-        image_tags: list
-            Current list of dict of image tag info.
+    Parameters
+    ----------
+    url: str
+        Constructed url for GET.
+    headers: dict
+        Authentication headers.
+    image_tags: list
+        Current list of dict of image tag info.
 
-        Returns
-        -------
-        Dict of display_name: image
+    Returns
+    -------
+    Dict of display_name: image
 
-        Notes
-        -----
-        This is built to be recursive because DockerHub will paginate the response;
-        therefore, make another call if the "next" url is returned.
+    Notes
+    -----
+    This is built to be recursive because DockerHub will paginate the response;
+    therefore, make another call if the "next" url is returned.
     """
 
     try:
-        response = requests.get(url, headers = headers)
+        response = requests.get(url, headers=headers)
         resp = response.json()
 
         """
@@ -153,12 +155,12 @@ def get_repo_image_details(url: str, headers: dict, image_tags) -> list:
                     tags = r["tags"][0]
                     tag = tags["tag"]
                     image = r["namespace"] + "/" + r["repository"] + ":" + tag
-                    display_name = tag.replace('-latest','')
+                    display_name = tag.replace("-latest", "")
 
-                    image_tags.append({"display_name" : display_name, "image": image, "sort_order": 0})
+                    image_tags.append({"display_name": display_name, "image": image, "sort_order": 0})
 
         # Get the next page if there is a "next".
-        if "next" in resp and resp["next"] != None:
+        if "next" in resp and resp["next"] is not None:
             image_tags = get_repo_image_details(resp["next"], headers, image_tags)
 
         return image_tags
