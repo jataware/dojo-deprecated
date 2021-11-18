@@ -1,9 +1,28 @@
 '''
 Usage: 
-    python run_chirps_tiff.py --name=CHIRPS --month=01 --year=2020 --bbox='[33.512234, 2.719907, 49.98171,16.501768]' --statistic=mm_data
+    HELP
+    ----
+    python run_chirps_tiff.py --help
+
+    CHIRPS
+    ------
+    Returns data for 1st day of specified month/year.
+    python run_chirps_tiff.py --name=CHIRPS --month=01 --year=2021 --bbox='[33.512234, 2.719907, 49.98171,16.501768]' --statistic=mm_data
+
+    CHIRPS-GEFS
+    -----------
+    Returns data for 1st and 16th of specified month/year.
+    python run_chirps_tiff.py --name=CHIRPS-GEFS --month=01 --year=2021 --bbox='[33.512234, 2.719907, 49.98171,16.501768]' --statistic=mm_data
+
+    CHIRTS-MAX
+    ----------
+    Returns data for 1st day of specified month/year.
+    python3 run_chirps_tiff.py --name=CHIRTS-MAX --month=09 --year=2016 --bbox='[33.512234, 2.719907, 49.98171,16.501768]'
+
 
 Requirements:
     pyproj==2.6.1.post1
+    rioxarray==0.8.0
     mixmasta>=0.5.19
 '''
 
@@ -30,6 +49,55 @@ class CHIRPSController(object):
     A controller to manage CHIRPS model execution.
     """
 
+    def __init__(self, name, month, year, bbox):
+        logging.basicConfig(level=logging.INFO)  
+
+        if not os.path.exists('results'):
+            os.makedirs('results')
+
+        # The controller objects methods use the object properties,
+        # so these are set prior to calling self methods like run_model()
+
+        # Ensure month is 2-digits
+        if len(str(month)) == 1:
+            self.month = f"0{month}"
+        else:
+            self.month = month
+        self.day_of_year = None
+        self.name = name
+        self.year = year
+        self.bbox = json.loads(bbox)
+        self.min_pt, self.max_pt = self.convert_bbox(self.bbox)
+
+        self.features = {'mm_data': {
+                                'feature_name': 'Rainfall',
+                                'feature_description': 'rainfall in mm per 5km',
+                                'run_description': f'{self.name} rainfall data'
+                                    },
+                        'mm_anomaly': {
+                                'feature_name': 'Rainfall relative to average',
+                                'feature_description': 'Rainfall relative to the historic average in mm per 5km',
+                                'run_description': f'{self.name} anomaly data'
+                                    },
+                        'none_z-score': {
+                                'feature_name': 'SPI',
+                                'feature_description': 'Standardized Precipitation Index',
+                                'run_description': f'{self.name} Standardized Precipitation Index data'
+                                    }
+                        }
+
+    def convert_bbox(self, bb):
+        """
+        Convert WGS84 coordinate system to Web Mercator
+        Initial bbox is in format [xmin, ymin, xmax, ymax]. 
+        x is longitude, y is latitude.
+        Output is Web Mercator min/max points for a bounding box.
+        """
+        in_proj = Proj(init='epsg:4326')
+        out_proj = Proj(init='epsg:3857')
+        min_pt = transform(in_proj, out_proj, bb[0], bb[1])
+        max_pt = transform(in_proj, out_proj, bb[2], bb[3])
+        return min_pt, max_pt  
 
     def process_download(self, df: pd.DataFrame, date: str):
         """
@@ -67,6 +135,159 @@ class CHIRPSController(object):
         os.remove(self.download_filename)
         return df
 
+    def run_model(self):
+        """
+        Description
+        -----------
+            Obtain CHIRPS data from URL. Writes to self.download_filename.
+        
+        Returns
+        -------
+            False on failure, else True.
+        """
+
+        try:
+            #logging.info(f'{self.url}\n')
+            data = requests.get(self.url)        
+
+            if 'ServiceException' in data.text:
+                logging.error(f"Model {self.name} (run stat:{self.stat} day_of_year:{self.day_of_year} year: {self.year} month: {self.month}): FAILED\n")
+                logging.error(f'{self.url}\n')
+                logging.error(f'{data.content}\n')
+                return False
+            else:
+                logging.info(f"Model {self.name} (run stat:{self.stat} day_of_year:{self.day_of_year} year: {self.year} month: {self.month}): SUCCESS\n")
+
+                with open(self.download_filename, "wb") as f:
+                    f.write(data.content)
+                
+                return True
+
+        except Exception as e:
+            logging.error(f"{self.name} Fail: {e}")
+            return False
+
+    def run_models(self):
+        """
+        Description
+        -----------
+            (1)
+            Get geotiffs for the three stats using the existing self.run_model() method
+            modified to append the saved filename with the current stat 
+            e.g. results/chirps-mm_data.tiff.
+
+            (2)
+            Convert each saved tiff to a dataframe and append columns to earlier df.
+
+            (3) 
+            Flow control is by self.name i.e. CHIRPS, CHIRPS-GEFS, or CHIRTS-MAX
+
+            (4) 
+            CHIRPS-GEFS calculates the day-of-year for the 1st and 16th of the month, and 
+            makes a call for each statistic for both day-of-years. The day-of-year DataFrames
+            are concatenated by row. Therefore, the 'date' column will contain two unique dates.
+
+        Output
+        ------
+            Saves concatenated dataframe to results/chirps.csv.
+        """
+
+        if self.name == 'CHIRPS-GEFS':
+            # For CHIRPS-GEFS we download the 1st and 16th of the month,
+            
+            # set_days_of_year() returns a tuple of the day_of_year for the
+            # 1st and 16th of self.month.
+            self.set_days_of_year()
+
+            # Init the two dataframes.
+            df1 = pd.DataFrame()
+            df16 = pd.DataFrame()
+
+            # Cycle the two days_of_year
+            for idx, doy in enumerate(self.days_of_year):
+                logging.info(f'CHIRPS-GEFS idx {idx} doy {doy}')
+                # CHIRPS-GEFS has two unique date values.
+                date = datetime.strptime(f"{self.year}-{doy}", "%Y-%j").strftime("%m-%d-%Y")
+                
+                # Cycle through the statistical data we want.
+                for stat in stat_choices.keys():
+                    # Set the temporary download filename.
+                    self.download_filename = f"results/chirps-{stat}.tiff"
+                    
+                    # Set the runner's stat, doy and then the URL for CHIRPS-GEF.
+                    self.stat = stat
+                    self.day_of_year = doy
+                    self.set_url_chirps_gefs()
+
+                    # Retrieve the CHIRPS data for this statistic.
+                    if not self.run_model():
+                        logging.error('Run model failed: stopping.')
+                        return
+                    
+                    # Process the downloaded file into the day_of_year dataframe. 
+                    if idx == 0:
+                        df1 = self.process_download(df1, date)
+                    else:
+                        df16 = self.process_download(df16, date)
+
+            # Concat the two day_of_year dataframes by row.
+            logging.info(df1.head())
+            logging.info(df1.info(verbose=True))
+            logging.info(df16.head())
+            logging.info(df16.info(verbose=True))
+            df = pd.concat([df1, df16], axis=0)
+
+        elif self.name in ['CHIRPS', 'CHIRTS-MAX']:
+            # For these we download only the 1st of the month, so that is
+            # the only value in the date column.
+            date = f"{self.month}/01/{self.year}"
+
+            # Init the result dataframe.
+            df = pd.DataFrame()
+
+            # Cycle through the statistical data we want.
+            for stat in stat_choices.keys():
+                # Set temporary download filename.
+                self.download_filename = f"results/chirps-{stat}.tiff"                
+                
+                # Set the runner's stat.
+                self.stat = stat
+
+                # Set the url for the product.
+                if self.name == 'CHIRPS':
+                    self.set_url_chirps()
+                elif self.name == 'CHIRTS-MAX':
+                    self.set_url_chirts_max()
+                else:
+                    logging.error(f'No URL set for product {self.name}.')
+                    return
+
+                # Retrieve the CHIRPS data for this statistic.
+                if not self.run_model():
+                    logging.error('Run model failed: stopping.')
+                    return
+
+                # Process the downloaded file into the dataframe.
+                df = self.process_download(df, date)
+        else:
+            logging.error(f'{self.name} is not a recognized product.')
+            return
+
+        # Process the dataframe produced above.
+        # (1) Convert the MultiIndex to columns.
+        df.reset_index(inplace=True)
+        # (2) Remove the 'band' column
+        del df['band']
+        # (3) Reorder the columns. 
+        cols = ['x','y','date'] + list (stat_choices.values())
+        df = df[cols]
+
+        # Write output and log completion with header and tail previews.
+        df.to_csv('results/chirps.csv')
+        logging.info('Processing completed. Output to results/chirps.csv. Header and tail preview:')
+        logging.info(df.head())
+        logging.info(df.tail())
+
     def set_days_of_year(self):
         """
         Description
@@ -88,176 +309,37 @@ class CHIRPSController(object):
         doy = date.timetuple().tm_yday
         self.days_of_year = [doy, doy + 15]
 
+    def set_url_chirts_max(self):
+        self.url = f"https://chc-ewx2.chc.ucsb.edu/proxies/wcsProxy.php?layerNameToUse=chirtsmax:"\
+            f"chirtsmax_africa_1-month-{self.month}-{self.year}_{self.stat}" \
+            f"&lowerLeftXToUse={self.min_pt[0]}&lowerLeftYToUse={self.min_pt[1]}" \
+            f"&upperRightXToUse={self.max_pt[0]}&upperRightYToUse={self.max_pt[1]}" \
+            f"&wcsURLToUse=https://chc-ewx2.chc.ucsb.edu:8443/geoserver/wcs?"\
+            f"&resolution=0.05&srsToUse=EPSG:3857&outputSrsToUse=EPSG:4326"
 
-    def __init__(self, name, month, year, bbox, statistic, day_of_year=None):
-        logging.basicConfig(level=logging.INFO)  
-
-        if not os.path.exists('results'):
-            os.makedirs('results')
-
-        self.name = name
-        self.stat = statistic
-        self.day_of_year = day_of_year
-        self.month = month
-        self.year = year
-        self.bbox = json.loads(bbox)
-        self.min_pt, self.max_pt = self.convert_bbox(self.bbox)
-        stat_secondary = {'mm_data': 'Data'}
-        self.set_url()
-        self.set_url_gefs()
-        self.download_filename = f"results/chirps-{statistic}.tiff"
-
-        self.set_days_of_year()
-
-        self.features = {'mm_data': {
-                                'feature_name': 'Rainfall',
-                                'feature_description': 'rainfall in mm per 5km',
-                                'run_description': f'{self.name} rainfall data'
-                                    },
-                        'mm_anomaly': {
-                                'feature_name': 'Rainfall relative to average',
-                                'feature_description': 'Rainfall relative to the historic average in mm per 5km',
-                                'run_description': f'{self.name} anomaly data'
-                                    },
-                        'none_z-score': {
-                                'feature_name': 'SPI',
-                                'feature_description': 'Standardized Precipitation Index',
-                                'run_description': f'{self.name} Standardized Precipitation Index data'
-                                    }
-                        }
-
-    def set_url(self):
+    def set_url_chirps(self):
         self.url = f"https://chc-ewx2.chc.ucsb.edu/proxies/wcsProxy.php?layerNameToUse=chirps:"\
                    f"chirps_africa_1-month-{self.month}-{self.year}_{self.stat}"\
                    f"&lowerLeftXToUse={self.min_pt[0]}&lowerLeftYToUse={self.min_pt[1]}"\
                    f"&upperRightXToUse={self.max_pt[0]}&upperRightYToUse={self.max_pt[1]}"\
                    f"&wcsURLToUse=https://chc-ewx2.chc.ucsb.edu:8443/geoserver/wcs?&resolution=0.05&srsToUse=EPSG:3857&outputSrsToUse=EPSG:4326"
 
-    def set_url_gefs(self):
-        # f"-day-{self.day_of_year}-{self.year}_{self.stat}&TILED=true&mapperWMSURL="\
-        self.url_gefs = f"https://chc-ewx2.chc.ucsb.edu/proxies/wcsProxy.php?layerNameToUse=chirpsgefs15day2:"\
+    def set_url_chirps_gefs(self):
+        self.url = f"https://chc-ewx2.chc.ucsb.edu/proxies/wcsProxy.php?layerNameToUse=chirpsgefs15day2:"\
                     f"chirpsgefs15day2_africa_1"\
                     f"-day-{self.day_of_year}-{self.year}_{self.stat}"\
                     f"&lowerLeftXToUse={self.min_pt[0]}&lowerLeftYToUse={self.min_pt[1]}"\
                     f"&upperRightXToUse={self.max_pt[0]}&upperRightYToUse={self.max_pt[1]}"\
                     f"&wcsURLToUse=https://chc-ewx2.chc.ucsb.edu:8443/geoserver/wcs?&resolution=0.05&srsToUse=EPSG:3857&outputSrsToUse=EPSG:4326"
 
-    def run_models(self):
-        """
-        Description
-        -----------
-            (1)
-            Get tiffs for the three stats using the existing run_model() method
-            modified to append the saved filename with the stat e.g. results/chirps-mm_data.tiff.
 
-            (2)
-            Convert each saved tiff to a dataframe and append columns to earlier df.
-
-            (3) 
-            Flow control is by self.name CHIRPS or CHIRPS-GEFS.
-
-            (4) 
-            CHIRPS-GEFS calculates the day-of-year for the 1st and 16th of the month, and 
-            makes a call for each statistic for both day-of-years. The day-of-year DataFrames
-            are concatenated by row. Therefore, the 'date' column will contain two unique dates.
-
-        Output
-        ------
-            Saves concatenated dataframe to results/chirps.csv.
-        """
-
-        if self.name == 'CHIRPS-GEFS':
-            df1 = pd.DataFrame
-            df16 = pd.DataFrame
-            for doy in self.days_of_year:
-                for stat in stat_choices.keys():
-                    self.download_filename = f"results/chirps-{stat}.tiff"
-                    self.stat = stat
-                    self.run_model()
-                    date = datetime.strptime(f"{self.year}-{doy}", "%Y-%j").strftime("%m-%d-%Y")
-                    self.set_url_gefs()
-                    if doy == 1:
-                        df1 = self.process_download(df1, date)
-                    else:
-                        df16 = self.process_download(df16, date)
-
-            # Concat the two month dataframes by row.
-            df = pd.concat([df1, df16], axis=0)
-
-        else:
-            df = pd.DataFrame()
-            for stat in stat_choices.keys():
-                self.download_filename = f"results/chirps-{stat}.tiff"                
-                self.stat = stat
-                self.run_model()
-
-                # For CHIRPS we download only the 1st of the month.
-                date = f"{month}/01/{self.year}"
-                self.set_url()
-                df = self.process_download(df, date)
-
-        # Convert the MultiIndex to columns, remove 'band' column, and reorder the columns. 
-        df.reset_index(inplace=True)          
-        del df['band']
-        cols = ['x','y','date'] + list (stat_choices.values())
-        df = df[cols]
-        df.to_csv('results/chirps.csv')
-        logging.info('Processing completed. Output to results/chirps.csv. Header and tail preview:')
-        logging.info(df.head())
-        logging.info(df.tail())
-
-    def run_model(self):
-        """
-        Obtain CHIRPS data.
-        """
-
-        try:
-            # if CHIRPS-GEFS, use that URL
-            if self.name == 'CHIRPS-GEFS':
-                logging.info(self.url_gefs)
-                data = requests.get(self.url_gefs)
-
-            # otherwise, use CHRIPS URL 
-            else:
-                logging.info(self.url)
-                data = requests.get(self.url)
-                
-            logging.info("Model run: SUCCESS")
-
-            with open(self.download_filename, "wb") as f:
-                f.write(data.content)
-
-        except Exception as e:
-            logging.error(f"CHIRPS Fail: {e}")
-
-
-    def convert_bbox(self, bb):
-        """
-        Convert WGS84 coordinate system to Web Mercator
-        Initial bbox is in format [xmin, ymin, xmax, ymax]. 
-        x is longitude, y is latitude.
-        Output is Web Mercator min/max points for a bounding box.
-        """
-        in_proj = Proj(init='epsg:4326')
-        out_proj = Proj(init='epsg:3857')
-        min_pt = transform(in_proj, out_proj, bb[0], bb[1])
-        max_pt = transform(in_proj, out_proj, bb[2], bb[3])
-        return min_pt, max_pt  
-    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'CHIRPS runner')
-    parser.add_argument('--name', type=str, help='CHIRPS or CHIRPS-GEFS')
-    parser.add_argument('--day_of_year', type=str, help='day of year (1 to 365) for CHIRPS-GEFS', default=None)
-    parser.add_argument('--month', type=int, help='month for CHIRPS')
-    parser.add_argument('--year', type=int, help='Year')
-    parser.add_argument('--bbox', type=str, help="The bounding box to obtain e.g. '[33.512234, 2.719907, 49.98171,16.501768]'")
-    parser.add_argument('--statistic', choices=stat_choices.keys(), help='The statistic to fetch')
+    parser.add_argument('--name',  type=str, help='CHIRPS, CHIRPS-GEFS, or CHIRTS-MAX')
+    parser.add_argument('--month', type=int, help='Month')
+    parser.add_argument('--year',  type=int, help='Year')
+    parser.add_argument('--bbox',  type=str, help="The bounding box to obtain e.g. '[33.512234, 2.719907, 49.98171,16.501768]'")
+    
     args = parser.parse_args()    
-
-    if len(str(args.month)) == 1:
-        month = f"0{args.month}"
-    else:
-        month = args.month
-
-    runner = CHIRPSController(args.name, month, args.year, args.bbox, args.statistic, args.day_of_year)
+    runner = CHIRPSController(args.name, args.month, args.year, args.bbox)
     runner.run_models()
