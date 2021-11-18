@@ -174,8 +174,7 @@ def create_run(run: RunSchema.ModelRunSchema):
 
     ### Handle accessory files.
     accessoryFiles = get_accessory_files(run.model_id) # call dojo.py API method directly.
-    if accessoryFiles.status_code == 404:
-        accessoryFiles = []
+    
     logger.info(accessoryFiles)
     accessory_dirs = {}
     for accessoryFile in accessoryFiles:
