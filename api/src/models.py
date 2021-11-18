@@ -160,7 +160,7 @@ def register_model(model_id: str):
 
 
 @router.get("/models/version/{model_id}")
-def version_model(model_id : str):
+def version_model(model_id : str, exclude_files: bool = False):
     """
     This endpoint creates a new version of a model. It is primarily used as part of the model
     editing workflow. When a modeler wishes to edit their model, a new version is created
@@ -200,17 +200,23 @@ def version_model(model_id : str):
     new_model = ModelSchema.ModelMetadataSchema(**original_model_definition)
 
     try:
-        # Make copies of related items
-        outputfile_uuid_mapping = copy_outputfiles(model_id, new_id)
-        copy_configs(model_id, new_id)
-        copy_directive(model_id, new_id)
-        copy_accessory_files(model_id, new_id)
+        if exclude_files:
+            # Update the created model setting the mappings to be empty/blank
+            new_model.parameters = []
+            new_model.outputs = []
+            new_model.qualifier_outputs = []
+        else:
+            # Make copies of related items
+            outputfile_uuid_mapping = copy_outputfiles(model_id, new_id)
+            copy_configs(model_id, new_id)
+            copy_directive(model_id, new_id)
+            copy_accessory_files(model_id, new_id)
 
-        # Update the created model with the changes related to copying
-        if new_model.outputs:
-            new_model.outputs = get_updated_outputs(new_model.outputs, outputfile_uuid_mapping)
-        if new_model.qualifier_outputs:
-            new_model.qualifier_outputs = get_updated_outputs(new_model.qualifier_outputs, outputfile_uuid_mapping)
+            # Update the created model with the changes related to copying
+            if new_model.outputs:
+                new_model.outputs = get_updated_outputs(new_model.outputs, outputfile_uuid_mapping)
+            if new_model.qualifier_outputs:
+                new_model.qualifier_outputs = get_updated_outputs(new_model.qualifier_outputs, outputfile_uuid_mapping)
 
         # Save model
         create_model(new_model, fetch_ontologies=False)
