@@ -7,17 +7,17 @@ Usage:
     CHIRPS
     ------
     Returns data for 1st day of specified month/year.
-    python run_chirps_tiff.py --name=CHIRPS --month=01 --year=2021 --bbox='[33.512234, 2.719907, 49.98171,16.501768]' --statistic=mm_data
+    python run_chirps_tiff.py --name=CHIRPS --month=01 --year=2021 --bbox='[33.512234, 2.719907, 49.98171, 16.501768]'
 
     CHIRPS-GEFS
     -----------
     Returns data for 1st and 16th of specified month/year.
-    python run_chirps_tiff.py --name=CHIRPS-GEFS --month=01 --year=2021 --bbox='[33.512234, 2.719907, 49.98171,16.501768]' --statistic=mm_data
+    python run_chirps_tiff.py --name=CHIRPS-GEFS --month=09 --year=2021 --bbox='[33.512234, 2.719907, 49.98171, 16.501768]'
 
-    CHIRTS-MAX
+    CHIRTSmax
     ----------
     Returns data for 1st day of specified month/year.
-    python3 run_chirps_tiff.py --name=CHIRTS-MAX --month=09 --year=2016 --bbox='[33.512234, 2.719907, 49.98171,16.501768]'
+    python3 run_chirps_tiff.py --name=CHIRTSmax --month=09 --year=2016 --bbox='[33.512234, 2.719907, 49.98171, 16.501768]'
 
 
 Requirements:
@@ -41,8 +41,12 @@ import os
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
 
-# Statistic : Output Column-Name dictionary.
-stat_choices = { 'mm_data': 'rainfall', 'mm_anomaly': 'anomaly', 'none_z-score': 'z-score'}
+# Product : {units_stat: column name } dictionary.
+product_data = {
+    'CHIRPS': { 'mm_data': 'rainfall', 'mm_anomaly': 'anomaly', 'none_z-score': 'z-score'},
+    'CHIRPS-GEFS':  { 'mm_data': 'rainfall', 'mm_anomaly': 'anomaly', 'none_z-score': 'z-score'},
+    'CHIRTSmax':  { 'C_data': 'rainfall', 'C_anomaly': 'anomaly', 'none_z-score': 'z-score'}
+}
 
 class CHIRPSController(object):
     """
@@ -69,6 +73,7 @@ class CHIRPSController(object):
         self.bbox = json.loads(bbox)
         self.min_pt, self.max_pt = self.convert_bbox(self.bbox)
 
+        '''
         self.features = {'mm_data': {
                                 'feature_name': 'Rainfall',
                                 'feature_description': 'rainfall in mm per 5km',
@@ -85,6 +90,7 @@ class CHIRPSController(object):
                                 'run_description': f'{self.name} Standardized Precipitation Index data'
                                     }
                         }
+        '''
 
     def convert_bbox(self, bb):
         """
@@ -120,7 +126,7 @@ class CHIRPSController(object):
         """
         # Open the downloaded .tiff and convert to a dataframe; remove 'spatial-ref' column.
         ds = rxr.open_rasterio(self.download_filename, masked=True)
-        feature_name = stat_choices[self.stat]
+        feature_name = product_data[self.name][self.stat]
         df_model1 = ds.to_dataframe(name=feature_name)
         del df_model1['spatial_ref']
 
@@ -143,7 +149,7 @@ class CHIRPSController(object):
         
         Returns
         -------
-            False on failure, else True.
+            bool: False on failure, else True.
         """
 
         try:
@@ -205,12 +211,11 @@ class CHIRPSController(object):
 
             # Cycle the two days_of_year
             for idx, doy in enumerate(self.days_of_year):
-                logging.info(f'CHIRPS-GEFS idx {idx} doy {doy}')
                 # CHIRPS-GEFS has two unique date values.
                 date = datetime.strptime(f"{self.year}-{doy}", "%Y-%j").strftime("%m-%d-%Y")
                 
                 # Cycle through the statistical data we want.
-                for stat in stat_choices.keys():
+                for stat in product_data[self.name].keys():
                     # Set the temporary download filename.
                     self.download_filename = f"results/chirps-{stat}.tiff"
                     
@@ -221,8 +226,8 @@ class CHIRPSController(object):
 
                     # Retrieve the CHIRPS data for this statistic.
                     if not self.run_model():
-                        logging.error('Run model failed: stopping.')
-                        return
+                        logging.error('Run model failed to download data.')
+                        continue
                     
                     # Process the downloaded file into the day_of_year dataframe. 
                     if idx == 0:
@@ -231,13 +236,9 @@ class CHIRPSController(object):
                         df16 = self.process_download(df16, date)
 
             # Concat the two day_of_year dataframes by row.
-            logging.info(df1.head())
-            logging.info(df1.info(verbose=True))
-            logging.info(df16.head())
-            logging.info(df16.info(verbose=True))
             df = pd.concat([df1, df16], axis=0)
 
-        elif self.name in ['CHIRPS', 'CHIRTS-MAX']:
+        elif self.name in ['CHIRPS', 'CHIRTSmax']:
             # For these we download only the 1st of the month, so that is
             # the only value in the date column.
             date = f"{self.month}/01/{self.year}"
@@ -246,7 +247,7 @@ class CHIRPSController(object):
             df = pd.DataFrame()
 
             # Cycle through the statistical data we want.
-            for stat in stat_choices.keys():
+            for stat in product_data[self.name].keys():
                 # Set temporary download filename.
                 self.download_filename = f"results/chirps-{stat}.tiff"                
                 
@@ -256,7 +257,7 @@ class CHIRPSController(object):
                 # Set the url for the product.
                 if self.name == 'CHIRPS':
                     self.set_url_chirps()
-                elif self.name == 'CHIRTS-MAX':
+                elif self.name == 'CHIRTSmax':
                     self.set_url_chirts_max()
                 else:
                     logging.error(f'No URL set for product {self.name}.')
@@ -274,13 +275,15 @@ class CHIRPSController(object):
             return
 
         # Process the dataframe produced above.
-        # (1) Convert the MultiIndex to columns.
-        df.reset_index(inplace=True)
-        # (2) Remove the 'band' column
-        del df['band']
-        # (3) Reorder the columns. 
-        cols = ['x','y','date'] + list (stat_choices.values())
-        df = df[cols]
+        if not df.empty:
+            # (1) Convert the MultiIndex to columns.
+            df.reset_index(inplace=True)
+            # (2) Remove the 'band' column
+            del df['band']
+            # (3) Reorder the columns for those product columns for which we have data.
+            cols = list(set(df.columns) & set(product_data[self.name].values()))
+            cols = ['x','y','date'] + cols
+            df = df[cols]
 
         # Write output and log completion with header and tail previews.
         df.to_csv('results/chirps.csv')
@@ -335,7 +338,7 @@ class CHIRPSController(object):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'CHIRPS runner')
-    parser.add_argument('--name',  type=str, help='CHIRPS, CHIRPS-GEFS, or CHIRTS-MAX')
+    parser.add_argument('--name',  type=str, help='CHIRPS, CHIRPS-GEFS, or CHIRTSmax')
     parser.add_argument('--month', type=int, help='Month')
     parser.add_argument('--year',  type=int, help='Year')
     parser.add_argument('--bbox',  type=str, help="The bounding box to obtain e.g. '[33.512234, 2.719907, 49.98171,16.501768]'")
