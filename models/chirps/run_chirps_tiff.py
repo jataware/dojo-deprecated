@@ -8,6 +8,7 @@ Usage:
     ------
     Returns data for 1st day of specified month/year.
     python run_chirps_tiff.py --name=CHIRPS --month=01 --year=2021 --bbox='[33.512234, 2.719907, 49.98171, 16.501768]'
+    python run_chirps_tiff.py --name=CHIRPS --month=01 --year=2021 --bbox='[[33.512234, 2.719907], [49.98171,16.501768]]'
 
     CHIRPS-GEFS
     -----------
@@ -95,14 +96,22 @@ class CHIRPSController(object):
     def convert_bbox(self, bb):
         """
         Convert WGS84 coordinate system to Web Mercator
-        Initial bbox is in format [xmin, ymin, xmax, ymax]. 
+        Initial bbox is in format [xmin, ymin, xmax, ymax].
+        New bbox box format is [[xmin, ymin], [xmax, ymax]]
         x is longitude, y is latitude.
         Output is Web Mercator min/max points for a bounding box.
         """
+
         in_proj = Proj(init='epsg:4326')
         out_proj = Proj(init='epsg:3857')
+
+        if len(bb) == 2:
+            # Convert new bbox format to old bbox format.
+            bb = bb[0] + bb[1]
+        
         min_pt = transform(in_proj, out_proj, bb[0], bb[1])
         max_pt = transform(in_proj, out_proj, bb[2], bb[3])
+     
         return min_pt, max_pt  
 
     def process_download(self, df: pd.DataFrame, date: str):
