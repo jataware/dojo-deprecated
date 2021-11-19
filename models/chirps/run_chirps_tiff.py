@@ -45,7 +45,7 @@ if not sys.warnoptions:
 product_data = {
     'CHIRPS': { 'mm_data': 'rainfall', 'mm_anomaly': 'anomaly', 'none_z-score': 'z-score'},
     'CHIRPS-GEFS':  { 'mm_data': 'rainfall', 'mm_anomaly': 'anomaly', 'none_z-score': 'z-score'},
-    'CHIRTSmax':  { 'C_data': 'rainfall', 'C_anomaly': 'anomaly', 'none_z-score': 'z-score'}
+    'CHIRTSmax':  { 'C_data': 'temperature', 'C_anomaly': 'anomaly', 'none_z-score': 'z-score'}
 }
 
 class CHIRPSController(object):
@@ -349,7 +349,7 @@ if __name__ == '__main__':
     parser.add_argument('--name',  type=str, help='CHIRPS, CHIRPS-GEFS, or CHIRTSmax')
     parser.add_argument('--month', type=int, help='Month')
     parser.add_argument('--year',  type=int, help='Year')
-    parser.add_argument('--bbox',  type=str, help="The bounding box to obtain e.g. '[33.512234, 2.719907, 49.98171,16.501768]'")
+    parser.add_argument('--bbox',  type=str, help="The bounding box of corners to obtain e.g. '[[33.512234, 2.719907], [49.98171,16.501768]]'")
     
     args = parser.parse_args()    
     runner = CHIRPSController(args.name, args.month, args.year, args.bbox)
