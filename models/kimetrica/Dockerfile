@@ -108,10 +108,6 @@ RUN pip install --use-feature=2020-resolver --requirement /tmp/requirements/base
 # So we have to downgrade it here as well - see MODMAP-156
 RUN pip install --use-feature=2020-resolver pyarrow==2.0.0 pandas==1.0.0
 
-COPY . /usr/src/app
-WORKDIR /usr/src/app
-ENV PYTHONPATH=/usr/src/app
-
 # the name of the user created in the jupyter image is called jovyan
 # we need to change to the privileged user to be able to change ownership
 # In the entrypoint script, we also need to change the UID of the jovyan
@@ -120,10 +116,18 @@ ENV PYTHONPATH=/usr/src/app
 # the unprivileged user in entrypoint.sh
 USER root
 
+# we want to be able to update the repository inside a running container,
+# but don't want to copy everything including local history.
+# So we clone it from upstream. We could use `--depth` to reduce image
+# size, but for now we won't so we can switch to other branches more easily
+RUN git clone --recursive https://gitlab.com/kimetrica/darpa/darpa.git /usr/src/app
+
+WORKDIR /usr/src/app
+
 # start out with copy of example luigi file
 RUN cp -v luigi.cfg.example luigi.cfg
-
 RUN chown -R clouseau /usr/src/app
+ENV PYTHONPATH=/usr/src/app
 
 # RUN echo "c.NotebookApp.default_url = '/lab'" >> /home/jovyan/.jupyter/jupyter_notebook_config.py
 
@@ -148,6 +152,7 @@ RUN chown -R clouseau /home/clouseau/.descarteslabs
 # CMD ["start-notebook.sh"]
 WORKDIR /usr/src/app
 RUN set -a
+COPY .env .
 RUN source .env
 ENTRYPOINT []
 CMD ["entrypoint.sh"]
