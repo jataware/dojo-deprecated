@@ -7,18 +7,17 @@ Usage:
     CHIRPS
     ------
     Returns data for 1st day of specified month/year.
-    python run_chirps_tiff.py --name=CHIRPS --month=01 --year=2021 --bbox='[33.512234, 2.719907, 49.98171, 16.501768]'
     python run_chirps_tiff.py --name=CHIRPS --month=01 --year=2021 --bbox='[[33.512234, 2.719907], [49.98171,16.501768]]'
 
     CHIRPS-GEFS
     -----------
     Returns data for 1st and 16th of specified month/year.
-    python run_chirps_tiff.py --name=CHIRPS-GEFS --month=09 --year=2021 --bbox='[33.512234, 2.719907, 49.98171, 16.501768]'
+    python run_chirps_tiff.py --name=CHIRPS-GEFS --month=09 --year=2021 --bbox='[[33.512234, 2.719907], [49.98171,16.501768]]'
 
     CHIRTSmax
     ----------
     Returns data for 1st day of specified month/year.
-    python3 run_chirps_tiff.py --name=CHIRTSmax --month=09 --year=2016 --bbox='[33.512234, 2.719907, 49.98171, 16.501768]'
+    python3 run_chirps_tiff.py --name=CHIRTSmax --month=09 --year=2016 --bbox='[[33.512234, 2.719907], [49.98171,16.501768]]'
 
 
 Requirements:
