@@ -1,12 +1,12 @@
 import requests
 import json
-import os
+from src.settings import settings
 from fastapi.logger import logger
 
 
 def get_ontologies(data, type="indicator"):
     """
-    A function to submit either indicators or models to the UAZ 
+    A function to submit either indicators or models to the UAZ
     ontology mapping service
 
     Params:
@@ -14,9 +14,9 @@ def get_ontologies(data, type="indicator"):
         - type: one of either [indicator, model]
     """
     headers = {"accept": "application/json", "Content-Type": "application/json"}
-    url = os.getenv("UAZ_URL")
-    uaz_threshold = os.getenv("UAZ_THRESHOLD")
-    uaz_hits = os.getenv("UAZ_HITS")
+    url = settings.UAZ_URL
+    uaz_threshold = settings.UAZ_THRESHOLD
+    uaz_hits = settings.UAZ_HITS
     params = f"?maxHits={uaz_hits}&threshold={uaz_threshold}&compositional=true"
 
     # Send to either /groundIndicator or /groundModel
@@ -24,7 +24,7 @@ def get_ontologies(data, type="indicator"):
         type_ = "groundIndicator"
     elif type == "model":
         type_ = "groundModel"
-    
+
     # Build final URL to route to UAZ
     url_ = f"{url}/{type_}{params}"
 
@@ -38,7 +38,7 @@ def get_ontologies(data, type="indicator"):
         if response.status_code == 200:
             resp_str = response.content.decode("utf8")
             uaz_ontologies = json.loads(resp_str)
-            
+
             try:
                 if type == "indicator":
                     return indicator_ontologies(data, uaz_ontologies)
@@ -49,7 +49,7 @@ def get_ontologies(data, type="indicator"):
                 logger.error(f"Failed to generate ontologies for indicator: {str(e)}")
                 logger.exception(e)
                 return data
-                
+
         else:
             logger.debug(f"Failed to fetch ontologies: {response}")
             return data
@@ -62,27 +62,27 @@ def get_ontologies(data, type="indicator"):
 
 def indicator_ontologies(data, ontologies):
     """
-    A function to map UAZ ontologies back into 
+    A function to map UAZ ontologies back into
     the submitted "partial" indicator object
 
     Params:
         - data: the indicator object
         - ontologies: object from UAZ endpoint
-    """    
+    """
     ontology_dict = {"outputs": {}, "qualifier_outputs": {}}
-    
+
     # Reorganize UAZ response
     for ontology in ontologies["outputs"]:
         ontology_dict["outputs"][ontology["name"]] = ontology["ontologies"]
 
     for ontology in ontologies["qualifier_outputs"]:
-        ontology_dict["qualifier_outputs"][ontology["name"]] =  ontology["ontologies"]
-    
+        ontology_dict["qualifier_outputs"][ontology["name"]] = ontology["ontologies"]
+
     # Map back into partial indicator object to build complete indicator
     for output in data["outputs"]:
         output["ontologies"] = ontology_dict["outputs"][output["name"]]
-    
-    if data.get("qualifier_outputs", None):    
+
+    if data.get("qualifier_outputs", None):
         for qualifier_output in data["qualifier_outputs"]:
             qualifier_output["ontologies"] = ontology_dict["qualifier_outputs"][qualifier_output["name"]]
 
@@ -91,32 +91,32 @@ def indicator_ontologies(data, ontologies):
 
 def model_ontologies(data, ontologies):
     """
-    A function to map UAZ ontologies back into 
+    A function to map UAZ ontologies back into
     the submitted "partial" model object
 
     Params:
         - data: the indicator object
         - ontologies: object from UAZ endpoint
-    """    
+    """
     ontology_dict = {"parameters": {}, "outputs": {}, "qualifier_outputs": {}}
-    
+
     # Reorganize UAZ response
     for ontology in ontologies["outputs"]:
         ontology_dict["outputs"][ontology["name"]] = ontology["ontologies"]
 
     for ontology in ontologies["qualifier_outputs"]:
-        ontology_dict["qualifier_outputs"][ontology["name"]] =  ontology["ontologies"]
+        ontology_dict["qualifier_outputs"][ontology["name"]] = ontology["ontologies"]
 
     for ontology in ontologies["parameters"]:
-        ontology_dict["parameters"][ontology["name"]] =  ontology["ontologies"]        
-    
+        ontology_dict["parameters"][ontology["name"]] = ontology["ontologies"]
+
     # Map back into partial indicator object to build complete indicator
     for parameter in data["parameters"]:
         parameter["ontologies"] = ontology_dict["parameters"][parameter["name"]]
 
     for output in data.get("outputs", []):
         output["ontologies"] = ontology_dict["outputs"][output["name"]]
-    
+
     if data.get("qualifier_outputs", None):
         for qualifier_output in data["qualifier_outputs"]:
             qualifier_output["ontologies"] = ontology_dict["qualifier_outputs"][qualifier_output["name"]]
