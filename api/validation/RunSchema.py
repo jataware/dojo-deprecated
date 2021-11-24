@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import List, Optional, Union
 
 from pydantic import BaseModel, Extra, Field
+from pydantic.utils import Obj
 
 
 class Parameter(BaseModel):
@@ -78,4 +79,20 @@ class ModelRunSchema(BaseModel):
         description="The tags associated with the model run",
         examples=[["Agriculture"]],
         title="Model Run Tags",
+    )
+
+class RunLogsSchema(BaseModel):
+    class Config:
+        extra = Extra.allow
+
+    id: str = Field(
+        ...,
+        description="A unique model run id",
+        examples=["123e4567-e89b-12d3-a456-426614174000"],
+        title="Run ID",
+    )
+    tasks: List[Obj] = Field(
+        ...,
+        description="tasks",
+        title="tasks",
     )

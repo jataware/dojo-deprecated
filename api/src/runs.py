@@ -276,25 +276,45 @@ def create_run(run: RunSchema.ModelRunSchema):
 
 
 @router.get("/runs/{run_id}/logs")
-def get_run_logs(run_id: str):
-    response = requests.get(
+def get_run_logs(run_id: str) -> RunSchema.RunLogsSchema:
+    tasks_response = requests.get(
         f"{dmc_base_url}/dags/model_xform/dagRuns/{run_id}/taskInstances",
         headers=headers,
         auth=(dmc_user, dmc_pass),
     )
 
-    task_instances = response.json()["task_instances"]
-    for t in task_instances:
-        task_id = t["task_id"]
-        if task_id == "model-task":
-            task_try_number = t["try_number"]
+    task_response_dict = tasks_response.json()
+    if task_response_dict.get("total_entries", 0) == 0:
+        return Response(status_code=status.HTTP_404_NOT_FOUND, content="{}")
+
+    task_instances = task_response_dict["task_instances"]
+
+    result = {
+        "run_id": run_id,
+        "tasks": []
+    }
+
+    for task in task_instances:
+        task_id = task["task_id"]
+        if task_id in (
+            "exit-task",
+            "failed-task",
+        ):
+            continue
+        task_try_number = task["try_number"]
+        if task_try_number:
             response_l = requests.get(
                 f"{dmc_base_url}/dags/model_xform/dagRuns/{run_id}/taskInstances/{task_id}/logs/{task_try_number}",
                 headers=headers,
                 auth=(dmc_user, dmc_pass),
             )
             logs = response_l.text
-    return Response(status_code=status.HTTP_200_OK, content=json.dumps(logs))
+            result["tasks"].append({
+                "task": task_id,
+                "state": task["state"],
+                "logs": logs
+            })
+    return result
 
 
 @router.put("/runs")
