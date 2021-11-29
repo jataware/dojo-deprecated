@@ -7,6 +7,7 @@ import re
 import requests
 import sys
 import time
+from operator import itemgetter
 from threading import Thread, current_thread
 from typing import Any, Dict, Generator, List, Optional
 
@@ -294,13 +295,21 @@ def get_run_logs(run_id: str) -> RunSchema.RunLogsSchema:
         "tasks": []
     }
 
-    for task in task_instances:
+    task_name_map = {
+        "rehydrate-task": "Parameter expansion",
+        "model-task": "Model run",
+        "mapper-task": "Determine variable annotations",
+        "mixmasta-task": "Transform for Causemos",
+        "accessory-task": "Upload accessory files",
+        "s3push-task": "Upload model output files",
+        "exit-task": "Run complete",
+        "failed-task": "Run failed",
+    }
+
+    for task in sorted(task_instances, key=itemgetter("start_date")):
         task_id = task["task_id"]
-        if task_id in (
-            "exit-task",
-            "failed-task",
-        ):
-            continue
+        task_name = task_name_map.get(task_id, task_id)
+
         task_try_number = task["try_number"]
         if task_try_number:
             response_l = requests.get(
@@ -310,6 +319,7 @@ def get_run_logs(run_id: str) -> RunSchema.RunLogsSchema:
             )
             logs = response_l.text
             result["tasks"].append({
+                "name": task_name,
                 "task": task_id,
                 "state": task["state"],
                 "logs": logs
