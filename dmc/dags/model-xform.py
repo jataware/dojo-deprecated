@@ -112,18 +112,6 @@ def rehydrate(ti, **kwargs):
             for key in hydrateData:
                  print(f'hydrateData: key: {key} value: {hydrateData[key]}   type: {type(hydrateData[key])}')
             
-            # Format hydratedDIct with proper quotes
-            for key in defaultDict:
-                
-                if type_dict[key] == "str":
-                    finalDict[key] = '"' + defaultDict[key] + '"'
-                
-                else:
-                    finalDict[key] = str(defaultDict[key])
-
-            for key in finalDict:
-                 print(f'finalDict: key: {key} value: {finalDict[key]}   type: {type(finalDict[key])}')
-            
             # Hydrate the config
             if os.path.exists(saveFolder):
                 print('here')
@@ -135,7 +123,7 @@ def rehydrate(ti, **kwargs):
             os.chmod(saveFolder, mode=0o777)
 
             # Template(dehydrated_config).stream(finalDict).dump(savePath)
-            dataToSave = Template(dehydrated_config).render(finalDict)
+            dataToSave = Template(dehydrated_config).render(defaultDict)
 
             print(f'dataToSave: {dataToSave}')
             # savePath needs to be hard coded for ubuntu path with run id and model name or something.
@@ -157,11 +145,34 @@ def accessoryNodeTask(**kwargs):
     accessories_path = f"/results/{kwargs['dag_run'].conf.get('run_id')}/accessories"
     logger.info(f'accessories_path: {accessories_path}')
 
-    for fpath in glob.glob(f'{accessories_path}/*'):
-        logger.info(f'fpath:{fpath}')
-        
+    # get the model accessories
+    dojo_url = kwargs['dag_run'].conf.get('dojo_url')
+    model_id = kwargs['dag_run'].conf.get('model_id')
+    req = requests.get(f"{dojo_url}/dojo/accessories/{model_id}")
+    accessories = json.loads(req.content)
+
+    for accessory in accessories:
+        fp_ = accessory.get('path','').split('/')[-1]
+        logger.info(f'fpath raw:{accessories_path}/{fp_}')
+        matches = glob.glob(f"{accessories_path}/{fp_}")
+
+        # if no accessory files are found, just return nothing
+        # I don't believe this should cause the task to fail, since the model outputs may
+        # have successfuly been transformed and might still have utility, even if the accessories
+        # were dropped
+        if len(matches) == 0:
+            logger.error(f'No accessory files were found matching: {accessories_path}/{fp_}')
+            continue
+
+        fpath = matches[0]
+        logger.info(f'fpath ready:{fpath}')
+
         fn = fpath.split("/")[-1]
         logger.info(f'fn:{fn}')
+
+        # move accessory and inject id into filepath
+        fpath_new = f"{accessories_path}/{accessory['id']}__{fn}"
+        os.rename(fpath, fpath_new)
 
         # NOTE: objects stored to dmc_results are automatically made public
         # per the S3 bucket's policy
@@ -172,7 +183,7 @@ def accessoryNodeTask(**kwargs):
         logger.info('key:' + key)
 
         s3.load_file(
-            filename=fpath,
+            filename=fpath_new,
             key=key,
             replace=True,
             bucket_name=os.getenv('BUCKET')
@@ -239,17 +250,27 @@ def RunExit(**kwargs):
     print('pth array' ,pth)
     run['data_paths'] = pth
 
+    # Prepare accessory lookup
+    req = requests.get(f"{dojo_url}/dojo/accessories/{model_id}")
+    accessories = json.loads(req.content)
+    caption_lookup = {}
+    for accessory in accessories:
+        caption_lookup[accessory['id']] = accessory.get('caption','')
+        
     # Get any accessories and append their S3 URLS to run['pre_gen_output_paths']
     accessories_array = []
     for fpath in glob.glob(f'/results/{run_id}/accessories/*'):
+        accessory_dict = {}
         print(f'fpath:{fpath}')
         fn = fpath.split("/")[-1]
         print(f'fn:{fn}')
+        accessory_id = fn.split('__')[0]
+        fn_aws_key = fn.split('__')[1]
         bucket_dir = os.getenv('BUCKET_DIR')
+        accessory_dict['file'] = f"https://jataware-world-modelers.s3.amazonaws.com/{bucket_dir}/{run_id}/{fn_aws_key}"
+        accessory_dict['caption'] = caption_lookup[accessory_id]
+        accessories_array.append(accessory_dict)
 
-        accessories_array.append(f"https://jataware-world-modelers.s3.amazonaws.com/{bucket_dir}/{run_id}/{fn}")
-
-    accessories_array = [{"file":s3_url_path} for s3_url_path in accessories_array]
     print('accessories_array', accessories_array)
 
     run['pre_gen_output_paths'] = accessories_array
