@@ -162,7 +162,7 @@ def accessoryNodeTask(**kwargs):
         # were dropped
         if len(matches) == 0:
             logger.error(f'No accessory files were found matching: {accessories_path}/{fp_}')
-            return
+            continue
 
         fpath = matches[0]
         logger.info(f'fpath ready:{fpath}')
