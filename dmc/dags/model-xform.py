@@ -154,7 +154,17 @@ def accessoryNodeTask(**kwargs):
     for accessory in accessories:
         fp_ = accessory.get('path','').split('/')[-1]
         logger.info(f'fpath raw:{accessories_path}/{fp_}')
-        fpath = glob.glob(f"{accessories_path}/{fp_}")[0]
+        matches = glob.glob(f"{accessories_path}/{fp_}")
+
+        # if no accessory files are found, just return nothing
+        # I don't believe this should cause the task to fail, since the model outputs may
+        # have successfuly been transformed and might still have utility, even if the accessories
+        # were dropped
+        if len(matches) == 0:
+            logger.error(f'No accessory files were found matching: {accessories_path}/{fp_}')
+            return
+
+        fpath = matches[0]
         logger.info(f'fpath ready:{fpath}')
 
         fn = fpath.split("/")[-1]
