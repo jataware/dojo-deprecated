@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import logging
 import uuid
 import time
@@ -117,8 +118,8 @@ def search_models(
     )
 
 
-@router.get("/models/{model_id}")
-def get_model(model_id: str) -> Model:
+@router.get("/models/{model_id}", response_model=ModelSchema.ModelMetadataSchema)
+def get_model(model_id: str) -> ModelSchema.ModelMetadataSchema:
     try:
         model = es.get(index="models", id=model_id)["_source"]
     except:
@@ -143,11 +144,15 @@ def register_model(model_id: str):
     model = get_ontologies(model)
     model_obj = ModelSchema.ModelMetadataSchema.parse_obj(model)
     update_model(model_id=model_id, payload=model_obj)
+    notify_data = copy.deepcopy(model)
 
+    # On the notification step only, we want to include any previous versions so that they can be deprecated
+    previous_versions = model_versions(model_id)['prev_versions']
+    notify_data["deprecatesIDs"] = previous_versions
 
     # Notify Causemos that a model was created
     logger.info("Notifying CauseMos of model registration")
-    notify_causemos(model, type="model")
+    notify_causemos(notify_data, type="model")
 
     # Send CauseMos a default run
     logger.info("Submitting defualt run to CauseMos")
@@ -236,3 +241,34 @@ def version_model(model_id : str, exclude_files: bool = False):
         headers={"location": f"/api/models/{model_id}", "Content-Type": "text/plain"},
         content=new_id
     )
+
+
+@router.get("/models/{model_id}/versions", response_model=ModelSchema.VersionSchema)
+def model_versions(model_id : str) -> ModelSchema.VersionSchema:
+    """
+    This endpoint returns the model ids for all versions of the model, both any previous version or any later versions.
+    """
+
+    model_definition = get_model(model_id)
+    prev_versions = []
+    later_versions = []
+    prev_leaf = model_definition.get("prev_version", None)
+    next_leaf = model_definition.get("next_version", None)
+
+    while prev_leaf:
+        prev_versions.append(prev_leaf)
+        prev_model = get_model(prev_leaf)
+        prev_leaf = prev_model.get("prev_version", None)
+
+    while next_leaf:
+        later_versions.append(next_leaf)
+        next_model = get_model(next_leaf)
+        next_leaf = next_model.get("next_version", None)
+
+    prev_versions.reverse()
+
+    return {
+        "current_version": model_id,
+        "prev_versions": prev_versions,
+        "later_versions": later_versions,
+    }

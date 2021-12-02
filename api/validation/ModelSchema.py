@@ -545,3 +545,28 @@ for field_name, field_def in ModelMetadataSchema.__fields__.items():
     new_field = deepcopy(field_def)
     new_field.required = False
     ModelMetadataPatchSchema.__fields__[field_name] = new_field
+
+
+class VersionSchema(BaseModel):
+    class Config:
+        extra = Extra.allow
+
+    current_version: str = Field(
+        ...,
+        description="A unique model id",
+        examples=["123e4567-e89b-12d3-a456-426614174000"],
+        title="Model ID",
+    )
+    prev_versions: List[str] = Field(
+        ...,
+        description="Model IDs for all previous versions, in order from from oldest to news",
+        examples=[["01234567-e89b-12d3-a456-426614174000", "edcba567-e89b-12d3-a456-426614174000"]],
+        title="Previous versions",
+    )
+    later_versions: List[str] = Field(
+        ...,
+        description="Model IDs for all later versions, in order from from oldest to news",
+        examples=[["01234567-e89b-12d3-a456-426614174000", "edcba567-e89b-12d3-a456-426614174000"]],
+        title="Later versions",
+    )
+
