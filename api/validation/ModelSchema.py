@@ -527,6 +527,20 @@ class ModelMetadataSchema(BaseModel):
         None, description="UUID of the pervious version", title="previous model version"
     )
 
+    is_published: bool = Field(
+        description="Indicates whether the model has been published or is in a finalized state",
+        title="Is the model published/finalized",
+        default=False,
+    )
+
+    commit_message: Optional[str] = Field(
+        None,
+        description="Optional message explaining the intention of or changes to the model at time of publication",
+        examples=[{"commit_message": "Updated model to account for additional parameters"}],
+        title="Commit message",
+
+    )
+
 
 class ModelMetadataPatchSchema(BaseModel):
     # This class is used for patching the ModelMetadataPatchSchema using the logic below.
@@ -570,3 +584,12 @@ class VersionSchema(BaseModel):
         title="Later versions",
     )
 
+class PublishSchema(BaseModel):
+
+    commit_message: str = Field(
+        default="",
+        description="Optional message explaining the intention of or changes to the model at time of publication",
+        examples=[{"commit_message": "Updated model to account for additional parameters"}],
+        title="Commit message",
+
+    )

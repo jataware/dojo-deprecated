@@ -272,3 +272,29 @@ def model_versions(model_id : str) -> ModelSchema.VersionSchema:
         "prev_versions": prev_versions,
         "later_versions": later_versions,
     }
+
+
+@router.post("/models/{model_id}/publish")
+def publish_model(model_id: str, publish_data: ModelSchema.PublishSchema):
+    """
+    This endpoint finalizes the model, setting the state to published and saving a commit message.
+    A model should only be able to be edited while is_published is set to false.
+    Once a model is published, any changes should be done via a new version.
+    """
+    # Update the model, setting is_published to True and saving the commit message.
+    model = get_model(model_id)
+    if model.get("is_published", False):
+        return Response(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content="Model has already been published and cannot be republished.",
+        )
+
+    body = json.loads(publish_data.json(exclude_unset=False))
+    body["is_published"] = True
+    es.update(index="models", body={"doc": body}, id=model_id)
+
+    return Response(
+        status_code=status.HTTP_200_OK,
+        content="Model published",
+    )
+
