@@ -205,8 +205,8 @@ def version_model(model_id : str, exclude_files: bool = False):
     new_model = ModelSchema.ModelMetadataSchema(**original_model_definition)
 
     # Reset variables related to publishing since they don't apply to the new model
-    new_model["is_published"] = False
-    new_model["commit_message"] = None
+    new_model.is_published = False
+    new_model.commit_message = None
 
     try:
         if exclude_files:
