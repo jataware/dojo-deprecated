@@ -343,7 +343,7 @@ def copy_outputfiles(model_id: str, new_model_id: str):
         f['model_id'] = new_model_id
         f['prev_id'] = old_id
 
-        requests.get(f'{os.getenv("SPACETAG_URL")}/version?old_uuid={old_id}&new_uuid={f["id"]}&new_model_id={new_model_id}')
+        requests.get(f'{os.getenv("SPACETAG_URL")}/version?old_uuid={old_id}&new_uuid={f["id"]}&old_model_id={model_id}&new_model_id={new_model_id}')
         m = DojoSchema.ModelOutputFile(**f)
         model_outputs.append(m)
 
