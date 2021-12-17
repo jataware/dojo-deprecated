@@ -54,15 +54,23 @@ def create_model(payload: ModelSchema.ModelMetadataSchema, fetch_ontologies=True
     )
 
 @router.get("/models/latest", response_model=DojoSchema.ModelSearchResult)
-def get_latest_models(size=100, scroll_id=None) -> DojoSchema.ModelSearchResult:
+def get_latest_models(size: int=100, scroll_id: Optional[str]=None, query: Optional[str] =None) -> DojoSchema.ModelSearchResult:
     q = {
         'query': {
             'bool':{
-            'must_not': {
-                'exists': {'field' : 'next_version'}
-            }}
+                'must_not': {
+                    'exists': {'field' : 'next_version'}
+                }
+            }
         }
     }
+    if query:
+        q["query"]["bool"]["filter"] = {
+            "query_string": {
+                "query": query,
+            }
+        }
+
     if not scroll_id:
         # we need to kick off the query
         results = es.search(index='models', body=q, scroll="2m", size=size)
