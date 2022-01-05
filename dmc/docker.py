@@ -234,6 +234,7 @@ class DockerOperator(BaseOperator):
                 environment={**self.environment, **self._private_environment},
                 host_config=self.cli.create_host_config(
                     auto_remove=False,
+                    privileged=True,
                     binds=self.volumes,
                     network_mode=self.network_mode,
                     shm_size=self.shm_size,
