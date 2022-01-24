@@ -142,7 +142,7 @@ async def expire_container_info(cid: str, redis: aioredis.Redis = Depends(redis_
 async def put_request_info(item: FileRequestItem, redis: aioredis.Redis = Depends(redis_pool)) -> ResponseId:
     TTL = 1800  # seconds
     reqid = str(uuid4().hex)
-    key = f"closeau:file:{reqid}"
+    key = f"clouseau:file:{reqid}"
 
     await redis.hmset_dict(key, item.dict())
     await redis.expire(key, TTL)
