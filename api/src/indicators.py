@@ -82,3 +82,18 @@ def get_indicators(indicator_id: str) -> IndicatorSchema.IndicatorMetadataSchema
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return indicator
+
+
+@router.put("/indicators/{indicator_id}/deprecate")
+def deprecate_indicator(indicator_id: str):
+    try:
+        indicator = es.get(index="indicators", id=indicator_id)["_source"]
+        indicator["deprecated"] = True
+        es.index(index="indicators", id=indicator_id, body=indicator)
+    except:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return Response(
+        status_code=status.HTTP_200_OK,
+        headers={"location": f"/api/indicators/{indicator_id}"},
+        content=f"Deprecated indicator with id {indicator_id}",
+    )
