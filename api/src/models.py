@@ -20,6 +20,7 @@ from src.settings import settings
 from src.dojo import search_and_scroll, copy_configs, copy_outputfiles, copy_directive, copy_accessory_files
 from src.ontologies import get_ontologies
 from src.causemos import notify_causemos, submit_run
+from src.utils import run_model_with_defaults
 
 router = APIRouter()
 
@@ -336,3 +337,14 @@ def publish_model(model_id: str, publish_data: ModelSchema.PublishSchema):
         status_code=status.HTTP_200_OK,
         content="Model published",
     )
+
+@router.get("/models/{model_id}/test")
+def test_model(model_id: str):
+    """
+    This endpoint tests a model's functionality within Dojo.
+    """
+    run_id = run_model_with_defaults(model_id)
+    return Response(
+        status_code=status.HTTP_200_OK,
+        content=run_id,
+    ) 
