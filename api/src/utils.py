@@ -58,7 +58,8 @@ def run_model_with_defaults(model_id):
         param_obj['value'] = param['default']
         params.append(param_obj)
 
-    run_id = f"{model['name'].replace(' ','-')}-{current_milli_time()}"
+    model_name_clean = ''.join(filter(str.isalnum, model['name']))
+    run_id = f"{model_name_clean}-{current_milli_time()}"
 
     run = ModelRunSchema(id=run_id,
                          model_id=model_id,
