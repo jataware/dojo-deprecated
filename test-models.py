@@ -1,3 +1,26 @@
+"""
+TEST MODELS CLI TOOL
+
+This CLI provides two commands for testing models via the Dojo API.
+
+The first command is the "test" command. This command will submit all published models to the Dojo API for testing.
+
+The second command is the "validate" command. It checks the status of each test run via the Dojo API, ensuring that the latest test status
+is stored to Elasticsearch's `tests` index.
+
+Usage:
+
+```
+python3 test-models.py --dojo_url="dojo-test.com" --dojo_user="user" --dojo_pwd="pwd" test
+python3 test-models.py --dojo_url="dojo-test.com" --dojo_user="user" --dojo_pwd="pwd" validate
+```
+
+If running on the same machine as the Dojo API, you can drop the options and just run:
+
+```
+python3 test-models.py test
+```
+"""
 import requests
 import click
 import time
