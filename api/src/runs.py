@@ -337,3 +337,18 @@ def update_run(payload: RunSchema.ModelRunSchema):
         headers={"location": f"/api/runs/{run_id}"},
         content=f"Updated run with id = {run_id}",
     )
+
+@router.get("/runs/{run_id}/test")
+def test_run_status(run_id: str) -> RunSchema.RunStatusSchema:
+    run = get_run(run_id)
+    status = run.get("attributes",{}).get("status",None)
+    model_id = run.get("model_id")
+    body = {"run_id": run_id,
+            "status": status, 
+            "model_name": run.get("model_name"), 
+            "executed_at": run.get("attributes",{}).get("executed_at",None)}
+    if status:
+        es.index(index="tests", body=body, id=model_id)
+        return status
+    else:
+        return "running" 

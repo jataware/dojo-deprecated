@@ -359,3 +359,7 @@ class IndicatorMetadataSchema(BaseModel):
     period: Optional[Period] = Field(
         None, description="Data ranges covered by the dataset", title="Run time period"
     )
+    deprecated: bool = Field(
+        False,
+        description="Deprecated datasets should not be used for new models.",
+    )

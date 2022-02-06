@@ -593,3 +593,20 @@ class PublishSchema(BaseModel):
         title="Commit message",
 
     )
+
+
+class ModelFamilySchema(BaseModel):
+
+    display_name: str = Field(
+        ...,
+        description="Human readable display name",
+        examples=["Climate Models"],
+        title="Display Name",
+    )
+    family_name: str = Field(
+        ...,
+        description="A unique string used to identify the mode family, matches `family_name` field on a model",
+        examples=["climate"],
+        title="Family Name",
+
+    )
