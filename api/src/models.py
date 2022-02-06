@@ -338,7 +338,7 @@ def publish_model(model_id: str, publish_data: ModelSchema.PublishSchema):
         content="Model published",
     )
 
-@router.post("/models/{model_id}/test")
+@router.get("/models/{model_id}/test")
 def test_model(model_id: str):
     """
     This endpoint tests a model's functionality within Dojo.
@@ -346,5 +346,5 @@ def test_model(model_id: str):
     run_id = run_model_with_defaults(model_id)
     return Response(
         status_code=status.HTTP_200_OK,
-        content=f"Model test run submitted with run id {run_id}",
+        content=run_id,
     ) 
