@@ -482,3 +482,39 @@ def copy_accessory_files(model_id: str, new_model_id: str):
         model_accessories.append(ma)
 
     create_accessory_files(model_accessories)
+
+@router.get("/dojo/domains", response_model=List[str])
+def get_domains() -> List[str]:
+    """
+    Returns the full list of scientific domains acceptable to be applied to models and indicators.
+    Source: https://skos.um.es/unesco6/view.php?fmt=1
+    """
+
+    domains = [
+        "Logic",
+        "Mathematics",
+        "Astronomy and astrophysics",
+        "Physics",
+        "Chemistry",
+        "Life Sciences",
+        "Earth and Space Sciences",
+        "Agricultural Sciences",
+        "Medical Sciences",
+        "Technological Sciences",
+        "Anthropology",
+        "Demographics",
+        "Economic Sciences",
+        "Geography",
+        "History",
+        "Juridical Sciences and Law",
+        "Linguistics",
+        "Pedagogy",
+        "Political Science",
+        "Psychology",
+        "Science of Arts and Letters",
+        "Sociology",
+        "Ethics",
+        "Philosophy",
+    ]
+
+    return domains

@@ -318,11 +318,17 @@ class IndicatorMetadataSchema(BaseModel):
         examples=[1234567890000],
         title="Dataset Registration Time",
     )
-    category: List[str] = Field(
-        ...,
+    category: Optional[List[str]] = Field(
+        None,
         description="List of categories",
         examples=[["Economic", "Agricultural"]],
         title="Categories",
+    )
+    domains: Optional[List[str]] = Field(
+        None,
+        description="List of domains, based on UNESCO nomenclature for fields of science and technology - https://skos.um.es/unesco6/00/html",
+        examples=[["Medical Sciences", "Demographics"]],
+        title="Domains",
     )
     maintainer: Maintainer = Field(
         ...,
@@ -337,7 +343,7 @@ class IndicatorMetadataSchema(BaseModel):
     )
     outputs: List[Output] = Field(
         ...,
-        description="An array of dataset variables", 
+        description="An array of dataset variables",
         title="Dataset Outputs"
     )
     qualifier_outputs: Optional[List[QualifierOutput]] = Field(
