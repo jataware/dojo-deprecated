@@ -36,6 +36,19 @@ class Type1(Enum):
     admin2 = "admin2"
     admin3 = "admin3"
 
+class Alias(BaseModel):
+    name: Optional[str] = Field(
+        ...,
+        description="The alias name of the value",
+        examples=["transform"],
+        title="Alias Name",
+    )
+    to_name:Optional[str]=Field(
+        ...,
+        description="The alias name of the value",
+        examples=["transform"],
+        title="Alias Name",
+    )
 
 class Maintainer(BaseModel):
     class Config:
@@ -231,6 +244,11 @@ class Output(BaseModel):
         None,
         description="Spatial and temporal resolution of the data",
         title="Data Resolution",
+    )
+    alias: Optional[List[Alias]]=Field(
+        None,
+        description="alias",
+        title="Alias"
     )
 
 
