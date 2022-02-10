@@ -66,24 +66,35 @@ def update_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
     )
 
 
-@router.get("/indicators/latest", response_model=List[IndicatorSchema.IndicatorsSearchSchema])
+@router.get(
+    "/indicators/latest", response_model=List[IndicatorSchema.IndicatorsSearchSchema]
+)
 def get_latest_indicators(size=10000):
-    q = {"_source": ["description", "name", "id", "created_at", "maintainer.name", "maintainer.email"],
-         "query": {
-             "match_all": {}
-         }
-         }
-    results = es.search(index='indicators', body=q, size=size)['hits']['hits']
+    q = {
+        "_source": [
+            "description",
+            "name",
+            "id",
+            "created_at",
+            "maintainer.name",
+            "maintainer.email",
+        ],
+        "query": {"match_all": {}},
+    }
+    results = es.search(index="indicators", body=q, size=size)["hits"]["hits"]
     IndicatorsSchemaArray = []
     for res in results:
-        IndicatorsSchemaArray.append(res.get('_source'))
+        IndicatorsSchemaArray.append(res.get("_source"))
     return IndicatorsSchemaArray
 
 
 @router.get("/indicators", response_model=DojoSchema.IndicatorSearchResult)
 def search_indicators(
-        query: str = Query(None), size: int = 10, scroll_id: str = Query(None), include_ontologies: bool = True,
-        include_geo: bool = True
+    query: str = Query(None),
+    size: int = 10,
+    scroll_id: str = Query(None),
+    include_ontologies: bool = True,
+    include_geo: bool = True,
 ) -> DojoSchema.IndicatorSearchResult:
     indicator_data = search_and_scroll(
         index="indicators", size=size, query=query, scroll_id=scroll_id
@@ -94,36 +105,42 @@ def search_indicators(
     else:
 
         if not include_ontologies or include_geo:
-            for i, indicator in enumerate(indicator_data['results']):
+            for i, indicator in enumerate(indicator_data["results"]):
                 if not include_ontologies:
-                    for ind, ontology in enumerate(indicator['qualifier_outputs']):
+                    for ind, ontology in enumerate(indicator["qualifier_outputs"]):
                         try:
-                            indicator_data['results'][i]['qualifier_outputs'][ind]['ontologies'] = {
+                            indicator_data["results"][i]["qualifier_outputs"][ind][
+                                "ontologies"
+                            ] = {
                                 "concepts": None,
                                 "processes": None,
-                                "properties": None
+                                "properties": None,
                             }
                         except Exception as e:
                             print(e)
-                    for ind_out, ontology_out in enumerate(indicator['outputs']):
+                    for ind_out, ontology_out in enumerate(indicator["outputs"]):
                         try:
-                            indicator_data['results'][i]['outputs'][ind_out]['ontologies'] = {
+                            indicator_data["results"][i]["outputs"][ind_out][
+                                "ontologies"
+                            ] = {
                                 "concepts": None,
                                 "processes": None,
-                                "properties": None
+                                "properties": None,
                             }
                         except Exception as e:
                             print(e)
                 if not include_geo:
-                    indicator_data['results'][i]['geography']['country'] = []
-                    indicator_data['results'][i]['geography']['admin1'] = []
-                    indicator_data['results'][i]['geography']['admin2'] = []
-                    indicator_data['results'][i]['geography']['admin3'] = []
+                    indicator_data["results"][i]["geography"]["country"] = []
+                    indicator_data["results"][i]["geography"]["admin1"] = []
+                    indicator_data["results"][i]["geography"]["admin2"] = []
+                    indicator_data["results"][i]["geography"]["admin3"] = []
 
         return indicator_data
 
 
-@router.get("/indicators/{indicator_id}", response_model=IndicatorSchema.IndicatorMetadataSchema)
+@router.get(
+    "/indicators/{indicator_id}", response_model=IndicatorSchema.IndicatorMetadataSchema
+)
 def get_indicators(indicator_id: str) -> IndicatorSchema.IndicatorMetadataSchema:
     try:
         indicator = es.get(index="indicators", id=indicator_id)["_source"]
@@ -145,7 +162,3 @@ def deprecate_indicator(indicator_id: str):
         headers={"location": f"/api/indicators/{indicator_id}"},
         content=f"Deprecated indicator with id {indicator_id}",
     )
-
-
-
-
