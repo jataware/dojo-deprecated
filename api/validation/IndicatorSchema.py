@@ -336,7 +336,7 @@ class IndicatorMetadataSchema(BaseModel):
         examples=[1234567890000],
         title="Dataset Registration Time",
     )
-    category: List[str] = Field(
+    category: Optional[List[str]] = Field(
         ...,
         description="List of categories",
         examples=[["Economic", "Agricultural"]],
@@ -377,7 +377,42 @@ class IndicatorMetadataSchema(BaseModel):
     period: Optional[Period] = Field(
         None, description="Data ranges covered by the dataset", title="Run time period"
     )
-    deprecated: bool = Field(
+    deprecated: Optional[bool] = Field(
         False,
         description="Deprecated datasets should not be used for new models.",
     )
+
+
+class IndicatorsSearchSchema(BaseModel):
+    class Config:
+        extra = Extra.allow
+
+    id: str = Field(
+        ...,
+        description="A unique dataset id",
+        examples=["123e4567-e89b-12d3-a456-426614174000"],
+        title="Dataset ID",
+    )
+    name: Optional[str] = Field(
+        ..., description="The dataset name", examples=["WDI"], title="Dataset Name"
+    )
+    description: Optional[str] = Field(
+        ...,
+        description="The description of the dataset.",
+        examples=[
+            "World Development Indicators are the World Bank's compilation of relevant, high-quality, and internationally comparable statistics about global development. The global database contains 1,600 time series indicators for 217 economies and more than 40 country groups, with data for many indicators going back more than 50 years.  There are ~1400 indicators for Ethiopia at the National level.  This data was pulled by the World Modelers program in September 2020."
+        ],
+        title="Dataset Description",
+    )
+    created_at: Optional[int] = Field(
+        None,
+        description="When the dataset was registered",
+        examples=[1234567890000],
+        title="Dataset Registration Time",
+    )
+    maintainer: Optional[Maintainer] = Field(
+        ...,
+        description="Information about the dataset maintainer.",
+        title="Dataset Maintainer",
+    )
+   

@@ -7,6 +7,10 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 from validation import ModelSchema, IndicatorSchema
 
+class IndicatorsArraySchema(BaseModel):
+    indicators: List[IndicatorSchema.IndicatorsSearchSchema] = Field(
+        title="indicators", description="Array of indicator objects"
+    )
 
 class IndicatorSearchResult(BaseModel):
     hits: int = Field(title="Total hits for query", example="113")

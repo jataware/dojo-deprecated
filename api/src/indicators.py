@@ -65,25 +65,24 @@ def update_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
         content=f"Updated indicator with id = {indicator_id}",
     )
 
-@router.get("/indicators/latest")
-def get_latest_indicators(size=10000) -> DojoSchema.IndicatorSearchResult:
-    q =  { "_source": ["description", "name", "id", "created_at","maintainer.name"],
+@router.get("/indicators/latest" ,  response_model=DojoSchema.IndicatorsArraySchema)
+def get_latest_indicators(size=10000):
+    q =  { "_source": ["description", "name", "id", "created_at","maintainer.name", "maintainer.email"],
          "query": {
         "match_all":{}
             }
            }
-    results = es.search(index='indicators', body=q,size=size)
-    print(results)
+    results = es.search(index='indicators', body=q,size=size)['hits']['hits']
+    IndicatorsSchemaArray=[]
+    for res in results:
+        IndicatorsSchemaArray.append(res.get('_source'))
+    return IndicatorsSchemaArray,
+    
 
-    return {
-        "results": results,
-    }
-
-@router.get("/indicators" )
+@router.get("/indicators" , response_model=DojoSchema.IndicatorSearchResult)
 def search_indicators(
     query: str = Query(None), size: int = 10, scroll_id: str = Query(None),ontologies:bool=True ,geo:bool=True
 ) -> DojoSchema.IndicatorSearchResult:
-    print(ontologies, geo)
     resp= search_and_scroll(
         index="indicators", size=size, query=query, scroll_id=scroll_id
     )
@@ -94,7 +93,6 @@ def search_indicators(
     reducedData = resp
 
     if not ontologies or geo:
-        print('try to remove on tologies')
         for i,indicator in enumerate(reducedData['results']):
             if not ontologies:
                 for ind, ontology in enumerate(indicator['qualifier_outputs']):
@@ -127,7 +125,7 @@ def search_indicators(
     return reducedData
 
 
-@router.get("/indicators/{indicator_id}")
+@router.get("/indicators/{indicator_id}", response_model=IndicatorSchema.IndicatorMetadataSchema)
 def get_indicators(indicator_id: str) -> IndicatorSchema.IndicatorMetadataSchema:
     try:
         indicator = es.get(index="indicators", id=indicator_id)["_source"]
