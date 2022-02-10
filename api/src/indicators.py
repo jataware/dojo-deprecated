@@ -14,7 +14,6 @@ from pydantic import BaseModel, Field
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.logger import logger
 
-
 from validation import IndicatorSchema, DojoSchema
 from src.settings import settings
 
@@ -27,6 +26,7 @@ import os
 router = APIRouter()
 
 es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
+
 
 # For created_at times in epoch milliseconds
 def current_milli_time():
@@ -45,7 +45,7 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
 
     # Notify Causemos that an indicator was created
     notify_causemos(data, type="indicator")
-    
+
     return Response(
         status_code=status.HTTP_201_CREATED,
         headers={"location": f"/api/indicators/{indicator_id}"},
@@ -65,69 +65,65 @@ def update_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
         content=f"Updated indicator with id = {indicator_id}",
     )
 
-@router.get("/indicators/latest")
-def get_latest_indicators(size=10000) -> DojoSchema.IndicatorSearchResult:
-    q =  { "_source": ["description", "name", "id", "created_at","maintainer.name"],
+
+@router.get("/indicators/latest", response_model=List[IndicatorSchema.IndicatorsSearchSchema])
+def get_latest_indicators(size=10000):
+    q = {"_source": ["description", "name", "id", "created_at", "maintainer.name", "maintainer.email"],
          "query": {
-        "match_all":{}
-            }
-           }
-    results = es.search(index='indicators', body=q,size=size)
-    print(results)
+             "match_all": {}
+         }
+         }
+    results = es.search(index='indicators', body=q, size=size)['hits']['hits']
+    IndicatorsSchemaArray = []
+    for res in results:
+        IndicatorsSchemaArray.append(res.get('_source'))
+    return IndicatorsSchemaArray
 
-    return {
-        "results": results,
-    }
 
-@router.get("/indicators" )
+@router.get("/indicators", response_model=DojoSchema.IndicatorSearchResult)
 def search_indicators(
-    query: str = Query(None), size: int = 10, scroll_id: str = Query(None),ontologies:bool=True ,geo:bool=True
+        query: str = Query(None), size: int = 10, scroll_id: str = Query(None), include_ontologies: bool = True,
+        include_geo: bool = True
 ) -> DojoSchema.IndicatorSearchResult:
-    print(ontologies, geo)
-    resp= search_and_scroll(
+    indicator_data = search_and_scroll(
         index="indicators", size=size, query=query, scroll_id=scroll_id
     )
-    #if request wants ontologies and geo data return all
-    if ontologies and geo:
-        return resp
-
-    reducedData = resp
-
-    if not ontologies or geo:
-        print('try to remove on tologies')
-        for i,indicator in enumerate(reducedData['results']):
-            if not ontologies:
-                for ind, ontology in enumerate(indicator['qualifier_outputs']):
-                    try:
-                        reducedData['results'][i]['qualifier_outputs'][ind]['ontologies']={
-                                                "concepts": None,
-                                                "processes": None,
-                                                "properties":None
-                                                }
-                    except Exception as e:
-                        print(e)
-                for ind_out, ontology_out in enumerate(indicator['outputs']):
-                    try:
-                        reducedData['results'][i]['outputs'][ind_out]['ontologies']={
-                                                "concepts": None,
-                                                "processes": None,
-                                                "properties":None
-                                                }
-                    except Exception as e:
-                        print(e)
-            if not geo:
-                reducedData['results'][i]['geography']['country']=[]
-                reducedData['results'][i]['geography']['admin1'] = []
-                reducedData['results'][i]['geography']['admin2'] = []
-                reducedData['results'][i]['geography']['admin3'] = []
+    # if request wants ontologies and geo data return all
+    if include_ontologies and include_geo:
+        return indicator_data
     else:
-        print('did not try anythin')
+
+        if not include_ontologies or include_geo:
+            for i, indicator in enumerate(indicator_data['results']):
+                if not include_ontologies:
+                    for ind, ontology in enumerate(indicator['qualifier_outputs']):
+                        try:
+                            indicator_data['results'][i]['qualifier_outputs'][ind]['ontologies'] = {
+                                "concepts": None,
+                                "processes": None,
+                                "properties": None
+                            }
+                        except Exception as e:
+                            print(e)
+                    for ind_out, ontology_out in enumerate(indicator['outputs']):
+                        try:
+                            indicator_data['results'][i]['outputs'][ind_out]['ontologies'] = {
+                                "concepts": None,
+                                "processes": None,
+                                "properties": None
+                            }
+                        except Exception as e:
+                            print(e)
+                if not include_geo:
+                    indicator_data['results'][i]['geography']['country'] = []
+                    indicator_data['results'][i]['geography']['admin1'] = []
+                    indicator_data['results'][i]['geography']['admin2'] = []
+                    indicator_data['results'][i]['geography']['admin3'] = []
+
+        return indicator_data
 
 
-    return reducedData
-
-
-@router.get("/indicators/{indicator_id}")
+@router.get("/indicators/{indicator_id}", response_model=IndicatorSchema.IndicatorMetadataSchema)
 def get_indicators(indicator_id: str) -> IndicatorSchema.IndicatorMetadataSchema:
     try:
         indicator = es.get(index="indicators", id=indicator_id)["_source"]
