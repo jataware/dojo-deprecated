@@ -39,15 +39,15 @@ class Type1(Enum):
 class Alias(BaseModel):
     name: Optional[str] = Field(
         ...,
-        description="The alias name of the value",
+        description="The alias original value",
         examples=["transform"],
-        title="Alias Name",
+        title="Original Alias Name",
     )
-    to_name:Optional[str]=Field(
+    to_name: Optional[str]=Field(
         ...,
-        description="The alias name of the value",
+        description="The alias final value",
         examples=["transform"],
-        title="Alias Name",
+        title="Final Alias Name",
     )
 
 class Maintainer(BaseModel):
@@ -247,7 +247,7 @@ class Output(BaseModel):
     )
     alias: Optional[List[Alias]]=Field(
         None,
-        description="alias",
+        description="alias dictionary",
         title="Alias"
     )
 
