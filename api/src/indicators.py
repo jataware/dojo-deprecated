@@ -103,25 +103,20 @@ def search_indicators(
     if include_ontologies and include_geo:
         return indicator_data
     else:
-
-        for i, indicator in enumerate(indicator_data["results"]):
+        for indicator in indicator_data["results"]:
             if not include_ontologies:
-                for ind, ontology in enumerate(indicator["qualifier_outputs"]):
+                for q_output in indicator["qualifier_outputs"]:
                     try:
-                        indicator_data["results"][i]["qualifier_outputs"][ind][
-                            "ontologies"
-                        ] = {
+                        q_output["ontologies"] = {
                             "concepts": None,
                             "processes": None,
                             "properties": None,
                         }
                     except Exception as e:
                         print(e)
-                for ind_out, ontology_out in enumerate(indicator["outputs"]):
+                for outputs in indicator["outputs"]:
                     try:
-                        indicator_data["results"][i]["outputs"][ind_out][
-                            "ontologies"
-                        ] = {
+                        outputs["ontologies"] = {
                             "concepts": None,
                             "processes": None,
                             "properties": None,
@@ -129,10 +124,10 @@ def search_indicators(
                     except Exception as e:
                         print(e)
             if not include_geo:
-                indicator_data["results"][i]["geography"]["country"] = []
-                indicator_data["results"][i]["geography"]["admin1"] = []
-                indicator_data["results"][i]["geography"]["admin2"] = []
-                indicator_data["results"][i]["geography"]["admin3"] = []
+                indicator["geography"]["country"] = []
+                indicator["geography"]["admin1"] = []
+                indicator["geography"]["admin2"] = []
+                indicator["geography"]["admin3"] = []
 
         return indicator_data
 
