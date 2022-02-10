@@ -336,7 +336,7 @@ class IndicatorMetadataSchema(BaseModel):
         examples=[1234567890000],
         title="Dataset Registration Time",
     )
-    category: Optional[List[str]] = Field(
+    category: List[str] = Field(
         ...,
         description="List of categories",
         examples=[["Economic", "Agricultural"]],
@@ -377,7 +377,7 @@ class IndicatorMetadataSchema(BaseModel):
     period: Optional[Period] = Field(
         None, description="Data ranges covered by the dataset", title="Run time period"
     )
-    deprecated: Optional[bool] = Field(
+    deprecated: bool = Field(
         False,
         description="Deprecated datasets should not be used for new models.",
     )
