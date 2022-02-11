@@ -466,11 +466,17 @@ class ModelMetadataSchema(BaseModel):
         examples=[1234567890000],
         title="Model Registration Time",
     )
-    category: List[str] = Field(
-        ...,
+    category: Optional[List[str]] = Field(
+        None,
         description="List of categories",
         examples=[["Economic", "Agricultural"]],
         title="Categories",
+    )
+    domains: Optional[List[str]] = Field(
+        None,
+        description="List of domains, based on UNESCO nomenclature for fields of science and technology - https://skos.um.es/unesco6/00/html",
+        examples=[["Medical Sciences", "Demographics"]],
+        title="Domains",
     )
     maintainer: Maintainer = Field(
         ...,
