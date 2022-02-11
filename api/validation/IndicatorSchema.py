@@ -337,7 +337,7 @@ class IndicatorMetadataSchema(BaseModel):
     )
     outputs: List[Output] = Field(
         ...,
-        description="An array of dataset variables", 
+        description="An array of dataset variables",
         title="Dataset Outputs"
     )
     qualifier_outputs: Optional[List[QualifierOutput]] = Field(
@@ -363,7 +363,7 @@ class IndicatorMetadataSchema(BaseModel):
         False,
         description="Deprecated datasets should not be used for new models.",
     )
-    sensitivity: Optional[str] = Field(
+    data_sensitivity: Optional[str] = Field(
         ...,
         description="Specifies any restrictions on data use.",
         examples=[
@@ -371,7 +371,7 @@ class IndicatorMetadataSchema(BaseModel):
         ],
         title="Dataset Sensitivity",
     )
-    quality: Optional[str] = Field(
+    data_quality: Optional[str] = Field(
         ...,
         description="Specify if the data is measured, derived, or estimated data and what was the methodology associated with each of these.",
         examples=[
