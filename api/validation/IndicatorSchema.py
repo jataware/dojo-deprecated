@@ -369,3 +369,19 @@ class IndicatorMetadataSchema(BaseModel):
         False,
         description="Deprecated datasets should not be used for new models.",
     )
+    data_sensitivity: Optional[str] = Field(
+        ...,
+        description="Specifies any restrictions on data use.",
+        examples=[
+            "..."
+        ],
+        title="Dataset Sensitivity",
+    )
+    data_quality: Optional[str] = Field(
+        ...,
+        description="Specify if the data is measured, derived, or estimated data and what was the methodology associated with each of these.",
+        examples=[
+            "measured"
+        ],
+        title="Dataset Quality",
+    )
