@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 from pydantic import BaseModel, Extra, Field
 
 
@@ -36,19 +36,19 @@ class Type1(Enum):
     admin2 = "admin2"
     admin3 = "admin3"
 
-class Alias(BaseModel):
-    name: Optional[str] = Field(
-        ...,
-        description="The alias original value",
-        examples=["transform"],
-        title="Original Alias Name",
-    )
-    to_name: Optional[str]=Field(
-        ...,
-        description="The alias final value",
-        examples=["transform"],
-        title="Final Alias Name",
-    )
+# class Alias(BaseModel):
+#     name: Optional[str] = Field(
+#         ...,
+#         description="The alias original value",
+#         examples=["transform"],
+#         title="Original Alias Name",
+#     )
+#     to_name: Optional[str]=Field(
+#         ...,
+#         description="The alias final value",
+#         examples=["transform"],
+#         title="Final Alias Name",
+#     )
 
 class Maintainer(BaseModel):
     class Config:
@@ -245,7 +245,7 @@ class Output(BaseModel):
         description="Spatial and temporal resolution of the data",
         title="Data Resolution",
     )
-    alias: Optional[List[Alias]]=Field(
+    aliases: Optional[Dict[Any,Any]] = Field(
         None,
         description="alias dictionary",
         title="Alias"
@@ -381,6 +381,7 @@ class IndicatorMetadataSchema(BaseModel):
         False,
         description="Deprecated datasets should not be used for new models.",
     )
+
 
 
 class IndicatorsSearchSchema(BaseModel):
