@@ -4,13 +4,27 @@
     see https://github.com/jataware/dojo/issues/77
     Requires credentials for Pro or Team plan.
 """
-from logging import Logger
 import logging
 import requests
+from uuid import UUID
 
 from src.settings import settings
 
-logger: Logger = logging.getLogger(__name__)
+
+logger: logging.Logger = logging.getLogger(__name__)
+
+
+def is_uuid(uuid_str):
+    """
+    Simple way to check to see if a string is a valid UUID.
+    Try to build a UUID object and catch if it fails
+    """
+    try:
+        UUID("{%s}" % uuid_str)
+        return True
+    except ValueError as e:
+        return False
+
 
 
 def authenticate() -> str:
@@ -80,14 +94,13 @@ def get_image_tags(repo):
     # Get list of image tag dicts.
     image_tags = get_repo_image_details(url, headers, [])
 
-    # Remove the Ubuntu dict from the list
-    ubuntu = next((item for item in image_tags if item["display_name"] == "Ubuntu"), None)
-    image_tags[:] = [d for d in image_tags if d.get("display_name") != "Ubuntu"]
-
-    # Sort the list based on Display Names, and add Ubuntu to the front.
-    image_tags.sort(key=lambda item: item.get("display_name"))
-    if ubuntu:
-        image_tags.insert(0, ubuntu)
+    image_tags = [
+        image_tag
+        for image_tag in image_tags
+        if not is_uuid(image_tag.get("display_name"))
+    ]
+    # Sort the list based on Display Names, and with Ubuntu at the front.
+    image_tags.sort(key=lambda item: (not item.get("display_name").startswith("Ubuntu"), item.get("display_name")))
 
     # Enumerate and set sort_order; although, Phantom does not seem to use this.
     for idx, d in enumerate(image_tags):
