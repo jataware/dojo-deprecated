@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 from pydantic import BaseModel, Extra, Field
 
 
@@ -36,6 +36,19 @@ class Type1(Enum):
     admin2 = "admin2"
     admin3 = "admin3"
 
+# class Alias(BaseModel):
+#     name: Optional[str] = Field(
+#         ...,
+#         description="The alias original value",
+#         examples=["transform"],
+#         title="Original Alias Name",
+#     )
+#     to_name: Optional[str]=Field(
+#         ...,
+#         description="The alias final value",
+#         examples=["transform"],
+#         title="Final Alias Name",
+#     )
 
 class Maintainer(BaseModel):
     class Config:
@@ -232,6 +245,11 @@ class Output(BaseModel):
         description="Spatial and temporal resolution of the data",
         title="Data Resolution",
     )
+    alias: Optional[Dict[Any,Any]] = Field(
+        None,
+        description="alias dictionary",
+        title="Alias"
+    )
 
 
 class QualifierOutput(BaseModel):
@@ -370,7 +388,7 @@ class IndicatorMetadataSchema(BaseModel):
         description="Deprecated datasets should not be used for new models.",
     )
     data_sensitivity: Optional[str] = Field(
-        ...,
+        None,
         description="Specifies any restrictions on data use.",
         examples=[
             "..."
@@ -378,10 +396,44 @@ class IndicatorMetadataSchema(BaseModel):
         title="Dataset Sensitivity",
     )
     data_quality: Optional[str] = Field(
-        ...,
+        None,
         description="Specify if the data is measured, derived, or estimated data and what was the methodology associated with each of these.",
         examples=[
             "measured"
         ],
         title="Dataset Quality",
     )
+
+class IndicatorsSearchSchema(BaseModel):
+    class Config:
+        extra = Extra.allow
+
+    id: str = Field(
+        ...,
+        description="A unique dataset id",
+        examples=["123e4567-e89b-12d3-a456-426614174000"],
+        title="Dataset ID",
+    )
+    name: Optional[str] = Field(
+        ..., description="The dataset name", examples=["WDI"], title="Dataset Name"
+    )
+    description: Optional[str] = Field(
+        ...,
+        description="The description of the dataset.",
+        examples=[
+            "World Development Indicators are the World Bank's compilation of relevant, high-quality, and internationally comparable statistics about global development. The global database contains 1,600 time series indicators for 217 economies and more than 40 country groups, with data for many indicators going back more than 50 years.  There are ~1400 indicators for Ethiopia at the National level.  This data was pulled by the World Modelers program in September 2020."
+        ],
+        title="Dataset Description",
+    )
+    created_at: Optional[int] = Field(
+        None,
+        description="When the dataset was registered",
+        examples=[1234567890000],
+        title="Dataset Registration Time",
+    )
+    maintainer: Optional[Maintainer] = Field(
+        ...,
+        description="Information about the dataset maintainer.",
+        title="Dataset Maintainer",
+    )
+   

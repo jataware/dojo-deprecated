@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from validation import ModelSchema, IndicatorSchema
 
 
+
 class IndicatorSearchResult(BaseModel):
     hits: int = Field(title="Total hits for query", example="113")
     results: List[IndicatorSchema.IndicatorMetadataSchema] = Field(
@@ -34,7 +35,7 @@ class ModelAccessory(BaseModel):
     caption: Optional[str] = Field(
         title="accessory caption",
         description="A caption for the accessory file",
-        example="This is an image of a flooding forecast",        
+        example="This is an image of a flooding forecast",
     )
 
 
