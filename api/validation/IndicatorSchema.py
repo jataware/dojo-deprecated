@@ -245,7 +245,7 @@ class Output(BaseModel):
         description="Spatial and temporal resolution of the data",
         title="Data Resolution",
     )
-    aliases: Optional[Dict[Any,Any]] = Field(
+    alias: Optional[Dict[Any,Any]] = Field(
         None,
         description="alias dictionary",
         title="Alias"
