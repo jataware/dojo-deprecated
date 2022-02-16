@@ -7,9 +7,12 @@
 import logging
 import requests
 from uuid import UUID
+from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import NotFoundError
 
 from src.settings import settings
 
+es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -24,7 +27,6 @@ def is_uuid(uuid_str):
         return True
     except ValueError as e:
         return False
-
 
 
 def authenticate() -> str:
@@ -44,13 +46,17 @@ def authenticate() -> str:
     dockerhub_pwd = settings.DOCKERHUB_PWD
     auth_body = {"username": dockerhub_user, "password": dockerhub_pwd}
 
-    response = requests.post(url, json=auth_body, headers={"Content-Type": "application/json"})
+    response = requests.post(
+        url, json=auth_body, headers={"Content-Type": "application/json"}
+    )
     resp_json = response.json()
 
     if "token" in resp_json:
         return resp_json["token"]
     else:
-        logger.error(f"Could not authenticate {url} with user {dockerhub_user}: {resp_json}")
+        logger.error(
+            f"Could not authenticate {url} with user {dockerhub_user}: {resp_json}"
+        )
         raise
 
 
@@ -85,28 +91,53 @@ def get_image_tags(repo):
             Prefixing with - sorts by descending order.
     """
 
-    url = (f"{settings.DOCKERHUB_URL}/namespaces/"
-           f"{settings.DOCKERHUB_ORG}/repositories/"
-           f"{repo}/images?ordering=last_activity&page_size=100&currently_tagged=true")
+    url = (
+        f"{settings.DOCKERHUB_URL}/namespaces/"
+        f"{settings.DOCKERHUB_ORG}/repositories/"
+        f"{repo}/images?ordering=last_activity&page_size=100&currently_tagged=true"
+    )
 
     headers = {"Accept": "application/json", "Authorization": f"Bearer {auth_token}"}
 
     # Get list of image tag dicts.
     image_tags = get_repo_image_details(url, headers, [])
 
-    image_tags = [
-        image_tag
+    model_images = [
+        image_tag.get("display_name")
         for image_tag in image_tags
-        if not is_uuid(image_tag.get("display_name"))
+        if is_uuid(image_tag.get("display_name"))
     ]
-    # Sort the list based on Display Names, and with Ubuntu at the front.
-    image_tags.sort(key=lambda item: (not item.get("display_name").startswith("Ubuntu"), item.get("display_name")))
+
+    models = es.mget(index="models", body={"ids": model_images})
+
+    model_index = {
+        model_obj["_id"]: model_obj.get("_source", {})
+        for model_obj in models.get("docs", [])
+        if model_obj.get("_source")
+    }
+
+    final_tags = []
+    for image_tag in image_tags:
+        tag_name = image_tag["display_name"]
+        if tag_name in model_index:
+            model_obj = model_index[tag_name]
+            if model_obj.get("next_verion", False) is not None:
+                continue
+            image_tag["display_name"] = f"{model_obj['name']} ({tag_name})"
+        final_tags.append(image_tag)
+
+    final_tags.sort(
+        key=lambda item: (
+            not item.get("display_name").startswith("Ubuntu"),
+            item.get("display_name"),
+        )
+    )
 
     # Enumerate and set sort_order; although, Phantom does not seem to use this.
-    for idx, d in enumerate(image_tags):
+    for idx, d in enumerate(final_tags):
         d["sort_order"] = idx
 
-    return image_tags
+    return final_tags
 
 
 def get_repo_image_details(url: str, headers: dict, image_tags) -> list:
@@ -163,14 +194,22 @@ def get_repo_image_details(url: str, headers: dict, image_tags) -> list:
             ...
         """
         if "results" in resp:
-            for r in resp["results"]:
-                if "tags" in r:
-                    tags = r["tags"][0]
+            for result in resp["results"]:
+                if "tags" in result:
+                    tags = result["tags"][0]
                     tag = tags["tag"]
-                    image = r["namespace"] + "/" + r["repository"] + ":" + tag
+                    image = result["namespace"] + "/" + result["repository"] + ":" + tag
                     display_name = tag.replace("-latest", "")
+                    updated_at = result["last_pushed"]
 
-                    image_tags.append({"display_name": display_name, "image": image, "sort_order": 0})
+                    image_tags.append(
+                        {
+                            "display_name": display_name,
+                            "image": image,
+                            "sort_order": 0,
+                            "updated_at": updated_at,
+                        }
+                    )
 
         # Get the next page if there is a "next".
         if "next" in resp and resp["next"] is not None:
