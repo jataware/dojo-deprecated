@@ -113,20 +113,23 @@ def get_image_tags(repo):
     model_index = {
         model_obj["_id"]: model_obj.get("_source", {})
         for model_obj in models.get("docs", [])
-        if model_obj.get("_source")
     }
 
-    final_tags = []
+    curated_tags = []
     for image_tag in image_tags:
         tag_name = image_tag["display_name"]
         if tag_name in model_index:
             model_obj = model_index[tag_name]
-            if model_obj.get("next_verion", False) is not None:
+            # Skip images that look like a uuid, but don't have a model associated
+            if not model_obj:
+                continue
+            # Skip images that are not the most recent version
+            if model_obj.get("next_version", False) is not None:
                 continue
             image_tag["display_name"] = f"{model_obj['name']} ({tag_name})"
-        final_tags.append(image_tag)
+        curated_tags.append(image_tag)
 
-    final_tags.sort(
+    curated_tags.sort(
         key=lambda item: (
             not item.get("display_name").startswith("Ubuntu"),
             item.get("display_name"),
@@ -134,10 +137,10 @@ def get_image_tags(repo):
     )
 
     # Enumerate and set sort_order; although, Phantom does not seem to use this.
-    for idx, d in enumerate(final_tags):
+    for idx, d in enumerate(curated_tags):
         d["sort_order"] = idx
 
-    return final_tags
+    return curated_tags
 
 
 def get_repo_image_details(url: str, headers: dict, image_tags) -> list:
