@@ -35,6 +35,7 @@ import sys
 import warnings
 from datetime import datetime
 import pandas as pd
+import numpy as np
 import rioxarray as rxr
 import os
 
@@ -292,6 +293,9 @@ class CHIRPSController(object):
             cols = list(set(df.columns) & set(product_data[self.name].values()))
             cols = ['x','y','date'] + cols
             df = df[cols]
+
+        # Replace CHIRPS specific null value (-9999) with NaN
+        df = df.replace(-9999, np.nan)
 
         # Write output and log completion with header and tail previews.
         df.to_csv('results/chirps.csv')

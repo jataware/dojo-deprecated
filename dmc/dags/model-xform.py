@@ -171,7 +171,7 @@ def accessoryNodeTask(**kwargs):
         logger.info(f'fn:{fn}')
 
         # move accessory and inject id into filepath
-        fpath_new = f"{accessories_path}/{accessory['id']}__{fn}"
+        fpath_new = f"{accessories_path}/{accessory['id']}__dojo__{fn}"
         os.rename(fpath, fpath_new)
 
         # NOTE: objects stored to dmc_results are automatically made public
@@ -239,6 +239,7 @@ def RunExit(**kwargs):
         run['attributes']['status'] = 'success'
 
     # get pth array
+    print("Processing results:")
     pth=[]
     for fpath in glob.glob(f'/results/{run_id}/*.parquet.gzip'):
         print(f'fpath:{fpath}')
@@ -250,12 +251,17 @@ def RunExit(**kwargs):
     print('pth array' ,pth)
     run['data_paths'] = pth
 
+    print("Processing accessories:")
     # Prepare accessory lookup
     req = requests.get(f"{dojo_url}/dojo/accessories/{model_id}")
     accessories = json.loads(req.content)
     caption_lookup = {}
     for accessory in accessories:
         caption_lookup[accessory['id']] = accessory.get('caption','')
+    
+    print(f"Accessories: {accessories}")
+    print(f"Caption Lookup: {caption_lookup}")
+    accessories_paths = set([i.get('path').split('/')[-1] for i in accessories])
         
     # Get any accessories and append their S3 URLS to run['pre_gen_output_paths']
     accessories_array = []
@@ -264,12 +270,17 @@ def RunExit(**kwargs):
         print(f'fpath:{fpath}')
         fn = fpath.split("/")[-1]
         print(f'fn:{fn}')
-        accessory_id = fn.split('__')[0]
-        fn_aws_key = fn.split('__')[1]
-        bucket_dir = os.getenv('BUCKET_DIR')
-        accessory_dict['file'] = f"https://jataware-world-modelers.s3.amazonaws.com/{bucket_dir}/{run_id}/{fn_aws_key}"
-        accessory_dict['caption'] = caption_lookup[accessory_id]
-        accessories_array.append(accessory_dict)
+        if '__dojo__' in fn:
+            if fn.split('__dojo__')[1] in accessories_paths:
+                print("Found accessory, processing...")
+                accessory_id = fn.split('__dojo__')[0]
+                fn_aws_key = fn.split('__dojo__')[1]
+                bucket_dir = os.getenv('BUCKET_DIR')
+                accessory_dict['file'] = f"https://jataware-world-modelers.s3.amazonaws.com/{bucket_dir}/{run_id}/{fn_aws_key}"
+                accessory_dict['caption'] = caption_lookup[accessory_id]
+                accessories_array.append(accessory_dict)
+        else:
+            print("Not tagged as accessory, skipping.")
 
     print('accessories_array', accessories_array)
 

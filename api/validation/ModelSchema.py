@@ -466,11 +466,17 @@ class ModelMetadataSchema(BaseModel):
         examples=[1234567890000],
         title="Model Registration Time",
     )
-    category: List[str] = Field(
-        ...,
+    category: Optional[List[str]] = Field(
+        None,
         description="List of categories",
         examples=[["Economic", "Agricultural"]],
         title="Categories",
+    )
+    domains: Optional[List[str]] = Field(
+        None,
+        description="List of domains, based on UNESCO nomenclature for fields of science and technology - https://skos.um.es/unesco6/00/html",
+        examples=[["Medical Sciences", "Demographics"]],
+        title="Domains",
     )
     maintainer: Maintainer = Field(
         ...,
@@ -591,5 +597,22 @@ class PublishSchema(BaseModel):
         description="Optional message explaining the intention of or changes to the model at time of publication",
         examples=[{"commit_message": "Updated model to account for additional parameters"}],
         title="Commit message",
+
+    )
+
+
+class ModelFamilySchema(BaseModel):
+
+    display_name: str = Field(
+        ...,
+        description="Human readable display name",
+        examples=["Climate Models"],
+        title="Display Name",
+    )
+    family_name: str = Field(
+        ...,
+        description="A unique string used to identify the mode family, matches `family_name` field on a model",
+        examples=["climate"],
+        title="Family Name",
 
     )

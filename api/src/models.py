@@ -20,6 +20,7 @@ from src.settings import settings
 from src.dojo import search_and_scroll, copy_configs, copy_outputfiles, copy_directive, copy_accessory_files
 from src.ontologies import get_ontologies
 from src.causemos import notify_causemos, submit_run
+from src.utils import run_model_with_defaults
 
 router = APIRouter()
 
@@ -30,6 +31,29 @@ logger = logging.getLogger(__name__)
 # For created_at times in epoch milliseconds
 def current_milli_time():
     return round(time.time() * 1000)
+
+
+@router.get("/models/families")
+def list_model_families() -> List(ModelSchema.ModelFamilySchema):
+
+    es_families = es.search(index='model_families')
+    families = [
+        ModelSchema.ModelFamilySchema(**es_family["_source"])
+        for es_family in es_families["hits"]["hits"]
+    ]
+
+    return families
+
+
+@router.post("/models/families")
+def create_model_family(family: ModelSchema.ModelFamilySchema):
+
+    es.index(index="model_families", body=family.json(), id=family.family_name)
+
+    return Response(
+        status_code=status.HTTP_200_OK,
+        content="Model family created"
+    )
 
 
 @router.post("/models")
@@ -44,6 +68,18 @@ def create_model(payload: ModelSchema.ModelMetadataSchema, fetch_ontologies=True
     else:
         model = json.loads(body)
         logger.info(f"Cloning model; not re-sending to UAZ")
+
+    # Create a new model family if it doesn't already exist
+    if not es.exists(index="model_families", id=payload.family_name):
+        logger.info(f"Model family doesn't exist. Creating new one.")
+        es.index(
+            index="model_families",
+            body=ModelSchema.ModelFamilySchema(
+                family_name=payload.family_name,
+                display_name=payload.family_name,
+            ).json(),
+            id=payload.family_name
+        )
 
     es.index(index="models", body=model, id=model_id)
 
@@ -302,3 +338,13 @@ def publish_model(model_id: str, publish_data: ModelSchema.PublishSchema):
         content="Model published",
     )
 
+@router.get("/models/{model_id}/test")
+def test_model(model_id: str):
+    """
+    This endpoint tests a model's functionality within Dojo.
+    """
+    run_id = run_model_with_defaults(model_id)
+    return Response(
+        status_code=status.HTTP_200_OK,
+        content=run_id,
+    ) 
