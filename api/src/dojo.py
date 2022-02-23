@@ -189,7 +189,7 @@ def create_configs(payload: List[DojoSchema.ModelConfig]):
     for p in payload:
 
         # remove existing configs with this model_id and path
-        response = es.search(index="configs", body=search_for_config(p.model_id, p.path))
+        response = es.search(index="configs", body=search_for_config(p.model_id, p.path), size=10000)
         for hit in response["hits"]["hits"]:
             es.delete(index="configs", id=hit["_id"])
 
@@ -202,7 +202,7 @@ def create_configs(payload: List[DojoSchema.ModelConfig]):
 
 @router.get("/dojo/config/{model_id}")
 def get_configs(model_id: str) -> List[DojoSchema.ModelConfig]:
-    results = es.search(index="configs", body=search_by_model(model_id))
+    results = es.search(index="configs", body=search_by_model(model_id), size=10000)
     try:
         return [i["_source"] for i in results["hits"]["hits"]]
     except:
@@ -219,7 +219,7 @@ def delete_config(model_id: str, path: str):
     maps directly to the name of a specific `parameter.
     """
 
-    response = es.search(index="configs", body=search_for_config(model_id, path))
+    response = es.search(index="configs", body=search_for_config(model_id, path), size=10000)
 
     config_count, param_count = 0, 0
     for hit in response["hits"]["hits"]:
@@ -284,7 +284,7 @@ def create_outputfiles(payload: List[DojoSchema.ModelOutputFile]):
 
 @router.get("/dojo/outputfile/{model_id}")
 def get_outputfiles(model_id: str) -> List[DojoSchema.ModelOutputFile]:
-    results = es.search(index="outputfiles", body=search_by_model(model_id))
+    results = es.search(index="outputfiles", body=search_by_model(model_id), size=10000)
     try:
         return [i["_source"] for i in results["hits"]["hits"]]
     except:
@@ -365,7 +365,7 @@ def get_accessory_files(model_id: str) -> List[DojoSchema.ModelAccessory]:
     """
 
     try:
-        results = es.search(index="accessories", body=search_by_model(model_id))
+        results = es.search(index="accessories", body=search_by_model(model_id), size=10000)
         return [i["_source"] for i in results["hits"]["hits"]]
     except:
         return Response(
@@ -422,7 +422,7 @@ def create_accessory_files(payload: List[DojoSchema.ModelAccessory]):
 
     # Delete previous entries.
     try:
-        results = es.search(index="accessories", body=search_by_model(payload[0].model_id))
+        results = es.search(index="accessories", body=search_by_model(payload[0].model_id), size=10000)
         for i in results["hits"]["hits"]:
             es.delete(index="accessories", id=i["_source"]["id"])
     except Exception as e:
