@@ -3,13 +3,14 @@ import logging
 import uvicorn
 from fastapi import FastAPI
 
-from src import clouseau, dojo, healthcheck, indicators, models, phantom, runs
+from src import clouseau, dojo, healthcheck, indicators, models, phantom, runs, dmx
 from src.settings import settings
 
 logger = logging.getLogger(__name__)
 
 api = FastAPI(docs_url="/")
 api.include_router(healthcheck.router, tags=["Health Check"])
+api.include_router(dmx.router, tags=["Domain Model eXaminer"])
 api.include_router(models.router, tags=["Models"])
 api.include_router(dojo.router, tags=["Dojo"])
 api.include_router(runs.router, tags=["Runs"])
