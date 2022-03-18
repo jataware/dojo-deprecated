@@ -1,0 +1,5 @@
+[flake8]
+ignore = E731, E231, I201, I100,
+exclude = venv*,env,.env,.tox,.toxenv,.git,build,docs,tmp-build,.git,__pycache__,.mypy_cache,.pytest_cache
+max-line-length = 119
+accept-encodings = utf-8
