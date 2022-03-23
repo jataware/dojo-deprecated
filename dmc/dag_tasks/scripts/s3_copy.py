@@ -8,14 +8,16 @@ import boto3
 @contextmanager
 def s3_session():
     session = boto3.Session()
-    yield session.client("s3")
+    try:
+        yield session.client("s3")
+    except Exception:
+        raise
 
 
 def s3_copy(model_id, run_id, s3_bucket, s3_bucket_dir):
-    results_path = f"/results/{run_id}"
 
-    with s3_session as s3:
-        for fpath in glob.glob(f"{results_path}/*.parquet.gzip"):
+    with s3_session() as s3:
+        for fpath in glob.glob("/results/*.parquet.gzip"):
             print(f"fpath:{fpath}")
             fn = fpath.split("/")[-1]
             print(f"fn:{fn}")
@@ -26,14 +28,14 @@ def s3_copy(model_id, run_id, s3_bucket, s3_bucket_dir):
 
             key = f"{s3_bucket_dir}/{run_id}/{fn}"
             s3.upload_file(
-                filename=fpath,
-                bucket_name=s3_bucket,
-                key=key,
+                fpath,
+                s3_bucket,
+                key,
             )
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="mapper")
+    parser = argparse.ArgumentParser(description="s3_copy")
     parser.add_argument("model_id", help="model_id")
     parser.add_argument("run_id", help="run_id")
     parser.add_argument("s3_bucket", help="s3 bucket")

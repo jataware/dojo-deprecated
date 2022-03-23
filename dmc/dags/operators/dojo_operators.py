@@ -15,27 +15,32 @@ from airflow.utils.helpers import parse_template_string
 class DojoDockerOperator(DockerOperator):
     template_fields = ('image', 'command', 'environment', 'container_name', 'volumes', 'docker_url')
 
-    def __init__(self, *args, do_login=False, **kwargs):
+    def __init__(self, *args, do_login=False, additional_volumes=None, **kwargs):
         super().__init__(*args, **kwargs)
         print(self.volumes)
         self.do_login = do_login
         print(f"{self.do_login=}")
+        self.additional_volumes = additional_volumes if additional_volumes else []
 
     def pre_execute(self, context):
-        self.log.info("pre_exc %s", self.command)
-        self.log.info("pre_exc %s", self.docker_url)
-        self.log.info("pre_exc %s", self.image)
+        self.log.info(f"pre_exc {self.command=}")
+        self.log.info(f"pre_exc {self.docker_url=}")
+        self.log.info(f"pre_exc {self.image=}")
+        self.log.info(f"pre_exc {self.user}")
 
     def post_execute(self, context, result=None):
         self.log.debug("post_exec %s", result)
         super().post_execute(context, result)
 
-
     def execute(self, context) -> Optional[str]:
         # Handle volume mount
         if isinstance(self.volumes, str):
             self.volumes = json.loads(self.volumes)
-            print(self.volumes)
+
+        for v in self.additional_volumes:
+            self.volumes.append(v)
+
+        print(f"{self.volumes=}")
 
         self.cli = self._get_cli()
         if not self.cli:
@@ -76,11 +81,13 @@ class DojoDockerOperator(DockerOperator):
 class HammerheadDockerOperator(DockerOperator):
     template_fields = ('image', 'command', 'environment', 'container_name', 'volumes', 'docker_url')
 
+    def __init__(self, instance_type="t3.micro", version="latest", volume_size=8, *args, **kwargs):
 
-    def __init__(self, *args, **kwargs):
-        image = "jataware/hammerhead:latest"
+        image = f"jataware/hammerhead:{version}"
         super().__init__(**{"image": image, **kwargs})
-        self.force_pull=False
+        self.force_pull = False
+        self.volume_size = volume_size
+        self.instance_type = instance_type
 
     def _attempt_to_retrieve_result(self):
         """
@@ -151,9 +158,9 @@ class HammerheadDockerOperator(DockerOperator):
             "ansible-playbook",
             "launch-airflow-worker.yaml",
             "-e",
-            "instance_type=t2.micro",
+            f"instance_type={self.instance_type}",
             "-e",
-            "volume_size=8",
+            f"volume_size={self.volume_size}",
             "-e",
             "dockerhub_registry_user=${DOCKERHUB_USER:?}",
             "-e",

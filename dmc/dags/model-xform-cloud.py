@@ -23,16 +23,16 @@ print(f"{mixmasta_version=}")
 dag_tasks_version = os.getenv("DAG_TASKS_VERSION")
 print(f"{dag_tasks_version=}")
 
-
-vol_dir = os.getenv("VOLUMES_DIR")
-print(f"{vol_dir=}")
-
 # Get ENV variables for Causemos API
 causemos_user = os.getenv("CAUSEMOS_USER")
 causemos_pwd = os.getenv("CAUSEMOS_PWD")
 causemos_base_url = os.getenv("CAUSEMOS_BASE_URL")
 active_runs = int(os.getenv("DAG_MAX_ACTIVE_RUNS"))
 concurrency = int(os.getenv("DAG_CONCURRENCY"))
+
+
+s3_bucket = os.getenv("BUCKET")
+s3_bucket_dir = os.getenv("BUCKET_DIR")
 
 ############################
 #    Generate DAG
@@ -65,7 +65,7 @@ dag = DAG(
 
 
 def seed_task(ti, **kwargs):
-    ti.xcom_push(key="docker_engine", value={"IP": os.environ.get("IP_ADDRESS", "launch.wm.jata.lol")})
+    ti.xcom_push(key="docker_engine", value={"IP": "launch.wm.jata.lol"})  # os.environ.get("IP_ADDRESS", )})
     is_cloud = kwargs["dag_run"].conf.get("cloud")
     print(f"{is_cloud=}")
     return "cloud-run-task" if is_cloud else "local-run-task"
@@ -115,19 +115,6 @@ def post_failed_to_dojo(**kwargs):
 dmc_local_dir = os.environ.get("DMC_LOCAL_DIR")
 
 
-transform_node = DojoDockerOperator(
-    task_id="mixmasta-task",
-    trigger_rule="all_success",
-    image=f"jataware/mixmasta:{mixmasta_version}",
-    container_name="run_{{ dag_run.conf['run_id'] }}",
-    volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:/tmp", dmc_local_dir + "/mappers:/mappers"],
-    docker_url="""{{ "http://" ~ ti.xcom_pull(key="instance_info", task_ids="hammerhead-task").PUBLIC_IP ~ ":8375" }}""",
-    network_mode="bridge",
-    command="{{ dag_run.conf['mixmasta_cmd'] }}",
-    auto_remove=True,
-    dag=dag,
-)
-
 notify_failed_node = PythonOperator(
     task_id="failed-task",
     python_callable=post_failed_to_dojo,
@@ -142,8 +129,10 @@ seed_node = BranchPythonOperator(task_id="seed-task", python_callable=seed_task,
 
 cloud_run_node = HammerheadDockerOperator(
     task_id="cloud-run-task",
+    instance_type="t3.medium",
+    volume_size=24,
+    version="1.4.5",
     docker_url="""{{ "http://" ~ ti.xcom_pull(key="docker_engine").IP ~ ":8375" }}""",
-    force_pull=True,
     dag=dag,
 )
 
@@ -152,16 +141,26 @@ local_run_node = PythonOperator(
     task_id="local-run-task", python_callable=local_run_task, provide_context=True, dag=dag
 )
 
+vol_fix_node = DojoDockerOperator(
+    do_login=False,
+    task_id="vol-task",
+    trigger_rule=TriggerRule.ALL_SUCCESS,
+    image="busybox:latest",
+    volumes="{{ dag_run.conf['volumes'] }}",
+    additional_volumes=[f"{dmc_local_dir}:/foo"],
+    docker_url="""{{"http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
+    command="chown 1000:1000 -R /foo",
+    auto_remove=True,
+    xcom_all=False,
+    dag=dag,
+)
 
 rehydrate_node = DojoDockerOperator(
     do_login=True,
     task_id="rehydrate-task",
     trigger_rule=TriggerRule.ONE_SUCCESS,
     image=f"jataware/dag-tasks:{dag_tasks_version}",
-    volumes=[
-        "/tmp:/tmp",
-        f"{vol_dir}/model_configs:/model_configs",
-    ],
+    volumes=[dmc_local_dir + "/model_configs:/model_configs"],
     docker_url="""{{"http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
     command="""rehydrate.py {{ dag_run.conf | tojson | tojson }}""",
     auto_remove=True,
@@ -185,6 +184,52 @@ model_node = DojoDockerOperator(
 )
 
 
+mapper_node = DojoDockerOperator(
+    task_id="mapper-task",
+    trigger_rule="all_success",
+    image=f"jataware/dag-tasks:{dag_tasks_version}",
+    volumes=[f"{dmc_local_dir}/mappers:/mappers"],
+    docker_url="""{{ "http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
+    network_mode="bridge",
+    command="""mapper.py {{ dag_run.conf['dojo_url']}} {{ dag_run.conf['model_id']}}""",
+    auto_remove=True,
+    xcom_all=False,
+    dag=dag,
+)
+
+
+transform_node = DojoDockerOperator(
+    task_id="mixmasta-task",
+    trigger_rule="all_success",
+    image=f"jataware/mixmasta:{mixmasta_version}",
+    container_name="run_{{ dag_run.conf['run_id'] }}",
+    volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:/tmp", f"{dmc_local_dir}/mappers:/mappers"],
+    docker_url="""{{"http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
+    network_mode="bridge",
+    command="{{ dag_run.conf['mixmasta_cmd'] }}",
+    auto_remove=True,
+    xcom_all=False,
+    dag=dag,
+)
+
+s3_node = DojoDockerOperator(
+    task_id="s3-task",
+    trigger_rule="all_success",
+    image=f"jataware/dag-tasks:{dag_tasks_version}",
+    volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:/results"],
+    docker_url="""{{ "http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
+    network_mode="bridge",
+    command=(
+        "s3_copy.py "
+        "{{ dag_run.conf['model_id']}} {{ dag_run.conf['run_id']}} "
+        f"{s3_bucket} {s3_bucket_dir}"
+    ),
+    auto_remove=True,
+    xcom_all=False,
+    dag=dag,
+)
+
+
 def debug_task(**kwargs):
     print(f"dag {kwargs['dag_run'].conf}")
 
@@ -194,7 +239,19 @@ debug_node = PythonOperator(
 )
 
 
-seed_node >> [cloud_run_node, local_run_node] >> rehydrate_node >> debug_node >> model_node
+(
+    seed_node
+    >> [cloud_run_node, local_run_node]
+    >> rehydrate_node
+    >> vol_fix_node
+    >> debug_node
+    >> model_node
+    >> mapper_node
+    >> transform_node
+    >> s3_node
+)
+
+
 # >> mapper_node >> transform_node >> acccessory_node >> s3_node
 # s3_node >> notify_failed_node
 # s3_node >> exit_node

@@ -69,7 +69,7 @@ def accessory(model_id, run_id, dojo_url, s3_bucket, s3_bucket_dir):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="mapper")
+    parser = argparse.ArgumentParser(description="accessory")
     parser.add_argument("model_id", help="model_id")
     parser.add_argument("run_id", help="run_id")
     parser.add_argument("dojo_url", help="dojo_url")

@@ -80,6 +80,7 @@ def rehydrate(**kwargs):
 
     except Exception as e:
         print(e)
+        raise
     print("done")
 
 
