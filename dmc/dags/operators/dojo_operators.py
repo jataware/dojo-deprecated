@@ -197,3 +197,80 @@ class HammerheadDockerOperator(DockerOperator):
         #self.environment['AIRFLOW_TMP_DIR'] = self.tmp_dir
         return self._run_image()
 
+
+class HammerheadTeardownDockerOperator(DockerOperator):
+    template_fields = ('image', 'command', 'environment', 'container_name', 'volumes', 'docker_url')
+
+    def __init__(self, version="latest", *args, **kwargs):
+
+        image = f"jataware/hammerhead:{version}"
+        super().__init__(**{"image": image, **kwargs})
+        self.dns_name = None
+
+    def pre_execute(self, context):
+        self.log.info("pre_exc %s", self.docker_url)
+        ii = context["ti"].xcom_pull(key="instance_info")
+        self.log.info("pre_exc %s", ii)
+        self.dns_name = ii["DNS_NAME"]
+        assert self.dns_name, "DNS name is not none"
+        self.log.info("pre_exc %s", self.dns_name)
+        #_, tmpl = parse_template_string(self.docker_url)
+        #self.docker_url = tmpl.render(**context)
+        #self.log.info("pre_exc docker_url %s", self.docker_url)
+
+    def execute(self, context) -> Optional[str]:
+
+        self.log.info("ctx: %s", context)
+        # Handle volume mount
+        if isinstance(self.volumes, str):
+            self.volumes = json.loads(self.volumes)
+
+        self.cli = self._get_cli()
+        if not self.cli:
+            raise Exception("The 'cli' should be initialized before!")
+
+        self.environment = {**self.environment,
+                            "ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED": "y",
+                            "AWS_ACCESS_KEY_ID": os.environ.get("AWS_ACCESS_KEY_ID"),
+                            "AWS_SECRET_ACCESS_KEY": os.environ.get("AWS_SECRET_ACCESS_KEY"),
+                            "AWS_DEFAULT_REGION": "us-east-1",
+                            "DEPLOY_ID_RSA": os.environ.get("ID_RSA")}
+
+        self.command = [
+            "ansible-playbook",
+            "-i",
+            "./hosts.py",
+            "terminate-instance.yaml",
+            "--limit",
+            f"{self.dns_name}",
+        ]
+
+        docker_user = os.environ.get("DOCKERHUB_USER")
+        docker_pass = os.environ.get("DOCKERHUB_PASS")
+
+        self.log.info('log in to dockerhub for user: %s', docker_user)
+        self.cli.login(docker_user, docker_pass, registry="https://index.docker.io/v1")
+
+
+        # Pull the docker image if `force_pull` is set or image does not exist locally
+        # pylint: disable=too-many-nested-blocks
+        if self.force_pull or not self.cli.images(name=self.image):
+            self.log.info('Pulling docker image %s', self.image)
+            latest_status = {}
+            for output in self.cli.pull(self.image, stream=True, decode=True):
+                if isinstance(output, str):
+                    self.log.info("%s", output)
+                    continue
+                if isinstance(output, dict) and 'status' in output:
+                    output_status = output["status"]
+                    if 'id' not in output:
+                        self.log.info("%s", output_status)
+                        continue
+
+                    output_id = output["id"]
+                    if latest_status.get(output_id) != output_status:
+                        self.log.info("%s: %s", output_id, output_status)
+                        latest_status[output_id] = output_status
+
+        #self.environment['AIRFLOW_TMP_DIR'] = self.tmp_dir
+        return self._run_image()

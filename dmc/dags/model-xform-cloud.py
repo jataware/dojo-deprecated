@@ -11,7 +11,7 @@ from airflow.utils.dates import days_ago
 from airflow.utils.trigger_rule import TriggerRule
 
 # from airflow.providers.docker.operators.docker import DockerOperator
-from operators.dojo_operators import DojoDockerOperator, HammerheadDockerOperator
+from operators.dojo_operators import DojoDockerOperator, HammerheadDockerOperator, HammerheadTeardownDockerOperator
 
 
 logger: Logger = logging.getLogger(__name__)
@@ -19,6 +19,9 @@ logger: Logger = logging.getLogger(__name__)
 # Get latest version of mixmasta
 mixmasta_version = os.getenv("MIXMASTA_VERSION")
 print(f"{mixmasta_version=}")
+
+hammerhead_version = os.getenv("HAMMERHEAD_VERSION")
+print(f"{hammerhead_version=}")
 
 dag_tasks_version = os.getenv("DAG_TASKS_VERSION")
 print(f"{dag_tasks_version=}")
@@ -67,6 +70,7 @@ dag = DAG(
 def seed_task(ti, **kwargs):
     ti.xcom_push(key="docker_engine", value={"IP": "launch.wm.jata.lol"})  # os.environ.get("IP_ADDRESS", )})
     is_cloud = kwargs["dag_run"].conf.get("cloud")
+    ti.xcom_push(key="cloud_run", value=is_cloud)
     print(f"{is_cloud=}")
     return "cloud-run-task" if is_cloud else "local-run-task"
 
@@ -118,7 +122,7 @@ dmc_local_dir = os.environ.get("DMC_LOCAL_DIR")
 notify_failed_node = PythonOperator(
     task_id="failed-task",
     python_callable=post_failed_to_dojo,
-    trigger_rule="one_failed",
+    trigger_rule=TriggerRule.ONE_FAILED,
     provide_context=True,
     dag=dag,
 )
@@ -131,7 +135,7 @@ cloud_run_node = HammerheadDockerOperator(
     task_id="cloud-run-task",
     instance_type="t3.medium",
     volume_size=24,
-    version="1.4.5",
+    version=hammerhead_version,
     docker_url="""{{ "http://" ~ ti.xcom_pull(key="docker_engine").IP ~ ":8375" }}""",
     dag=dag,
 )
@@ -171,7 +175,6 @@ rehydrate_node = DojoDockerOperator(
 
 model_node = DojoDockerOperator(
     task_id="model-task",
-    trigger_rule="all_success",
     image="{{ dag_run.conf['model_image'] }}",
     container_name="run_{{ dag_run.conf['run_id'] }}",
     volumes="{{ dag_run.conf['volumes'] }}",
@@ -186,7 +189,6 @@ model_node = DojoDockerOperator(
 
 mapper_node = DojoDockerOperator(
     task_id="mapper-task",
-    trigger_rule="all_success",
     image=f"jataware/dag-tasks:{dag_tasks_version}",
     volumes=[f"{dmc_local_dir}/mappers:/mappers"],
     docker_url="""{{ "http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
@@ -200,7 +202,6 @@ mapper_node = DojoDockerOperator(
 
 transform_node = DojoDockerOperator(
     task_id="mixmasta-task",
-    trigger_rule="all_success",
     image=f"jataware/mixmasta:{mixmasta_version}",
     container_name="run_{{ dag_run.conf['run_id'] }}",
     volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:/tmp", f"{dmc_local_dir}/mappers:/mappers"],
@@ -214,16 +215,47 @@ transform_node = DojoDockerOperator(
 
 s3_node = DojoDockerOperator(
     task_id="s3-task",
-    trigger_rule="all_success",
     image=f"jataware/dag-tasks:{dag_tasks_version}",
     volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:/results"],
     docker_url="""{{ "http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
     network_mode="bridge",
     command=(
-        "s3_copy.py "
-        "{{ dag_run.conf['model_id']}} {{ dag_run.conf['run_id']}} "
-        f"{s3_bucket} {s3_bucket_dir}"
+        "s3_copy.py " "{{ dag_run.conf['model_id']}} {{ dag_run.conf['run_id']}} " f"{s3_bucket} {s3_bucket_dir}"
     ),
+    auto_remove=True,
+    xcom_all=False,
+    dag=dag,
+)
+
+s3_debug_node = DojoDockerOperator(
+    task_id="s3-debug-task",
+    image=f"jataware/dag-tasks:{dag_tasks_version}",
+    volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:/results"],
+    docker_url="""{{ "http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
+    network_mode="bridge",
+    command=(
+        "s3_debug_copy.py "
+        "{{ dag_run.conf['model_id']}} {{ dag_run.conf['run_id']}} "
+        f"{s3_bucket} {s3_bucket_dir} "
+        """--{{ "no-" if dag_run.conf.get("debug") }}upload"""
+    ),
+    auto_remove=True,
+    xcom_all=False,
+    dag=dag,
+)
+
+run_exit_node = DojoDockerOperator(
+    task_id="run-exit-task",
+    image=f"jataware/dag-tasks:{dag_tasks_version}",
+    volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:/results"],
+    docker_url="""{{ "http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
+    network_mode="bridge",
+    command=(
+        "run_exit.py "
+        "{{ dag_run.conf['model_id']}} {{ dag_run.conf['run_id']}} {{ dag_run.conf['dojo_url']}} "
+        f"{causemos_base_url} {s3_bucket_dir}"
+    ),
+    environment={"DMC_DEBUG": os.getenv("DMC_DEBUG"), "CAUSEMOS_USER": causemos_user, "CAUSEMOS_PWD": causemos_pwd},
     auto_remove=True,
     xcom_all=False,
     dag=dag,
@@ -239,6 +271,14 @@ debug_node = PythonOperator(
 )
 
 
+teardown_node = HammerheadTeardownDockerOperator(
+    task_id="teardown-task",
+    version=hammerhead_version,
+    trigger_rule=TriggerRule.ALL_DONE,
+    docker_url="""{{ "http://" ~ ti.xcom_pull(key="docker_engine").IP ~ ":8375" }}""",
+    dag=dag,
+)
+
 (
     seed_node
     >> [cloud_run_node, local_run_node]
@@ -249,8 +289,11 @@ debug_node = PythonOperator(
     >> mapper_node
     >> transform_node
     >> s3_node
+    >> s3_debug_node
 )
 
+s3_debug_node >> run_exit_node >> teardown_node
+s3_debug_node >> notify_failed_node
 
 # >> mapper_node >> transform_node >> acccessory_node >> s3_node
 # s3_node >> notify_failed_node
