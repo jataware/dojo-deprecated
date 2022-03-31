@@ -26,6 +26,9 @@ print(f"{hammerhead_version=}")
 dag_tasks_version = os.getenv("DAG_TASKS_VERSION")
 print(f"{dag_tasks_version=}")
 
+docker_engine_ip = os.environ.get("DOCKER_ENGINE_IP", "wm.launcher.jata.lol")
+print(f"{docker_engine_ip=}")
+
 # Get ENV variables for Causemos API
 causemos_user = os.getenv("CAUSEMOS_USER")
 causemos_pwd = os.getenv("CAUSEMOS_PWD")
@@ -53,6 +56,14 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
 }
 
+default_run_spec = {
+    "docker_engine": docker_engine_ip,
+    "is_cloud": True,
+    "instance_type": "t3.medium",
+    "volume_size": 24,
+    "debug": False,
+}
+
 dag = DAG(
     "cloud_model_xform",
     default_args=default_args,
@@ -68,15 +79,27 @@ dag = DAG(
 
 
 def seed_task(ti, **kwargs):
-    ti.xcom_push(key="docker_engine", value={"IP": "launch.wm.jata.lol"})  # os.environ.get("IP_ADDRESS", )})
-    is_cloud = kwargs["dag_run"].conf.get("cloud")
-    ti.xcom_push(key="cloud_run", value=is_cloud)
-    print(f"{is_cloud=}")
-    return "cloud-run-task" if is_cloud else "local-run-task"
+    dojo_url = kwargs["dag_run"].conf.get("dojo_url")
+    model_id = kwargs["dag_run"].conf.get("model_id")
+    url = f"{dojo_url}/dojo/run/spec/{model_id}"
+    run_spec = default_run_spec.copy()
+    r = requests.get(url)
+    if r.status_code == 404:
+        logger.warning(f"No Run spec specified for {model_id}, Running with default settings")
+    else:
+        run_spec = {**run_spec, **r.json()}
+
+    logger.info("Run Spec: %s", run_spec)
+
+    ti.xcom_push(key="run_spec", value=run_spec)
+    ti.xcom_push(key="docker_engine", value={"IP": run_spec["docker_engine"]})
+    ti.xcom_push(key="cloud_run", value=run_spec["is_cloud"])
+    return "cloud-run-task" if run_spec["is_cloud"] else "local-run-task"
 
 
 def local_run_task(ti, **kwargs):
-    ti.xcom_push(key="instance_info", value={"PUBLIC_IP": os.environ.get("IP_ADDRESS", "launch.wm.jata.lol")})
+    docker_engine = ti.xcom_pull(key="docker_engine").IP
+    ti.xcom_push(key="instance_info", value={"PUBLIC_IP": docker_engine})
     print("Running on local instance")
 
 
@@ -133,8 +156,8 @@ seed_node = BranchPythonOperator(task_id="seed-task", python_callable=seed_task,
 
 cloud_run_node = HammerheadDockerOperator(
     task_id="cloud-run-task",
-    instance_type="t3.medium",
-    volume_size=24,
+    instance_type="""{{ti.xcom_pull(key="run_spec").instance_type}}""",
+    volume_size="""{{ti.xcom_pull(key="run_spec").volume_size}}""",
     version=hammerhead_version,
     docker_url="""{{ "http://" ~ ti.xcom_pull(key="docker_engine").IP ~ ":8375" }}""",
     dag=dag,
@@ -237,7 +260,7 @@ s3_debug_node = DojoDockerOperator(
         "s3_debug_copy.py "
         "{{ dag_run.conf['model_id']}} {{ dag_run.conf['run_id']}} "
         f"{s3_bucket} {s3_bucket_dir} "
-        """--{{ "no-" if dag_run.conf.get("debug") }}upload"""
+        """--{{ "no-" if ti.xcom_pull(key="run_spec").debug }}upload"""
     ),
     auto_remove=True,
     xcom_all=False,

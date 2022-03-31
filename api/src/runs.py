@@ -138,10 +138,10 @@ def create_run(run: RunSchema.ModelRunSchema):
     outputfiles = get_outputfiles(run.model_id) # call dojo.py API method directly.
     output_dirs = {}
     mixmasta_inputs = []
-    volumeArray = [ "/var/run/docker.sock:/var/run/docker.sock" ]
+    volumeArray = []
     for output in outputfiles:
         try:
-            # rehydrate file path in 
+            # rehydrate file path in
             mixmasta_input_file = Template(output["path"]).render(param_dict)
 
             # get name of the mapper (will be based on output ID)
@@ -158,7 +158,7 @@ def create_run(run: RunSchema.ModelRunSchema):
                 output_dirs[output_dir] = output_id
 
             # use the lookup to build the path
-            output_dir_volume = dmc_local_dir + f"/results/{run.id}/{output_dirs[output_dir]}:{output_dir}"               
+            output_dir_volume = dmc_local_dir + f"/results/{run.id}/{output_dirs[output_dir]}:{output_dir}"
             logger.info('output_dir_volume:' + output_dir_volume)
 
             # add it to the volumeArray
@@ -167,7 +167,7 @@ def create_run(run: RunSchema.ModelRunSchema):
             # build mixmasta input object
             mixmasta_input = {"input_file": f"/tmp/{output_dirs[output_dir]}/{mixmasta_input_file}",
                               "mapper": f"/mappers/{mapper_name}"}
-            
+
             mixmasta_inputs.append(mixmasta_input)
         except Exception as e:
             logging.exception(e)
@@ -175,7 +175,7 @@ def create_run(run: RunSchema.ModelRunSchema):
 
     ### Handle accessory files.
     accessoryFiles = get_accessory_files(run.model_id) # call dojo.py API method directly.
-    
+
     logger.info(accessoryFiles)
     accessory_dirs = {}
     for accessoryFile in accessoryFiles:
@@ -220,7 +220,7 @@ def create_run(run: RunSchema.ModelRunSchema):
         if 'fileName' in configFile:
             mountPath = configFile["path"]
             fileName = configFile["fileName"]
-        
+
         # This is the typical case currently with Phantom/Shorthand
         else:
             mountPath = '/'.join(configFile["path"].split("/")[:-1])
@@ -259,7 +259,7 @@ def create_run(run: RunSchema.ModelRunSchema):
     payload = {"dag_run_id": run.id, "conf": run_conf}
 
     response = requests.post(
-        f"{dmc_base_url}/dags/model_xform/dagRuns",
+        f"{dmc_base_url}/dags/cloud_model_xform/dagRuns",
         headers=headers,
         auth=(dmc_user, dmc_pass),
         json=payload,
@@ -279,7 +279,7 @@ def create_run(run: RunSchema.ModelRunSchema):
 @router.get("/runs/{run_id}/logs")
 def get_run_logs(run_id: str) -> RunSchema.RunLogsSchema:
     tasks_response = requests.get(
-        f"{dmc_base_url}/dags/model_xform/dagRuns/{run_id}/taskInstances",
+        f"{dmc_base_url}/dags/cloud_model_xform/dagRuns/{run_id}/taskInstances",
         headers=headers,
         auth=(dmc_user, dmc_pass),
     )
@@ -313,7 +313,7 @@ def get_run_logs(run_id: str) -> RunSchema.RunLogsSchema:
         task_try_number = task["try_number"]
         if task_try_number:
             response_l = requests.get(
-                f"{dmc_base_url}/dags/model_xform/dagRuns/{run_id}/taskInstances/{task_id}/logs/{task_try_number}",
+                f"{dmc_base_url}/dags/cloud_model_xform/dagRuns/{run_id}/taskInstances/{task_id}/logs/{task_try_number}",
                 headers=headers,
                 auth=(dmc_user, dmc_pass),
             )
@@ -344,11 +344,11 @@ def test_run_status(run_id: str) -> RunSchema.RunStatusSchema:
     status = run.get("attributes",{}).get("status",None)
     model_id = run.get("model_id")
     body = {"run_id": run_id,
-            "status": status, 
-            "model_name": run.get("model_name"), 
+            "status": status,
+            "model_name": run.get("model_name"),
             "executed_at": run.get("attributes",{}).get("executed_at",None)}
     if status:
         es.index(index="tests", body=body, id=model_id)
         return status
     else:
-        return "running" 
+        return "running"

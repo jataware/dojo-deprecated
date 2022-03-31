@@ -79,7 +79,8 @@ class DojoDockerOperator(DockerOperator):
 
 
 class HammerheadDockerOperator(DockerOperator):
-    template_fields = ('image', 'command', 'environment', 'container_name', 'volumes', 'docker_url')
+    template_fields = ('image', 'command', 'environment', 'container_name', 'volumes', 'docker_url', 'volume_size',
+                       'instance_type')
 
     def __init__(self, instance_type="t3.micro", version="latest", volume_size=8, *args, **kwargs):
 
@@ -118,6 +119,8 @@ class HammerheadDockerOperator(DockerOperator):
 
     def pre_execute(self, context):
         self.log.info("pre_exc %s", self.docker_url)
+        self.log.info("pre_exc %s", self.volume_size)
+        self.log.info("pre_exc %s", self.instance_type)
         #_, tmpl = parse_template_string(self.docker_url)
         #self.docker_url = tmpl.render(**context)
         #self.log.info("pre_exc docker_url %s", self.docker_url)

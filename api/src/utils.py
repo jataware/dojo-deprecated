@@ -45,7 +45,7 @@ def run_model_with_defaults(model_id):
     This function takes in a model and submits a default run to test that model's functionality
     """
 
-    from src.models import get_model 
+    from src.models import get_model
     from src.runs import create_run, current_milli_time
     from validation.RunSchema import ModelRunSchema
 
@@ -76,4 +76,4 @@ def run_model_with_defaults(model_id):
     body = {"status": "running", "model_name": model["name"], "created_at": run.created_at, "run_id": run.id}
     es.index(index="tests", body=body, id=model_id)
 
-    return run_id    
+    return run_id
