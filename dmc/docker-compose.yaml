@@ -53,16 +53,17 @@
       #AIRFLOW__API__ENABLE_EXPERIMENTAL_API: 'true'
       AIRFLOW__API__AUTH_BACKEND: 'airflow.api.auth.backend.basic_auth'
       DOCKER_URL: http://${DOCKER_URL}:${DOCKER_PORT}
-      DMC_LOCAL_DIR: /home/ubuntu/dmc
+      DMC_LOCAL_DIR: ${PWD} # /home/ubuntu/dmc
       BUCKET: ${BUCKET}
       BUCKET_DIR: ${BUCKET_DIR}
-      DMC_DEBUG: "${DMC_DEBUG}"
+      DMC_DEBUG: ${DMC_DEBUG}
       AIRFLOW_CONN_AWS_DEFAULT: aws://${AWS_ACCESS_KEY:-?}:${AWS_SECRET_KEY:-?}@
-      MIXMASTA_VERSION: "${MIXMASTA_VERSION}"
+      MIXMASTA_VERSION: ${MIXMASTA_VERSION}
       HAMMERHEAD_VERSION: latest
       DAG_TASKS_VERSION: dev
       IP_ADDRESS: ${IP_ADDRESS}
-      DOCKER_ENGINE_IP: launch.wm.jata.lol
+      DOCKER_ENGINE_IP: ${IP_ADDRESS} # launch.wm.jata.lol
+      RUN_LOCAL: y
       CAUSEMOS_BASE_URL: ${CAUSEMOS_BASE_URL}
       CAUSEMOS_USER: ${CAUSEMOS_USER}
       CAUSEMOS_PWD: ${CAUSEMOS_PWD}
@@ -149,8 +150,6 @@
         DOCKERHUB_PASS: ${DOCKERHUB_PASS}
         AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
         AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-
-
 
     airflow-init:
       <<: *airflow-common

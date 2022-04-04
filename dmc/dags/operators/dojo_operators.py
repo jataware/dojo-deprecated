@@ -1,6 +1,8 @@
 import json
 from typing import Optional
 import os
+
+from distutils.util import strtobool
 from docker.errors import APIError
 import tarfile
 import io
@@ -202,26 +204,37 @@ class HammerheadDockerOperator(DockerOperator):
 
 
 class HammerheadTeardownDockerOperator(DockerOperator):
-    template_fields = ('image', 'command', 'environment', 'container_name', 'volumes', 'docker_url')
+    template_fields = ('image', 'command', 'environment', 'container_name', 'volumes', 'docker_url', 'is_cloud')
 
     def __init__(self, version="latest", *args, **kwargs):
 
         image = f"jataware/hammerhead:{version}"
         super().__init__(**{"image": image, **kwargs})
+        # filled in from xcom during pre_execute
         self.dns_name = None
+        self.is_cloud = None
 
     def pre_execute(self, context):
-        self.log.info("pre_exc %s", self.docker_url)
+        self.is_cloud = context["ti"].xcom_pull(key="cloud_run")
+        self.log.info("pre_exc cloud_run=%s", self.is_cloud
+        if not self.is_cloud:
+            return
+
+        self.log.info("pre_exc docker_url=%s", self.docker_url)
         ii = context["ti"].xcom_pull(key="instance_info")
-        self.log.info("pre_exc %s", ii)
+        self.log.info("pre_exc instance_info=%s", ii)
         self.dns_name = ii["DNS_NAME"]
         assert self.dns_name, "DNS name is not none"
-        self.log.info("pre_exc %s", self.dns_name)
+        self.log.info("pre_exc dns_name=%s", self.dns_name)
         #_, tmpl = parse_template_string(self.docker_url)
         #self.docker_url = tmpl.render(**context)
         #self.log.info("pre_exc docker_url %s", self.docker_url)
 
     def execute(self, context) -> Optional[str]:
+
+        if not self.is_cloud:
+            self.log.info("No teardown running local")
+            return
 
         self.log.info("ctx: %s", context)
         # Handle volume mount

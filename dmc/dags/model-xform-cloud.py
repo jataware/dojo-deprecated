@@ -1,5 +1,7 @@
+
 import logging
 import os
+from distutils.util import strtobool
 from datetime import timedelta
 from logging import Logger
 
@@ -26,8 +28,14 @@ print(f"{hammerhead_version=}")
 dag_tasks_version = os.getenv("DAG_TASKS_VERSION")
 print(f"{dag_tasks_version=}")
 
-docker_engine_ip = os.environ.get("DOCKER_ENGINE_IP", "wm.launcher.jata.lol")
+docker_engine_ip = os.environ.get("DOCKER_ENGINE_IP", "wm.worker.launcher.t.x")
 print(f"{docker_engine_ip=}")
+
+is_local = strtobool(os.environ.get("RUN_LOCAL", "n"))
+print(f"{is_local=}")
+
+dmc_local_dir = os.environ.get("DMC_LOCAL_DIR")
+print(f"{dmc_local_dir=}")
 
 # Get ENV variables for Causemos API
 causemos_user = os.getenv("CAUSEMOS_USER")
@@ -58,7 +66,7 @@ default_args = {
 
 default_run_spec = {
     "docker_engine": docker_engine_ip,
-    "is_cloud": True,
+    "is_cloud": not is_local,
     "instance_type": "t3.medium",
     "volume_size": 24,
     "debug": False,
@@ -98,7 +106,7 @@ def seed_task(ti, **kwargs):
 
 
 def local_run_task(ti, **kwargs):
-    docker_engine = ti.xcom_pull(key="docker_engine").IP
+    docker_engine = ti.xcom_pull(key="docker_engine")["IP"]
     ti.xcom_push(key="instance_info", value={"PUBLIC_IP": docker_engine})
     print("Running on local instance")
 
@@ -139,7 +147,7 @@ def post_failed_to_dojo(**kwargs):
 #   Create Tasks
 ###########################
 
-dmc_local_dir = os.environ.get("DMC_LOCAL_DIR")
+
 
 
 notify_failed_node = PythonOperator(
