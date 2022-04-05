@@ -216,7 +216,7 @@ class HammerheadTeardownDockerOperator(DockerOperator):
 
     def pre_execute(self, context):
         self.is_cloud = context["ti"].xcom_pull(key="cloud_run")
-        self.log.info("pre_exc cloud_run=%s", self.is_cloud
+        self.log.info("pre_exc cloud_run=%s", self.is_cloud)
         if not self.is_cloud:
             return
 
