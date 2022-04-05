@@ -10,6 +10,7 @@ from airflow import DAG
 from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
 
 from airflow.utils.dates import days_ago
+from airflow.utils.state import State
 from airflow.utils.trigger_rule import TriggerRule
 
 # from airflow.providers.docker.operators.docker import DockerOperator
@@ -148,8 +149,6 @@ def post_failed_to_dojo(**kwargs):
 ###########################
 
 
-
-
 notify_failed_node = PythonOperator(
     task_id="failed-task",
     python_callable=post_failed_to_dojo,
@@ -250,6 +249,12 @@ s3_node = DojoDockerOperator(
     volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:/results"],
     docker_url="""{{ "http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
     network_mode="bridge",
+    environment={k:v for k, v in {
+        "AWS_ACCESS_KEY_ID": "", # os.environ.get("AWS_ACCESS_KEY_ID"),
+        "AWS_SECRET_ACCESS_KEY": "", #os.environ.get("AWS_SECRET_ACCESS_KEY"),
+
+        "AWS_DEFAULT_REGION": "us-east-1",
+    }.items() if v},
     command=(
         "s3_copy.py " "{{ dag_run.conf['model_id']}} {{ dag_run.conf['run_id']}} " f"{s3_bucket} {s3_bucket_dir}"
     ),
@@ -264,6 +269,11 @@ s3_debug_node = DojoDockerOperator(
     volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:/results"],
     docker_url="""{{ "http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
     network_mode="bridge",
+    environment={k:v for k, v in {
+        "AWS_ACCESS_KEY_ID": "", # os.environ.get("AWS_ACCESS_KEY_ID"),
+        "AWS_SECRET_ACCESS_KEY": "", #os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        "AWS_DEFAULT_REGION": "us-east-1",
+    }.items() if v},
     command=(
         "s3_debug_copy.py "
         "{{ dag_run.conf['model_id']}} {{ dag_run.conf['run_id']}} "
@@ -302,6 +312,21 @@ debug_node = PythonOperator(
 )
 
 
+def airflow_hack(**kwargs):
+    for task_instance in kwargs['dag_run'].get_task_instances():
+        if task_instance.current_state() == State.FAILED and \
+                task_instance.task_id != kwargs['task_instance'].task_id:
+            raise Exception("Task {} failed. Failing this DAG run".format(task_instance.task_id))
+
+
+airflow_hack = PythonOperator(
+    task_id="end",
+    python_callable=airflow_hack,
+    trigger_rule=TriggerRule.ALL_DONE,
+    provide_context=True,
+    dag=dag,
+)
+
 teardown_node = HammerheadTeardownDockerOperator(
     task_id="teardown-task",
     version=hammerhead_version,
@@ -323,9 +348,6 @@ teardown_node = HammerheadTeardownDockerOperator(
     >> s3_debug_node
 )
 
-s3_debug_node >> run_exit_node >> teardown_node
+s3_debug_node >> run_exit_node >> teardown_node >> airflow_hack
 s3_debug_node >> notify_failed_node
 
-# >> mapper_node >> transform_node >> acccessory_node >> s3_node
-# s3_node >> notify_failed_node
-# s3_node >> exit_node
