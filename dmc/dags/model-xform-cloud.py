@@ -198,6 +198,7 @@ rehydrate_node = DojoDockerOperator(
     docker_url="""{{"http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
     command="""rehydrate.py {{ dag_run.conf | tojson | tojson }}""",
     auto_remove=True,
+    network_mode="host",
     xcom_all=False,
     dag=dag,
 )
@@ -209,7 +210,7 @@ model_node = DojoDockerOperator(
     container_name="run_{{ dag_run.conf['run_id'] }}",
     volumes="{{ dag_run.conf['volumes'] }}",
     docker_url="""{{ "http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
-    network_mode="bridge",
+    network_mode="host",
     command="{{ dag_run.conf['model_command'] }}",
     auto_remove=True,
     xcom_all=False,
@@ -222,10 +223,10 @@ mapper_node = DojoDockerOperator(
     image=f"jataware/dag-tasks:{dag_tasks_version}",
     volumes=[f"{dmc_local_dir}/mappers:/mappers"],
     docker_url="""{{ "http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
-    network_mode="bridge",
+    network_mode="host",
     command="""mapper.py {{ dag_run.conf['dojo_url']}} {{ dag_run.conf['model_id']}}""",
-    auto_remove=True,
     xcom_all=False,
+    auto_remove=True,
     dag=dag,
 )
 
@@ -236,7 +237,7 @@ transform_node = DojoDockerOperator(
     container_name="run_{{ dag_run.conf['run_id'] }}",
     volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:/tmp", f"{dmc_local_dir}/mappers:/mappers"],
     docker_url="""{{"http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
-    network_mode="bridge",
+    network_mode="host",
     command="{{ dag_run.conf['mixmasta_cmd'] }}",
     auto_remove=True,
     xcom_all=False,
@@ -248,11 +249,10 @@ s3_node = DojoDockerOperator(
     image=f"jataware/dag-tasks:{dag_tasks_version}",
     volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:/results"],
     docker_url="""{{ "http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
-    network_mode="bridge",
+    network_mode="host",
     environment={k:v for k, v in {
-        "AWS_ACCESS_KEY_ID": "", # os.environ.get("AWS_ACCESS_KEY_ID"),
-        "AWS_SECRET_ACCESS_KEY": "", #os.environ.get("AWS_SECRET_ACCESS_KEY"),
-
+        "AWS_ACCESS_KEY_ID": os.environ.get("AWS_ACCESS_KEY_ID"),
+        "AWS_SECRET_ACCESS_KEY": os.environ.get("AWS_SECRET_ACCESS_KEY"),
         "AWS_DEFAULT_REGION": "us-east-1",
     }.items() if v},
     command=(
@@ -268,10 +268,10 @@ s3_debug_node = DojoDockerOperator(
     image=f"jataware/dag-tasks:{dag_tasks_version}",
     volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:/results"],
     docker_url="""{{ "http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
-    network_mode="bridge",
+    network_mode="host",
     environment={k:v for k, v in {
-        "AWS_ACCESS_KEY_ID": "", # os.environ.get("AWS_ACCESS_KEY_ID"),
-        "AWS_SECRET_ACCESS_KEY": "", #os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        "AWS_ACCESS_KEY_ID": os.environ.get("AWS_ACCESS_KEY_ID"),
+        "AWS_SECRET_ACCESS_KEY": os.environ.get("AWS_SECRET_ACCESS_KEY"),
         "AWS_DEFAULT_REGION": "us-east-1",
     }.items() if v},
     command=(
@@ -290,7 +290,7 @@ run_exit_node = DojoDockerOperator(
     image=f"jataware/dag-tasks:{dag_tasks_version}",
     volumes=[dmc_local_dir + "/results/{{ dag_run.conf['run_id'] }}:/results"],
     docker_url="""{{ "http://" ~ ti.xcom_pull(key="instance_info").PUBLIC_IP ~ ":8375" }}""",
-    network_mode="bridge",
+    network_mode="host",
     command=(
         "run_exit.py "
         "{{ dag_run.conf['model_id']}} {{ dag_run.conf['run_id']}} {{ dag_run.conf['dojo_url']}} "
