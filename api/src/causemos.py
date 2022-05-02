@@ -20,7 +20,7 @@ def deprecate_dataset(dataset_id):
             logger.info("CauseMos debug mode: no need to notify Uncharted")
             return
         else:
-            logger.info(f"Notifying CauseMos of {type} creation...")
+            logger.info(f"Notifying Causemos to deprecate dataset")
             response = requests.put(
                 url,
                 auth=(causemos_user, causemos_pwd),
