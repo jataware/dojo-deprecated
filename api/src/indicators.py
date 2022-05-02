@@ -20,6 +20,7 @@ from src.settings import settings
 from src.dojo import search_and_scroll
 from src.ontologies import get_ontologies
 from src.causemos import notify_causemos
+from src.causemos import deprecate_dataset
 
 import os
 
@@ -76,6 +77,7 @@ def get_latest_indicators(size=10000):
             "name",
             "id",
             "created_at",
+            "deprecated",
             "maintainer.name",
             "maintainer.email",
         ],
@@ -149,6 +151,9 @@ def deprecate_indicator(indicator_id: str):
         indicator = es.get(index="indicators", id=indicator_id)["_source"]
         indicator["deprecated"] = True
         es.index(index="indicators", id=indicator_id, body=indicator)
+
+        # Tell Causemos to deprecate the dataset on their end
+        deprecate_dataset(indicator_id)
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return Response(

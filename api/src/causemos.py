@@ -3,6 +3,35 @@ import json
 import os
 from fastapi.logger import logger
 
+def deprecate_dataset(dataset_id):
+    """
+    A function to deprecate a dataset within Causemos
+
+    PUT https://causemos.uncharted.software/api/maas/datacubes/exampleID/deprecate
+
+    """
+    url = f'{os.getenv("CAUSEMOS_IND_URL")}/datacubes/{dataset_id}/deprecate'
+    causemos_user = os.getenv("CAUSEMOS_USER")
+    causemos_pwd = os.getenv("CAUSEMOS_PWD")
+
+    try:
+        # Notify Uncharted
+        if os.getenv("CAUSEMOS_DEBUG") == "true":
+            logger.info("CauseMos debug mode: no need to notify Uncharted")
+            return
+        else:
+            logger.info(f"Notifying CauseMos of {type} creation...")
+            response = requests.put(
+                url,
+                auth=(causemos_user, causemos_pwd),
+            )
+            logger.info(f"Response from Uncharted: {response.text}")
+            return
+
+    except Exception as e:
+        logger.error(f"Encountered problems communicating with Causemos: {e}")
+        logger.exception(e)
+
 
 def notify_causemos(data, type="indicator"):
     """
