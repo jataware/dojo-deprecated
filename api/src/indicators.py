@@ -38,8 +38,8 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
     indicator_id = payload.id
     payload.created_at = current_milli_time()
     body = payload.json()
-
     data = get_ontologies(json.loads(body), type="indicator")
+
     logger.info(f"Sent indicator to UAZ")
     es.index(index="indicators", body=data, id=indicator_id)
 
