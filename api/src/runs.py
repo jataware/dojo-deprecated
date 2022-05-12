@@ -21,7 +21,7 @@ from pydantic import BaseModel
 from pydantic.json import pydantic_encoder
 from typing_extensions import final
 
-from validation import RunSchema
+from validation import RunSchema, DojoSchema
 
 from src.models import get_model
 from src.dojo import get_directive, get_outputfiles, get_configs, get_accessory_files
@@ -55,7 +55,7 @@ headers = {"Content-Type": "application/json"}
 
 
 @router.get("/runs")
-def search_runs(request: Request, model_name: str = Query(None), model_id: str = Query(None)) -> List[RunSchema.ModelRunSchema]:
+def search_runs(request: Request, model_name: str = Query(None), model_id: str = Query(None), size=100, scroll_id=None) -> DojoSchema.RunSearchResult:
     """
     Allows users to search for runs. Note that a `model_name` or `model_id` query argument
     will be used to filter the records in elasticsearch. Any other arbitrary `&key=value` pairs
@@ -63,15 +63,16 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
     know ahead of time what all of the possible key/values are that people might search for in
     the run's parameters, we're accessing the raw FastAPI/Starlette request object's query args.
     """
-    if model_name:
-        q = {"query": {"term": {"model_name.keyword": {"value": model_name, "boost": 1.0}}}}
-    elif model_id:
-        q = {"query": {"term": {"model_id.keyword": {"value": model_id, "boost": 1.0}}}}
-    else:  # no model name specified
-        q = {"query": {"match_all": {}}}
-
-    response = es.search(index="runs", body=q)
-    results = [i["_source"] for i in response["hits"]["hits"]]
+    if not scroll_id:
+        if model_name:
+            q = {"query": {"term": {"model_name.keyword": {"value": model_name, "boost": 1.0}}}}
+        elif model_id:
+            q = {"query": {"term": {"model_id.keyword": {"value": model_id, "boost": 1.0}}}}
+        else:  # no model name specified
+            q = {"query": {"match_all": {}}}
+        results = es.search(index='runs', body=q, scroll="2m", size=size)
+    else:
+        results = es.scroll(scroll_id=scroll_id, scroll="2m")
 
     param_filters = dict(request.query_params)
 
@@ -79,12 +80,26 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
     for reserved_param in ["model_id", "model_name"]:
         param_filters.pop(reserved_param, None)
 
+    # if results are less than the page size don't return a scroll_id
+    if len(results["hits"]["hits"]) < int(size):
+        scroll_id = None
+    else:
+        scroll_id = results.get("_scroll_id", None)
+
+    results = [i["_source"] for i in results["hits"]["hits"]]
+
+    count = es.count(index='runs', body=q)
+
     if not param_filters:
-        return results  # no need to filter params
+        return {
+            "hits": count["count"],
+            "scroll_id": scroll_id,
+            "results": results,
+        }
 
     to_return = []
-    for result in results:
 
+    for result in results:
         run_params = {}  # convert run's params into dict for quick lookups
         for param in result.get("parameters", []):
             run_params[ param["name"] ] = param["value"]
@@ -99,7 +114,11 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
                     if filter_value == str(run_param_value):
                         to_return.append(result)
 
-    return to_return
+    return {
+        "hits": count["count"],
+        "scroll_id": scroll_id,
+        "results": to_return,
+    }
 
 
 @router.get("/runs/{run_id}")
