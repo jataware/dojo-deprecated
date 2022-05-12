@@ -63,13 +63,15 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
     know ahead of time what all of the possible key/values are that people might search for in
     the run's parameters, we're accessing the raw FastAPI/Starlette request object's query args.
     """
+
+    if model_name:
+        q = {"query": {"term": {"model_name.keyword": {"value": model_name, "boost": 1.0}}}}
+    elif model_id:
+        q = {"query": {"term": {"model_id.keyword": {"value": model_id, "boost": 1.0}}}}
+    else:  # no model name specified
+        q = {"query": {"match_all": {}}}
+
     if not scroll_id:
-        if model_name:
-            q = {"query": {"term": {"model_name.keyword": {"value": model_name, "boost": 1.0}}}}
-        elif model_id:
-            q = {"query": {"term": {"model_id.keyword": {"value": model_id, "boost": 1.0}}}}
-        else:  # no model name specified
-            q = {"query": {"match_all": {}}}
         results = es.search(index='runs', body=q, scroll="2m", size=size)
     else:
         results = es.scroll(scroll_id=scroll_id, scroll="2m")
@@ -77,7 +79,7 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
     param_filters = dict(request.query_params)
 
     # don't use these keys to filter params
-    for reserved_param in ["model_id", "model_name"]:
+    for reserved_param in ["model_id", "model_name", "size", "scroll_id"]:
         param_filters.pop(reserved_param, None)
 
     # if results are less than the page size don't return a scroll_id
