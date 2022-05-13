@@ -71,8 +71,10 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
     else:  # no model name specified
         q = {"query": {"match_all": {}}}
 
+    sort = ["created_at:desc"]
+
     if not scroll_id:
-        results = es.search(index='runs', body=q, scroll="2m", size=size)
+        results = es.search(index='runs', body=q, sort=sort, scroll="2m", size=size)
     else:
         results = es.scroll(scroll_id=scroll_id, scroll="2m")
 
