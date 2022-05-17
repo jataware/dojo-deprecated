@@ -35,9 +35,30 @@ def mixmasta_file_generator(
     result = q.enqueue(generate_mixmasta_files, context)
     return Response(
         status_code=status.HTTP_201_CREATED,
-        headers={"Result": result.to_dict()},
+        headers={"location": f"/dojo/config/{p.model_id}"},
         content=f"Result: {result.to_dict()}",
     )
+
+
+@router.get("/mixmasta/queue/length")
+def queue_length():
+    return len(q)
+
+
+@router.post("/mixmasta/queue/empty")
+def empty_queue():
+    try:
+        deleted = q.empty()
+        return Response(
+            status_code=status.HTTP_200_OK,
+            headers={"deleted": f"{deleted}"},
+            content=f"Queue deleted, {deleted} items removed",
+        )
+    except:
+        return Response(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content=f"Queue could not be deleted.",
+        )
 
 
 @router.get("/mixmasta/processor")

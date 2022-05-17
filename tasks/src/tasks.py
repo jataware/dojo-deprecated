@@ -4,9 +4,6 @@ import logging
 import os
 from .rename import rename as rename_function
 
-from mixmasta import mixmasta as mix
-from utils.cache_helper import cache_get
-
 
 def dupe(annotations, rename_list, new_names):
     """annotations is a list of dictionaries, if entry["name"] is in rename_list copy over an entry for every name in new_names and rename the entry["name"] to the new name"""
@@ -229,14 +226,13 @@ def build_meta(uuid, d, geo_select, context):
 
 def generate_mixmasta_files(context):
     uuid = context["uuid"]
-    email = cache_get(uuid, "email", None)
     clear_invalid_qualifiers(uuid)
 
     # Build the mapper.json annotations, and get geo_select for geo_coding
     # admin level if set annotating lat/lng pairs.
     mixmasta_ready_annotations, geo_select = build_mapper(uuid)
 
-    logging_preface = cache_get(uuid, "logging_preface", None)
+    logging_preface = "Mixmasta  log start: "
     d = f"data/{uuid}"
     fp = ""
     meta = {}
