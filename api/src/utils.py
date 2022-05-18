@@ -68,6 +68,7 @@ def run_model_with_defaults(model_id):
                          data_paths=[],
                          tags=[],
                          is_default_run=True,
+                         attributes={},
                          created_at = current_milli_time())
 
     create_run(run)
