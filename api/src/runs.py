@@ -73,6 +73,15 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
 
     sort = ["created_at:desc"]
 
+    count = es.count(index='runs', body=q)
+
+    if count["count"] == 0:
+        return {
+            "hits": 0,
+            "scroll_id": None,
+            "results": []
+        }
+
     if not scroll_id:
         results = es.search(index='runs', body=q, sort=sort, scroll="2m", size=size)
     else:
@@ -91,8 +100,6 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
         scroll_id = results.get("_scroll_id", None)
 
     results = [i["_source"] for i in results["hits"]["hits"]]
-
-    count = es.count(index='runs', body=q)
 
     if not param_filters:
         return {
