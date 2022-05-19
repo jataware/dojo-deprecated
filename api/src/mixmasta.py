@@ -5,6 +5,7 @@ from sqlite3 import connect
 from unittest import result
 
 from fastapi import APIRouter, Response, status
+from elasticsearch import Elasticsearch
 from rq import Worker, Queue
 from rq.job import Job
 from redis import Redis
@@ -35,7 +36,6 @@ def mixmasta_file_generator(
     result = q.enqueue(generate_mixmasta_files, context)
     return Response(
         status_code=status.HTTP_201_CREATED,
-        headers={"location": f"/dojo/config/{p.model_id}"},
         content=f"Result: {result.to_dict()}",
     )
 
