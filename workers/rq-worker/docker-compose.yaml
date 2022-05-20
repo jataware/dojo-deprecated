@@ -1,0 +1,13 @@
+version: '2.2'
+services:
+  rqworker:
+    build: .
+    container_name: dojo-rq-worker
+    env_file:
+      - .env
+    networks:
+      - dojo
+
+networks:
+  dojo:
+    driver: bridge

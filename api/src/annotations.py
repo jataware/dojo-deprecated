@@ -19,9 +19,10 @@ def current_milli_time():
 def get_annotations(annotation_uuid: str) -> SpacetagSchema.SpaceModel:
     try:
         annotation = es.get(index="annotations", id=annotation_uuid)["_source"]
+        return annotation
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    return annotation
+        return None
 
 
 @router.post("/annotations/{annotation_uuid}")
