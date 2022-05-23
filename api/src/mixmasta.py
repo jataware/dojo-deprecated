@@ -23,7 +23,8 @@ from src.indicators import get_indicators
 router = APIRouter()
 
 redis = Redis(
-    os.environ.get("REDIS_HOST", "redis-spacetag"), os.environ.get("REDIS_PORT", "6379")
+    os.environ.get("REDIS_HOST", "redis.world-modelers"),
+    os.environ.get("REDIS_PORT", "6379"),
 )
 q = Queue(connection=redis)
 
@@ -71,25 +72,24 @@ def mixmasta_processor():
     result = "Done!"
     return result
 
+
 def get_context(id):
     annotations = get_annotations(id)
     meta = get_indicators(id)
 
-    context = {
-        "metadata": meta,
-        "annotations": annotations
-    }
+    context = {"metadata": meta, "annotations": annotations}
 
     return context
 
 
 def test_job():
     # Test RQ job
-    time.sleep(2)
+    time.sleep(5)
 
     print("Job Job")
 
+
 @router.post("/mixmasta/test/{num_of_jobs}")
 def run_test_jobs(num_of_jobs):
-    for n in range(num_of_jobs):
+    for n in range(int(num_of_jobs)):
         q.enqueue(test_job)

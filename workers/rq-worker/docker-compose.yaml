@@ -3,10 +3,16 @@ services:
   rqworker:
     build: .
     container_name: dojo-rq-worker
-    env_file:
-      - .env
     networks:
       - dojo
+    command:
+      - rq
+      - worker
+      - --url
+      - redis://${REDIS_HOST}:${REDIS_PORT}
+      - high
+      - default
+      - low
 
 networks:
   dojo:

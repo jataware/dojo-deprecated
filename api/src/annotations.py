@@ -10,6 +10,7 @@ router = APIRouter()
 
 es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
 
+
 # For created_at times in epoch milliseconds
 def current_milli_time():
     return round(time.time() * 1000)
