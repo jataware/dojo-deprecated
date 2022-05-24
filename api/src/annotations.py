@@ -1,7 +1,7 @@
 import time
 
 from elasticsearch import Elasticsearch
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Response, status
 
 from src.settings import settings
 from validation import SpacetagSchema
@@ -31,7 +31,6 @@ def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
 
     try:
 
-        payload.created_at = current_milli_time()
         body = payload.json()
 
         es.index(index="annotations", body=body, id=annotation_uuid)
@@ -54,7 +53,6 @@ def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
 
     try:
 
-        payload.created_at = current_milli_time()
         body = payload.json()
 
         es.index(index="annotations", body=body, id=annotation_uuid)
@@ -77,10 +75,9 @@ def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
 
     try:
 
-        payload.created_at = current_milli_time()
         body = payload.json()
 
-        es.index(index="annotations", body=body, id=annotation_uuid)
+        es.update(index="annotations", body=body, id=annotation_uuid)
 
         return Response(
             status_code=status.HTTP_201_CREATED,
