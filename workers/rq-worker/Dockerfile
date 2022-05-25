@@ -5,6 +5,6 @@ RUN pip install --upgrade pip
 COPY ./api /api
 WORKDIR /api
 
-RUN pip install rq fastapi elasticsearch==7.12.0 requests
+RUN pip install -r requirements.txt
 
 ENV PYTHONPATH "${PYTHONPATH}:/api"

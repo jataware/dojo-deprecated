@@ -6,7 +6,7 @@ import os
 from sqlite3 import connect
 from unittest import result
 
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Response, File, UploadFile, status
 from elasticsearch import Elasticsearch
 from rq import Worker, Queue
 from rq.job import Job
@@ -18,6 +18,7 @@ from rq import job
 from src.tasks import generate_mixmasta_files, post_mixmasta_annotation_processing
 from src.annotations import get_annotations
 from src.indicators import get_indicators
+from src.processing.geotime_processors import GeotimeProcessor
 
 
 router = APIRouter()
@@ -38,7 +39,8 @@ def mixmasta_file_generator(
         "output_directory": "./output",
     }
 ):
-    result = q.enqueue(generate_mixmasta_files, context)
+    job = q.enqueue(generate_mixmasta_files, context)
+    result = job.result
     return Response(
         status_code=status.HTTP_201_CREATED,
         content=f"Result: {result.to_dict()}",
@@ -56,7 +58,7 @@ def empty_queue():
         deleted = q.empty()
         return Response(
             status_code=status.HTTP_200_OK,
-            headers={"deleted": f"{deleted}"},
+            headers={"msg": f"deleted: {deleted}"},
             content=f"Queue deleted, {deleted} items removed",
         )
     except:
@@ -73,11 +75,34 @@ def mixmasta_processor():
     return result
 
 
-def get_context(id):
-    annotations = get_annotations(id)
-    meta = get_indicators(id)
+# Should this even be an API endpoint?
+@router.post("/mixmasta/geotimeclass/{uuid}")
+def geotime_classify(uuid: str, payload: bytes):
+    try:
+        context = get_context(uuid)
 
-    context = {"metadata": meta, "annotations": annotations}
+        job = q.enqueue(GeotimeProcessor.run, payload, context)
+
+        processed_dataframe = job.result
+
+        return Response(
+            status_code=status.HTTP_200_OK,
+            headers={"msg": "Submitted to geotime classify"},
+            content=f"Data returned {processed_dataframe}",
+        )
+
+    except:
+        return Response(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content=f"Queue could not be deleted.",
+        )
+
+
+def get_context(uuid):
+    annotations = get_annotations(uuid)
+    meta = get_indicators(uuid)
+
+    context = {"uuid": uuid, "metadata": meta, "annotations": annotations}
 
     return context
 
