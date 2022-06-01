@@ -1,0 +1,7 @@
+rq
+fastapi
+elasticsearch==7.12.0
+requests
+geotime-classify
+pandas
+torch

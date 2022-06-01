@@ -1,7 +1,7 @@
 import time
 
 from elasticsearch import Elasticsearch
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, HTTPException, status
 
 from src.settings import settings
 from validation import SpacetagSchema
@@ -31,6 +31,32 @@ def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
 
     try:
 
+        payload.created_at = current_milli_time()
+        body = payload.json()
+
+        es.index(index="annotations", body=body, id=annotation_uuid)
+
+        return Response(
+            status_code=status.HTTP_201_CREATED,
+            headers={"location": f"/api/annotations/{annotation_uuid}"},
+            content=f"Created annotation with id = {annotation_uuid}",
+        )
+    except Exception as e:
+
+        print(f"Error: {e}")
+        return Response(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            headers={"msg": f"Could not create annotation with id = {annotation_uuid}"},
+            content=f"Could not create annotation with id = {annotation_uuid}",
+        )
+
+
+@router.put("/annotations/{annotation_uuid}")
+def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
+
+    try:
+
+        payload.created_at = current_milli_time()
         body = payload.json()
 
         es.index(index="annotations", body=body, id=annotation_uuid)
@@ -48,36 +74,15 @@ def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
         )
 
 
-@router.put("/annotations/{annotation_uuid}")
-def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
-
-    try:
-
-        body = payload.json()
-
-        es.index(index="annotations", body=body, id=annotation_uuid)
-
-        return Response(
-            status_code=status.HTTP_201_CREATED,
-            headers={"location": f"/api/annotations/{annotation_uuid}"},
-            content=f"Created annotation with id = {annotation_uuid}",
-        )
-    except:
-
-        return Response(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content=f"Could not create annotation with id = {annotation_uuid}",
-        )
-
-
 @router.patch("/annotations/{annotation_uuid}")
 def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
 
     try:
 
+        payload.created_at = current_milli_time()
         body = payload.json()
 
-        es.update(index="annotations", body=body, id=annotation_uuid)
+        es.index(index="annotations", body=body, id=annotation_uuid)
 
         return Response(
             status_code=status.HTTP_201_CREATED,
