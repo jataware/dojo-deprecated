@@ -1,6 +1,7 @@
 from __future__ import annotations
 import logging
 import time
+import tempfile
 from multiprocessing import context
 import os
 from sqlite3 import connect
@@ -79,13 +80,18 @@ def mixmasta_processor():
 
 # Should this even be an API endpoint?
 @router.post("/mixmasta/geotimeclass/{uuid}")
-def geotime_classify(uuid: str, payload: str):
+async def geotime_classify(uuid: str, payload: UploadFile = File(...)):
     try:
         context = get_context(uuid)
 
-        csv_text = StringIO(payload)
+        # csv_text = StringIO(payload)
+        print(payload.filename)
 
-        df = pd.read_csv(csv_text)
+        payload_wrapper = tempfile.TemporaryFile()
+        payload_wrapper.write(await payload.read())
+        payload_wrapper.seek(0)
+
+        df = pd.read_csv(payload_wrapper, delimiter=",")
 
         job = q.enqueue(GeotimeProcessor.run, df, context)
 
@@ -97,9 +103,10 @@ def geotime_classify(uuid: str, payload: str):
             content=f"Data returned {processed_dataframe}",
         )
 
-    except:
+    except Exception as e:
         return Response(
             status_code=status.HTTP_400_BAD_REQUEST,
+            headers={"msg": f"Error: {e}"},
             content=f"Queue could not be deleted.",
         )
 

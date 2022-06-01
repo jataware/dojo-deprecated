@@ -1,5 +1,7 @@
+from os import mkdir
 from .base_annotation import BaseProcessor
 import json
+import os
 from geotime_classify import geotime_classify as gc
 import logging
 
@@ -20,6 +22,7 @@ class GeotimeProcessor(BaseProcessor):
             return ret
 
         GeoTimeClass = gc.GeoTimeClassify(50)
+        os.makedirs(f"./data/{context['uuid']}")
         df.head(50).to_csv(f"data/{context['uuid']}/raw_data_geotime.csv", index=False)
         c_classified = GeoTimeClass.columns_classified(
             f"data/{context['uuid']}/raw_data_geotime.csv"
