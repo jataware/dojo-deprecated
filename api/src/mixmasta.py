@@ -18,10 +18,10 @@ from rq.exceptions import NoSuchJobError
 import json
 from rq import job
 
-from src.tasks import generate_mixmasta_files, post_mixmasta_annotation_processing
+#from src.tasks import generate_mixmasta_files, post_mixmasta_annotation_processing
 from src.annotations import get_annotations
 from src.indicators import get_indicators
-from src.processing.geotime_processors import GeotimeProcessor
+#from src.processing.geotime_processors import GeotimeProcessor
 
 
 router = APIRouter()
@@ -42,7 +42,7 @@ def mixmasta_file_generator(uuid: str):
     #     "output_directory": "./output",
     # }
     context = get_context(uuid=uuid)
-    job = q.enqueue(generate_mixmasta_files, context)
+    job = q.enqueue("tasks.generate_mixmasta_files", context)
     result = job.result
     return Response(
         status_code=status.HTTP_201_CREATED,
@@ -93,7 +93,7 @@ async def geotime_classify(uuid: str, payload: UploadFile = File(...)):
 
         df = pd.read_csv(payload_wrapper, delimiter=",")
 
-        job = q.enqueue(GeotimeProcessor.run, df, context)
+        job = q.enqueue("processing.geotime_processors.GeotimeProcessor.run", df, context)
 
         processed_dataframe = job.result
 
@@ -130,4 +130,4 @@ def test_job():
 @router.post("/mixmasta/test/{num_of_jobs}")
 def run_test_jobs(num_of_jobs):
     for n in range(int(num_of_jobs)):
-        q.enqueue(test_job)
+        q.enqueue('tasks.test_job')
