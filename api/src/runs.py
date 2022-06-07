@@ -338,7 +338,7 @@ def get_run_logs(run_id: str) -> RunSchema.RunLogsSchema:
         "failed-task": "Run failed",
     }
 
-    for task in sorted(task_instances, key=itemgetter("start_date")):
+    for task in sorted(task_instances, key=lambda obj: obj.get("start_date") or ""):
         task_id = task["task_id"]
         task_name = task_name_map.get(task_id, task_id)
 
