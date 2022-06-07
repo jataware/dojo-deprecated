@@ -2,7 +2,8 @@ import copy
 import json
 import logging
 import os
-from .rename import rename as rename_function
+import time
+from rename import rename as rename_function
 
 
 def dupe(annotations, rename_list, new_names):
@@ -334,3 +335,11 @@ def post_mixmasta_annotation_processing(rename, context):
         mixmasta_ready_annotations,
         open(f"data/{uuid}/mixmasta_ready_annotations.json", "w"),
     )
+
+
+def test_job():
+    # Test RQ job
+    time.sleep(5)
+
+    print("Job Job")
+
