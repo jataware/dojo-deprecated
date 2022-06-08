@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 jataware/mixmasta:latest
+FROM --platform=linux/amd64 python:3.10.0
 
 RUN pip install --upgrade pip
 

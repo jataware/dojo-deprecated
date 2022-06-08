@@ -1,10 +1,14 @@
 import time
+import json
+import tempfile
 
 from elasticsearch import Elasticsearch
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, HTTPException, Response, File, UploadFile, status
 
 from src.settings import settings
 from validation import SpacetagSchema
+
+import pandas as pd
 
 router = APIRouter()
 
@@ -89,4 +93,27 @@ def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
         return Response(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=f"Could not update annotation with id = {annotation_uuid}",
+        )
+
+
+@router.post("/annotations/preview")
+async def create_preview(data: UploadFile = File(...)):
+
+    try:
+        print(data.filename)
+        payload_wrapper = tempfile.TemporaryFile()
+        payload_wrapper.write(await data.read())
+        payload_wrapper.seek(0)
+
+        df = pd.read_csv(payload_wrapper, delimiter=",")
+
+        preview = df.head(50).to_string
+
+        return json.dumps(preview)
+
+    except Exception as e:
+        return Response(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            headers={"msg": f"Error: {e}"},
+            content=f"Queue could not be deleted.",
         )

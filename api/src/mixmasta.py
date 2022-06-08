@@ -18,10 +18,11 @@ from rq.exceptions import NoSuchJobError
 import json
 from rq import job
 
-#from src.tasks import generate_mixmasta_files, post_mixmasta_annotation_processing
+# from src.tasks import generate_mixmasta_files, post_mixmasta_annotation_processing
 from src.annotations import get_annotations
 from src.indicators import get_indicators
-#from src.processing.geotime_processors import GeotimeProcessor
+
+# from src.processing.geotime_processors import GeotimeProcessor
 
 
 router = APIRouter()
@@ -93,14 +94,18 @@ async def geotime_classify(uuid: str, payload: UploadFile = File(...)):
 
         df = pd.read_csv(payload_wrapper, delimiter=",")
 
-        job = q.enqueue("processing.geotime_processors.GeotimeProcessor.run", df, context)
+        job = q.enqueue("geotime_processors.process", df, context)
 
-        processed_dataframe = job.result
+        while job.get_status(refresh=True) != "finished":
+            print(job.get_status(refresh=True))
+            time.sleep(0.5)
+
+        geoclass_json = job.result
 
         return Response(
             status_code=status.HTTP_200_OK,
             headers={"msg": "Submitted to geotime classify"},
-            content=f"Data returned {processed_dataframe}",
+            content=f"Data returned {geoclass_json}",
         )
 
     except Exception as e:
@@ -130,4 +135,4 @@ def test_job():
 @router.post("/mixmasta/test/{num_of_jobs}")
 def run_test_jobs(num_of_jobs):
     for n in range(int(num_of_jobs)):
-        q.enqueue('tasks.test_job')
+        q.enqueue("tasks.test_job")
