@@ -71,8 +71,6 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
     else:  # no model name specified
         q = {"query": {"match_all": {}}}
 
-    sort = ["created_at:desc"]
-
     count = es.count(index='runs', body=q)
 
     if count["count"] == 0:
@@ -83,7 +81,7 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
         }
 
     if not scroll_id:
-        results = es.search(index='runs', body=q, sort=sort, scroll="2m", size=size)
+        results = es.search(index='runs', body=q, scroll="2m", size=size)
     else:
         results = es.scroll(scroll_id=scroll_id, scroll="2m")
 
@@ -171,7 +169,7 @@ def create_run(run: RunSchema.ModelRunSchema):
     volumeArray = [ "/var/run/docker.sock:/var/run/docker.sock" ]
     for output in outputfiles:
         try:
-            # rehydrate file path in 
+            # rehydrate file path in
             mixmasta_input_file = Template(output["path"]).render(param_dict)
 
             # get name of the mapper (will be based on output ID)
@@ -188,7 +186,7 @@ def create_run(run: RunSchema.ModelRunSchema):
                 output_dirs[output_dir] = output_id
 
             # use the lookup to build the path
-            output_dir_volume = dmc_local_dir + f"/results/{run.id}/{output_dirs[output_dir]}:{output_dir}"               
+            output_dir_volume = dmc_local_dir + f"/results/{run.id}/{output_dirs[output_dir]}:{output_dir}"
             logger.info('output_dir_volume:' + output_dir_volume)
 
             # add it to the volumeArray
@@ -197,7 +195,7 @@ def create_run(run: RunSchema.ModelRunSchema):
             # build mixmasta input object
             mixmasta_input = {"input_file": f"/tmp/{output_dirs[output_dir]}/{mixmasta_input_file}",
                               "mapper": f"/mappers/{mapper_name}"}
-            
+
             mixmasta_inputs.append(mixmasta_input)
         except Exception as e:
             logging.exception(e)
@@ -205,7 +203,7 @@ def create_run(run: RunSchema.ModelRunSchema):
 
     ### Handle accessory files.
     accessoryFiles = get_accessory_files(run.model_id) # call dojo.py API method directly.
-    
+
     logger.info(accessoryFiles)
     accessory_dirs = {}
     for accessoryFile in accessoryFiles:
@@ -250,7 +248,7 @@ def create_run(run: RunSchema.ModelRunSchema):
         if 'fileName' in configFile:
             mountPath = configFile["path"]
             fileName = configFile["fileName"]
-        
+
         # This is the typical case currently with Phantom/Shorthand
         else:
             mountPath = '/'.join(configFile["path"].split("/")[:-1])
@@ -298,7 +296,10 @@ def create_run(run: RunSchema.ModelRunSchema):
     logging.info(f"Response from DMC: {json.dumps(response.json(), indent=4)}")
 
     run.created_at = current_milli_time()
-    run.attributes["status"] = "Running"
+    if hasattr(run, 'attributes'):
+        run.attributes["status"] = "Running"
+    else:
+        run.attributes = {"status": "Running"}
 
     es.index(index="runs", body=run.dict(), id=run.id)
     return Response(
@@ -376,11 +377,11 @@ def test_run_status(run_id: str) -> RunSchema.RunStatusSchema:
     status = run.get("attributes",{}).get("status",None)
     model_id = run.get("model_id")
     body = {"run_id": run_id,
-            "status": status, 
-            "model_name": run.get("model_name"), 
+            "status": status,
+            "model_name": run.get("model_name"),
             "executed_at": run.get("attributes",{}).get("executed_at",None)}
     if status:
         es.index(index="tests", body=body, id=model_id)
         return status
     else:
-        return "running" 
+        return "running"
