@@ -36,12 +36,6 @@ q = Queue(connection=redis)
 
 @router.get("/mixmasta/file_generator")
 def mixmasta_file_generator(uuid: str):
-    #     context={
-    #     "uuid": 000,
-    #     "mode": "byom",
-    #     "gadm_level": 3,
-    #     "output_directory": "./output",
-    # }
     context = get_context(uuid=uuid)
     job = q.enqueue("tasks.generate_mixmasta_files", context)
     result = job.result
@@ -49,27 +43,6 @@ def mixmasta_file_generator(uuid: str):
         status_code=status.HTTP_201_CREATED,
         content=f"Result: {result.to_dict()}",
     )
-
-
-@router.get("/mixmasta/queue/length")
-def queue_length():
-    return len(q)
-
-
-@router.post("/mixmasta/queue/empty")
-def empty_queue():
-    try:
-        deleted = q.empty()
-        return Response(
-            status_code=status.HTTP_200_OK,
-            headers={"msg": f"deleted: {deleted}"},
-            content=f"Queue deleted, {deleted} items removed",
-        )
-    except:
-        return Response(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content=f"Queue could not be deleted.",
-        )
 
 
 @router.get("/mixmasta/processor")
@@ -96,16 +69,16 @@ async def geotime_classify(uuid: str, payload: UploadFile = File(...)):
 
         job = q.enqueue("geotime_processors.process", df, context)
 
-        while job.get_status(refresh=True) != "finished":
-            print(job.get_status(refresh=True))
-            time.sleep(0.5)
+        # while job.get_status(refresh=True) != "finished":
+        #     print(job.get_status(refresh=True))
+        #     time.sleep(0.5)
 
-        geoclass_json = job.result
+        # geoclass_json = job.result
 
         return Response(
             status_code=status.HTTP_200_OK,
             headers={"msg": "Submitted to geotime classify"},
-            content=f"Data returned {geoclass_json}",
+            content=f"Job ID: {job.id}",
         )
 
     except Exception as e:
@@ -123,6 +96,47 @@ def get_context(uuid):
     context = {"uuid": uuid, "metadata": meta, "annotations": annotations}
 
     return context
+
+
+# RQ ENDPOINTS
+@router.post("/mixmasta/rq/job/fetch/{job_id}")
+def get_rq_job_results(job_id: str):
+    try:
+        job = Job.fetch(job_id, connection=redis)
+        result = job.result
+        return Response(
+            status_code=status.HTTP_200_OK,
+            content=f"Result: {result}",
+        )
+    except NoSuchJobError:
+        return Response(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=f"Job with id = {job_id} not found",
+        )
+
+
+@router.get("/mixmasta/rq/queue/length")
+def queue_length():
+    return len(q)
+
+
+@router.post("/mixmasta/rq/queue/empty")
+def empty_queue():
+    try:
+        deleted = q.empty()
+        return Response(
+            status_code=status.HTTP_200_OK,
+            headers={"msg": f"deleted: {deleted}"},
+            content=f"Queue deleted, {deleted} items removed",
+        )
+    except:
+        return Response(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content=f"Queue could not be deleted.",
+        )
+
+
+# TEST ENDPOINTS
 
 
 def test_job():

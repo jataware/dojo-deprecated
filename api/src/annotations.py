@@ -3,7 +3,8 @@ import json
 import tempfile
 
 from elasticsearch import Elasticsearch
-from fastapi import APIRouter, HTTPException, Response, File, UploadFile, status
+from fastapi import APIRouter, HTTPException, Response, File, UploadFile, Form, status
+from pydantic import BaseModel
 
 from src.settings import settings
 from validation import SpacetagSchema
@@ -96,8 +97,8 @@ def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
         )
 
 
-@router.post("/annotations/preview")
-async def create_preview(data: UploadFile = File(...)):
+@router.post("/annotations/preview/{lines}")
+async def create_preview(number_of_lines: int, data: UploadFile = File(...)):
 
     try:
         print(data.filename)
@@ -107,9 +108,9 @@ async def create_preview(data: UploadFile = File(...)):
 
         df = pd.read_csv(payload_wrapper, delimiter=",")
 
-        preview = df.head(50).to_string
+        preview = df.head(number_of_lines).to_json(orient="records")
 
-        return json.dumps(preview)
+        return preview
 
     except Exception as e:
         return Response(
