@@ -38,10 +38,10 @@ q = Queue(connection=redis)
 def mixmasta_file_generator(uuid: str):
     context = get_context(uuid=uuid)
     job = q.enqueue("tasks.generate_mixmasta_files", context)
-    result = job.result
     return Response(
-        status_code=status.HTTP_201_CREATED,
-        content=f"Result: {result.to_dict()}",
+        status_code=status.HTTP_200_OK,
+        headers={"msg": "Mixmasta file generator job running"},
+        content=f"Job ID: {job.id}",
     )
 
 
