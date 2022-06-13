@@ -46,10 +46,14 @@ def mixmasta_file_generator(uuid: str):
 
 
 @router.get("/mixmasta/processor")
-def mixmasta_processor():
-    # post_mixmasta_annotation_processing()
-    result = "Done!"
-    return result
+def mixmasta_processor(uuid: str):
+    context = get_context(uuid=uuid)
+    job = q.enqueue("tasks.post_mixmasta_annotation_processing", None, context)
+    return Response(
+        status_code=status.HTTP_200_OK,
+        headers={"msg": "Mixmasta post processing job running"},
+        content=f"Job ID: {job.id}",
+    )
 
 
 # Should this even be an API endpoint?
