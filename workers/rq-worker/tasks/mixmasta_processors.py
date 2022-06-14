@@ -9,17 +9,6 @@ import os
 from .base_annotation import BaseProcessor
 
 
-class MixmastaFileGenerator(BaseProcessor):
-    @staticmethod
-    def run(df, context):
-        """generate the files to run mixmasta"""
-        logging.info(
-            f"{context.get('logging_preface', '')} - Generating mixmasta files"
-        )
-        generate_mixmasta_files(context)
-        return df
-
-
 class MixmastaProcessor(BaseProcessor):
     @staticmethod
     def run(df, context) -> pd.DataFrame:

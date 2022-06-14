@@ -32,7 +32,7 @@ def get_annotations(annotation_uuid: str) -> SpacetagSchema.SpaceModel:
 
 
 @router.post("/annotations/{annotation_uuid}")
-def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
+def post_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
 
     try:
 
@@ -54,7 +54,7 @@ def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
 
 
 @router.put("/annotations/{annotation_uuid}")
-def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
+def put_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
 
     try:
 
@@ -76,7 +76,7 @@ def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
 
 
 @router.patch("/annotations/{annotation_uuid}")
-def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
+def patch_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
 
     try:
 
