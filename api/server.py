@@ -5,14 +5,13 @@ from fastapi import FastAPI
 
 from src import (
     clouseau,
+    data,
     dojo,
     healthcheck,
     indicators,
     models,
     phantom,
     runs,
-    annotations,
-    mixmasta,
 )
 from src.settings import settings
 
@@ -26,8 +25,7 @@ api.include_router(runs.router, tags=["Runs"])
 api.include_router(indicators.router, tags=["Indicators"])
 api.include_router(clouseau.router, prefix="/clouseau", tags=["Clouseau"])
 api.include_router(phantom.router, prefix="/phantom", tags=["Phantom"])
-api.include_router(mixmasta.router, tags=["Mixmasta"])
-api.include_router(annotations.router, tags=["Annotations"])
+api.include_router(data.router, tags=["Data"])
 
 
 def print_debug_routes() -> None:

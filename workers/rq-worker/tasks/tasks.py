@@ -1,9 +1,20 @@
 import copy
 import json
 import logging
+from operator import sub
 import os
 import time
 from rename import rename as rename_function
+
+from anomaly_detection import AnomalyDetector
+from utils import get_rawfile
+
+logging.basicConfig()
+logging.getLogger().setLevel(logging.INFO)
+
+# Anomaly detector instantiation; load_autoencoder() is comparatively resource intensive.
+detector = AnomalyDetector()
+detector.load_autoencoder()
 
 
 def dupe(annotations, rename_list, new_names):
@@ -34,7 +45,7 @@ def dupe(annotations, rename_list, new_names):
     return new_list
 
 
-def build_mapper(uuid):
+def build_mapper(uuid, annotations):
     """
     Description
     -----------
@@ -54,9 +65,9 @@ def build_mapper(uuid):
     # Set default return value (None) for geo_select.
     geo_select = None
 
-    fp = f"data/{uuid}/annotations.json"
-    with open(fp, "r") as f:
-        annotations = json.load(f)
+    # fp = f"data/{uuid}/annotations.json"
+    # with open(fp, "r") as f:
+    #     annotations = json.load(f)
     conversion_names = {
         "name": "display_name",
         "geo": "geo_type",
@@ -73,13 +84,18 @@ def build_mapper(uuid):
     for orig_name in annotations:
         entry = {}
         entry["name"] = orig_name
-        for x in annotations[orig_name].keys():
+        sub_ann = annotations[orig_name]
+        try:
+            sub_ann = sub_ann[0]
+        except:
+            continue
+        for x in sub_ann.keys():
             if x in ["redir_col"]:
                 continue
 
             # Set geo_select if annotated.
             if str(x).lower() == "geo_select_form":
-                geo_select = annotations[orig_name][x]
+                geo_select = sub_ann[x]
                 # Mixmasta expects "admin0" not "country".
                 if geo_select.lower() == "country":
                     geo_select = "admin0"
@@ -91,20 +107,20 @@ def build_mapper(uuid):
 
             if new_col_name != "display_name":
                 if new_col_name == "qualifies":
-                    if type(annotations[orig_name][x]) == str:
-                        annotations[orig_name][x] = [annotations[orig_name][x]]
-                if type(annotations[orig_name][x]) == str and new_col_name not in [
+                    if type(sub_ann[x]) == str:
+                        sub_ann[x] = [sub_ann[x]]
+                if type(sub_ann[x]) == str and new_col_name not in [
                     "is_geo_pair",
                     "qualifies",
                     "dateformat",
                     "time_format",
                     "description",
                 ]:
-                    entry[new_col_name] = annotations[orig_name][x].lower()
+                    entry[new_col_name] = sub_ann[x].lower()
                 else:
-                    entry[new_col_name] = annotations[orig_name][x]
+                    entry[new_col_name] = sub_ann[x]
             else:
-                entry[new_col_name] = annotations[orig_name][x]
+                entry[new_col_name] = sub_ann[x]
 
         for x in ["dateassociate", "isgeopair", "qualify"]:
             if x in entry.keys():
@@ -140,36 +156,45 @@ def is_qualifier(entry):
     return False
 
 
-def clear_invalid_qualifiers(uuid):
-    fp = f"data/{uuid}/annotations.json"
-    with open(fp, "r") as f:
-        annotations = json.load(f)
+def clear_invalid_qualifiers(uuid, annotations):
+    # fp = f"data/{uuid}/annotations.json"
+    # with open(fp, "r") as f:
+    #     annotations = json.load(f)
     to_del = {}
     for x in annotations.keys():
-        if "qualify" in annotations[x].keys():
-            if annotations[x]["qualify"] == True:
-                to_del[x] = []
-                if type(annotations[x]["qualifyColumn"]) == str:
-                    annotations[x]["qualifyColumn"] = [annotations[x]["qualifyColumn"]]
+        sub_ann = annotations[x]
+        try:
+            logging.info(
+                f"Annotation: {annotations} | Annotation Keys: {annotations.keys()} | X: {x} | Annotation x: {sub_ann} | Typeof: {type(sub_ann)} | SUBANN: {sub_ann[0]}"
+            )
+            sub_ann = sub_ann[0]
+            if "qualify" in sub_ann:
+                if sub_ann["qualify"] == True:
+                    to_del[x] = []
+                    if type(sub_ann["qualifyColumn"]) == str:
+                        sub_ann["qualifyColumn"] = [sub_ann["qualifyColumn"]]
 
-                for y in annotations[x]["qualifyColumn"]:
-                    if y in annotations.keys():
-                        if not valid_qualifier_target(annotations[y]):
+                    for y in sub_ann["qualifyColumn"]:
+                        if y in annotations.keys():
+                            if not valid_qualifier_target(annotations[y]):
+                                to_del[x].append(y)
+                        else:
                             to_del[x].append(y)
-                    else:
-                        to_del[x].append(y)
+        except Exception as e:
+            logging.warning(f"Annotation field couldn't be processed: {x}")
     to_drop = []
     for x in to_del.keys():
         for y in to_del[x]:
-            annotations[x]["qualifyColumn"].remove(y)
-        if annotations[x]["qualifyColumn"] == []:
+            annotations[x][0]["qualifyColumn"].remove(y)
+        if annotations[x][0]["qualifyColumn"] == []:
             to_drop.append(x)
     for x in to_drop:
         if x in annotations.keys():
             del annotations[x]
 
-    with open(fp, "w") as f:
-        json.dump(annotations, f)
+    # with open(fp, "w") as f:
+    #     json.dump(annotations, f)
+    return annotations
 
 
 def build_meta(uuid, d, geo_select, context):
@@ -180,7 +205,6 @@ def build_meta(uuid, d, geo_select, context):
     meta = {}
     meta["ftype"] = ft
 
-    logging.info(f"context is: {context}")
     if ft == "geotiff":
         with open(f"data/{uuid}/geotiff_info.json", "r") as f:
             tif = json.load(f)
@@ -227,11 +251,12 @@ def build_meta(uuid, d, geo_select, context):
 
 def generate_mixmasta_files(context):
     uuid = context["uuid"]
-    clear_invalid_qualifiers(uuid)
+    annotations = context["annotations"]
+    annotations = clear_invalid_qualifiers(uuid, annotations)
 
     # Build the mapper.json annotations, and get geo_select for geo_coding
     # admin level if set annotating lat/lng pairs.
-    mixmasta_ready_annotations, geo_select = build_mapper(uuid)
+    mixmasta_ready_annotations, geo_select = build_mapper(uuid, annotations)
 
     logging_preface = "Mixmasta  log start: "
     d = f"data/{uuid}"
@@ -278,13 +303,7 @@ def generate_mixmasta_files(context):
         mapper = "mixmasta_ready_annotations"
 
     # Set gadm level based on geocoding level; still using gadm2 for gadm0/1.
-    with open(f"data/{uuid}/mixmasta_ready_annotations.json", "w") as f:
-        json.dump(
-            mixmasta_ready_annotations,
-            f,
-        )
-
-    gadm_level = gadm3 if admin_level == "admin3" else gadm2
+    gadm_level = None
 
     context["gadm_level"] = gadm_level
     context["output_directory"] = d
@@ -292,10 +311,7 @@ def generate_mixmasta_files(context):
     context["raw_data_fp"] = fp
     context["admin_level"] = admin_level
 
-    json.dump(
-        mixmasta_ready_annotations,
-        open(f"data/{uuid}/sent_to_mixmasta.json", "w"),
-    )
+    return mixmasta_ready_annotations
 
 
 def post_mixmasta_annotation_processing(rename, context):
@@ -337,9 +353,27 @@ def post_mixmasta_annotation_processing(rename, context):
     )
 
 
+def anomaly_detection(context):
+    uuid = context["uuid"]
+    file_stream = get_rawfile(uuid, "raw_data.csv")
+
+    if not os.path.exists(f"./data/{uuid}"):
+        os.makedirs(f"./data/{uuid}")
+
+    with open(f"./data/{uuid}/ad_file.csv", "wb") as f:
+        f.write(file_stream.getbuffer())
+
+    img = detector.csv_to_img(f"./data/{uuid}/ad_file.csv")
+
+    result = detector.classify(
+        img, low_threshold=0.33, high_threshold=0.66, entropy_threshold=0.15
+    )
+
+    return result
+
+
 def test_job():
     # Test RQ job
     time.sleep(5)
 
     print("Job Job")
-

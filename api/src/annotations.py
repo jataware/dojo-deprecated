@@ -1,10 +1,15 @@
 import time
+import json
+import tempfile
 
 from elasticsearch import Elasticsearch
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, HTTPException, Response, File, UploadFile, Form, status
+from pydantic import BaseModel
 
 from src.settings import settings
 from validation import SpacetagSchema
+
+import pandas as pd
 
 router = APIRouter()
 
@@ -27,7 +32,7 @@ def get_annotations(annotation_uuid: str) -> SpacetagSchema.SpaceModel:
 
 
 @router.post("/annotations/{annotation_uuid}")
-def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
+def post_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
 
     try:
 
@@ -49,7 +54,7 @@ def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
 
 
 @router.put("/annotations/{annotation_uuid}")
-def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
+def put_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
 
     try:
 
@@ -71,7 +76,7 @@ def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
 
 
 @router.patch("/annotations/{annotation_uuid}")
-def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
+def patch_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
 
     try:
 
@@ -89,4 +94,27 @@ def create_annotation(payload: SpacetagSchema.SpaceModel, annotation_uuid: str):
         return Response(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=f"Could not update annotation with id = {annotation_uuid}",
+        )
+
+
+@router.post("/annotations/preview/{lines}")
+async def create_preview(number_of_lines: int, data: UploadFile = File(...)):
+
+    try:
+        print(data.filename)
+        payload_wrapper = tempfile.TemporaryFile()
+        payload_wrapper.write(await data.read())
+        payload_wrapper.seek(0)
+
+        df = pd.read_csv(payload_wrapper, delimiter=",")
+
+        preview = df.head(number_of_lines).to_json(orient="records")
+
+        return preview
+
+    except Exception as e:
+        return Response(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            headers={"msg": f"Error: {e}"},
+            content=f"Queue could not be deleted.",
         )
