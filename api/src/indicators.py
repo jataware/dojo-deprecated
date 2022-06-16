@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.logger import logger
 
-from validation import IndicatorSchema, DojoSchema
+from validation import IndicatorSchema, DojoSchema, SpacetagSchema
 from src.settings import settings
 
 from src.dojo import search_and_scroll
@@ -161,3 +161,81 @@ def deprecate_indicator(indicator_id: str):
         headers={"location": f"/api/indicators/{indicator_id}"},
         content=f"Deprecated indicator with id {indicator_id}",
     )
+
+
+@router.get(
+    "/indicators/{indicator_id}/annotations", response_model=SpacetagSchema.SpaceModel
+)
+def get_annotations(indicator_id: str) -> SpacetagSchema.SpaceModel:
+    try:
+        annotation = es.get(index="annotations", id=indicator_id)["_source"]
+        return annotation
+    except:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        return None
+
+
+@router.post("/indicators/{indicator_id}/annotations")
+def post_annotation(payload: SpacetagSchema.SpaceModel, indicator_id: str):
+
+    try:
+
+        body = payload.json()
+
+        es.index(index="annotations", body=body, id=indicator_id)
+
+        return Response(
+            status_code=status.HTTP_201_CREATED,
+            headers={"location": f"/api/annotations/{indicator_id}"},
+            content=f"Updated annotation with id = {indicator_id}",
+        )
+    except:
+
+        return Response(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=f"Could not update annotation with id = {indicator_id}",
+        )
+
+
+@router.put("/indicators/{indicator_id}/annotations")
+def put_annotation(payload: SpacetagSchema.SpaceModel, indicator_id: str):
+
+    try:
+
+        body = payload.json()
+
+        es.index(index="annotations", body=body, id=indicator_id)
+
+        return Response(
+            status_code=status.HTTP_201_CREATED,
+            headers={"location": f"/api/annotations/{indicator_id}"},
+            content=f"Created annotation with id = {indicator_id}",
+        )
+    except:
+
+        return Response(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=f"Could not create annotation with id = {annotation_uuid}",
+        )
+
+
+@router.patch("/indicators/{indicator_id}/annotations")
+def patch_annotation(payload: SpacetagSchema.SpaceModel, indicator_id: str):
+
+    try:
+
+        body = payload.json()
+
+        es.update(index="annotations", body=body, id=indicator_id)
+
+        return Response(
+            status_code=status.HTTP_201_CREATED,
+            headers={"location": f"/api/annotations/{indicator_id}"},
+            content=f"Updated annotation with id = {indicator_id}",
+        )
+    except:
+
+        return Response(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=f"Could not update annotation with id = {indicator_id}",
+        )

@@ -9,6 +9,17 @@ import os
 from .base_annotation import BaseProcessor
 
 
+class MixmastaFileGenerator(BaseProcessor):
+    @staticmethod
+    def run(context):
+        """generate the files to run mixmasta"""
+        logging.info(
+            f"{context.get('logging_preface', '')} - Generating mixmasta files"
+        )
+        mm_ready_annotations = generate_mixmasta_files(context)
+        return mm_ready_annotations
+
+
 class MixmastaProcessor(BaseProcessor):
     @staticmethod
     def run(df, context) -> pd.DataFrame:
@@ -16,7 +27,7 @@ class MixmastaProcessor(BaseProcessor):
         logging.info(
             f"{context.get('logging_preface', '')} - Running mixmasta processor"
         )
-        gadm_level = context["gadm_level"]  # can maybe be left off
+        gadm_level = None  # can maybe be left off
         output_path = (
             f"{context['output_directory']}/{context['uuid']}"  # S3 bucket now.
         )
@@ -39,3 +50,13 @@ class MixmastaProcessor(BaseProcessor):
         ret.to_csv(f"data/{uuid}/mixmasta_processed_df.csv", index=False)
         os.remove(f"data/{uuid}/mixmasta_processed_writing")
         return df
+
+
+def process(df, context):
+    file_generator = MixmastaFileGenerator()
+    processor = MixmastaProcessor()
+
+    if not os.path.exists(f"./data/{context['uuid']}"):
+        os.makedirs(f"./data/{context['uuid']}")
+
+    mm_ready_annotations = file_generator.run(context)

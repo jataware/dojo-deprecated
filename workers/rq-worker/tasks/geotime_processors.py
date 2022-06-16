@@ -1,14 +1,18 @@
 from os import mkdir
-from base_annotation import BaseProcessor
 import json
 import os
-from geotime_classify import geotime_classify as gc
 import logging
+
+import pandas as pd
+from geotime_classify import geotime_classify as gc
+
+from base_annotation import BaseProcessor
+from utils import get_rawfile
 
 
 class GeotimeProcessor(BaseProcessor):
     @staticmethod
-    def run(df, context):
+    def run(context, df):
         """apply gc to df and write"""
         logging.info(
             f"{context.get('logging_preface', '')} - Applying geotime classification"
@@ -41,7 +45,11 @@ class GeotimeProcessor(BaseProcessor):
         return c_classifiedConverted
 
 
-def process(df, context):
+def process(context):
+
+    file = get_rawfile(context["uuid"], "raw_data.csv")
+    df = pd.read_csv(file, delimiter=",")
     gc = GeotimeProcessor()
+
     final = gc.run(df=df, context=context)
     return final

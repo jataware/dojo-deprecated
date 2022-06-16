@@ -6,8 +6,15 @@ import os
 import time
 from rename import rename as rename_function
 
+from anomaly_detection import AnomalyDetector
+from utils import get_rawfile
+
 logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
+
+# Anomaly detector instantiation; load_autoencoder() is comparatively resource intensive.
+detector = AnomalyDetector()
+detector.load_autoencoder()
 
 
 def dupe(annotations, rename_list, new_names):
@@ -344,6 +351,25 @@ def post_mixmasta_annotation_processing(rename, context):
         mixmasta_ready_annotations,
         open(f"data/{uuid}/mixmasta_ready_annotations.json", "w"),
     )
+
+
+def anomaly_detection(context):
+    uuid = context["uuid"]
+    file_stream = get_rawfile(uuid, "raw_data.csv")
+
+    if not os.path.exists(f"./data/{uuid}"):
+        os.makedirs(f"./data/{uuid}")
+
+    with open(f"./data/{uuid}/ad_file.csv", "wb") as f:
+        f.write(file_stream.getbuffer())
+
+    img = detector.csv_to_img(f"./data/{uuid}/ad_file.csv")
+
+    result = detector.classify(
+        img, low_threshold=0.33, high_threshold=0.66, entropy_threshold=0.15
+    )
+
+    return result
 
 
 def test_job():
