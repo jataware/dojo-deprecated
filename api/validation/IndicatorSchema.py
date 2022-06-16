@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from enum import Enum
 from typing import List, Optional, Any, Dict
+from xmlrpc.client import Boolean
 from pydantic import BaseModel, Extra, Field
 
 
@@ -307,8 +308,8 @@ class IndicatorMetadataSchema(BaseModel):
     class Config:
         extra = Extra.allow
 
-    id: str = Field(
-        ...,
+    id: Optional[str] = Field(
+        None,
         description="A unique dataset id",
         examples=["123e4567-e89b-12d3-a456-426614174000"],
         title="Dataset ID",
@@ -353,14 +354,14 @@ class IndicatorMetadataSchema(BaseModel):
         description="Information about the dataset maintainer.",
         title="Dataset Maintainer",
     )
-    data_paths: List[str] = Field(
-        ...,
+    data_paths: Optional[List[str]] = Field(
+        [],
         description="URL paths to data",
         examples=[["https://jataware-world-modelers.s3.amazonaws.com/WDI/data.csv"]],
         title="Data Path URLs",
     )
-    outputs: List[Output] = Field(
-        ...,
+    outputs: Optional[List[Output]] = Field(
+        [],
         description="An array of dataset variables",
         title="Dataset Outputs"
     )
@@ -383,7 +384,7 @@ class IndicatorMetadataSchema(BaseModel):
     period: Optional[Period] = Field(
         None, description="Data ranges covered by the dataset", title="Run time period"
     )
-    deprecated: bool = Field(
+    deprecated: Optional[bool] = Field(
         False,
         description="Deprecated datasets should not be used for new models.",
     )
@@ -403,6 +404,13 @@ class IndicatorMetadataSchema(BaseModel):
         ],
         title="Dataset Quality",
     )
+    published: Boolean = Field(
+        False,
+        description="Specifies if the dataset has been published or is still being registered or processed.",
+        examples=[False],
+        title="Is Published",
+    )
+
 
 class IndicatorsSearchSchema(BaseModel):
     class Config:

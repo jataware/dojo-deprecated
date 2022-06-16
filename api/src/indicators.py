@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import time
+import uuid
 from datetime import datetime
 from typing import Any, Dict, Generator, List, Optional
+from urllib.parse import urlparse
 
 import requests
 import json
@@ -10,8 +12,9 @@ import traceback
 
 from elasticsearch import Elasticsearch
 from pydantic import BaseModel, Field
+import boto3
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status, UploadFile, File
 from fastapi.logger import logger
 
 from validation import IndicatorSchema, DojoSchema
@@ -36,21 +39,27 @@ def current_milli_time():
 
 @router.post("/indicators")
 def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
-    indicator_id = payload.id
+    indicator_id = str(uuid.uuid4())
+    payload.id = indicator_id
     payload.created_at = current_milli_time()
     body = payload.json()
+    payload.published = False
 
-    data = get_ontologies(json.loads(body), type="indicator")
-    logger.info(f"Sent indicator to UAZ")
-    es.index(index="indicators", body=data, id=indicator_id)
+    es.index(index="indicators", body=body, id=indicator_id)
+    # TODO: Move this to publish
+        # data = get_ontologies(json.loads(body), type="indicator")
+        # logger.info(f"Sent indicator to UAZ")
 
-    # Notify Causemos that an indicator was created
-    notify_causemos(data, type="indicator")
+        # Notify Causemos that an indicator was created
+        # notify_causemos(data, type="indicator")
 
     return Response(
         status_code=status.HTTP_201_CREATED,
-        headers={"location": f"/api/indicators/{indicator_id}"},
-        content=f"Created indicator with id = {indicator_id}",
+        headers={
+            "location": f"/api/indicators/{indicator_id}",
+            "content-type": "application/json",
+        },
+        content=body,
     )
 
 
@@ -161,3 +170,39 @@ def deprecate_indicator(indicator_id: str):
         headers={"location": f"/api/indicators/{indicator_id}"},
         content=f"Deprecated indicator with id {indicator_id}",
     )
+
+
+@router.post("/indicators/{indicator_id}/upload")
+def upload_file(indicator_id: str, file: UploadFile = File(...)):
+    location_info = urlparse(settings.DATASET_STORAGE_BASE_URL)
+    original_filename = file.filename
+    _, ext= os.path.splitext(original_filename)
+    filename = f"raw_data{ext}"
+    output_dir = os.path.join(location_info.path, indicator_id)
+    output_path = os.path.join(output_dir, filename)
+
+
+    if location_info.scheme.lower() == "file":
+        if not os.path.isdir(output_dir):
+            os.makedirs(output_dir, exist_ok=True)
+        with open(output_path, "wb") as output_file:
+            output_file.write(file.file.read())
+    elif location_info.scheme.lower() == "s3":
+        output_path = output_path.lstrip("/")
+        s3 = boto3.client("s3")
+        s3.put_object(
+            Bucket=location_info.netloc,
+            Key=output_path,
+            Body=file.file
+        )
+    else:
+        raise RuntimeError("Upload destination format is unknown")
+
+    # TODO Store original filename in metadata & update metadata with file location
+
+    return Response(
+        status_code=status.HTTP_201_CREATED,
+        headers={"location": f"/api/indicators/{indicator_id}"},
+        content=f"Uploaded file to with id {indicator_id}",
+    )
+    
