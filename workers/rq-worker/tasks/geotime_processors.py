@@ -7,7 +7,7 @@ import pandas as pd
 from geotime_classify import geotime_classify as gc
 
 from base_annotation import BaseProcessor
-from utils import get_rawfile
+from utils import get_rawfile, put_rawfile
 
 
 class GeotimeProcessor(BaseProcessor):
@@ -18,12 +18,13 @@ class GeotimeProcessor(BaseProcessor):
             f"{context.get('logging_preface', '')} - Applying geotime classification"
         )
 
-        def convert_gc(c):
+        def convert_gc(classifications):
             ret = {}
-            for x in c:
-                logging.warn(f"Inside converter: {x}")
-                ret[x["column"]] = x
-                del ret[x["column"]]["column"]
+            for classification in classifications.classifications:
+                col_name = classification.column
+                logging.warn(f"Inside converter: {classification}")
+                ret[col_name] = classification.dict()
+                del ret[col_name]["column"]
             return ret
 
         GeoTimeClass = gc.GeoTimeClassify(50)

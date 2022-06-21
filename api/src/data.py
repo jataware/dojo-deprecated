@@ -136,8 +136,14 @@ def convert_data_to_tabular(uuid, payload):
 
 
 def get_context(uuid):
-    annotations = get_annotations(uuid)
-    meta = get_indicators(uuid)
+    try:
+        annotations = get_annotations(uuid)
+    except:
+        annotations = {}
+    try:
+        meta = get_indicators(uuid)
+    except:
+        meta = {}
 
     context = {"uuid": uuid, "metadata": meta, "annotations": annotations}
 
@@ -153,7 +159,6 @@ def get_datapath_from_indicator(uuid):
 
 
 # RQ ENDPOINTS
-
 
 @router.post("/job/enqueue/{job_string}")
 def enqueue_job(job_string: str, uuid: str, job_id: str = None):

@@ -1,5 +1,7 @@
-import time
 import os
+import tempfile
+import time
+from urllib.parse import urlparse
 from io import BytesIO
 
 from elasticsearch import Elasticsearch
@@ -102,27 +104,47 @@ def run_model_with_defaults(model_id):
 
 
 def get_rawfile(uuid, filename):
-    # Get raw file from S3
-    bucket = s3.Bucket(os.getenv("DMC_BUCKET"))
-    file_location = bucket.Object(f"dev/indicators/{uuid}/{filename}")
+    location_info = urlparse(settings.DATASET_STORAGE_BASE_URL)
+    file_dir = os.path.join(location_info.path, uuid)
+    file_path = os.path.join(file_dir, filename)
 
-    file_stream = BytesIO()
-    file_location.download_fileobj(file_stream)
-
-    file_stream.seek(0)
+    if location_info.scheme.lower() == "file":
+        raw_file =  open(file_path, "r")
+    elif location_info.scheme.lower() == "s3":
+        file_path = file_path.lstrip("/")
+        raw_file = tempfile.TemporaryFile()
+        s3.download_fileobj(
+            Bucket=location_info.netloc,
+            Key=file_path,
+            Fileobj=raw_file
+        )
+        raw_file.seek(0)
+    else:
+        raise RuntimeError("File storage format is unknown")
 
     logging.debug(
         f"INFO from get raw file: Bucket: {bucket.name} | File: {file_location.key}"
     )
+    return raw_file
 
-    return file_stream
+
+def put_rawfile(uuid, filename, fileobj):
+    location_info = urlparse(settings.DATASET_STORAGE_BASE_URL)
+    output_dir = os.path.join(location_info.path, uuid)
+    output_path = os.path.join(output_dir, filename)
 
 
-async def put_rawfile(uuid, filename, fileobj):
-    bucket = os.getenv("DMC_BUCKET")
-    file_location = f"dev/indicators/{uuid}/{filename}"
-    file_stream = BytesIO()
-
-    file_stream.write(await fileobj.read())
-    file_stream.seek(0)
-    s3.upload_fileobj(file_stream, bucket, file_location)
+    if location_info.scheme.lower() == "file":
+        if not os.path.isdir(output_dir):
+            os.makedirs(output_dir, exist_ok=True)
+        with open(output_path, "wb") as output_file:
+            output_file.write(fileobj.read())
+    elif location_info.scheme.lower() == "s3":
+        output_path = output_path.lstrip("/")
+        s3.put_object(
+            Bucket=location_info.netloc,
+            Key=output_path,
+            Body=fileobj
+        )
+    else:
+        raise RuntimeError("File storage format is unknown")
