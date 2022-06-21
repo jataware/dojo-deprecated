@@ -166,7 +166,7 @@ def create_run(run: RunSchema.ModelRunSchema):
     outputfiles = get_outputfiles(run.model_id) # call dojo.py API method directly.
     output_dirs = {}
     mixmasta_inputs = []
-    volumeArray = [ "/var/run/docker.sock:/var/run/docker.sock" ]
+    volumeArray = []
     for output in outputfiles:
         try:
             # rehydrate file path in
@@ -287,7 +287,7 @@ def create_run(run: RunSchema.ModelRunSchema):
     payload = {"dag_run_id": run.id, "conf": run_conf}
 
     response = requests.post(
-        f"{dmc_base_url}/dags/model_xform/dagRuns",
+        f"{dmc_base_url}/dags/cloud_model_xform/dagRuns",
         headers=headers,
         auth=(dmc_user, dmc_pass),
         json=payload,
@@ -312,7 +312,7 @@ def create_run(run: RunSchema.ModelRunSchema):
 @router.get("/runs/{run_id}/logs")
 def get_run_logs(run_id: str) -> RunSchema.RunLogsSchema:
     tasks_response = requests.get(
-        f"{dmc_base_url}/dags/model_xform/dagRuns/{run_id}/taskInstances",
+        f"{dmc_base_url}/dags/cloud_model_xform/dagRuns/{run_id}/taskInstances",
         headers=headers,
         auth=(dmc_user, dmc_pass),
     )
@@ -346,7 +346,7 @@ def get_run_logs(run_id: str) -> RunSchema.RunLogsSchema:
         task_try_number = task["try_number"]
         if task_try_number:
             response_l = requests.get(
-                f"{dmc_base_url}/dags/model_xform/dagRuns/{run_id}/taskInstances/{task_id}/logs/{task_try_number}",
+                f"{dmc_base_url}/dags/cloud_model_xform/dagRuns/{run_id}/taskInstances/{task_id}/logs/{task_try_number}",
                 headers=headers,
                 auth=(dmc_user, dmc_pass),
             )

@@ -171,3 +171,27 @@ class ParameterFormatter(BaseModel):
     )
 
 
+class ModelRunSpec(BaseModel):
+
+    model_id: str = Field(
+        title="Model ID",
+        description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
+        example="abcd-efg-1233",
+    )
+
+    instance_type: Optional[str] = Field(
+        title="EC2 Instance Type",
+        example="t3.medium",
+    )
+
+    volume_size: Optional[int] = Field(
+        title="EBS Volume Size",
+        description="EBS Volume Size in GB",
+        example="24",
+    )
+
+    debug: Optional[bool] = Field(
+        title="Run in debug mode",
+        description="Run model in debug mode producing extra outputs",
+    )
+

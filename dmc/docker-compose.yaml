@@ -39,7 +39,7 @@
   version: '3'
   x-airflow-common:
     &airflow-common
-    image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.0.1}
+    image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.0.1-python3.8}
     environment:
       &airflow-common-env
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -49,15 +49,21 @@
       AIRFLOW__CORE__FERNET_KEY: ''
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__CORE__ENABLE_XCOM_PICKLING: 'true'
       #AIRFLOW__API__ENABLE_EXPERIMENTAL_API: 'true'
       AIRFLOW__API__AUTH_BACKEND: 'airflow.api.auth.backend.basic_auth'
       DOCKER_URL: http://${DOCKER_URL}:${DOCKER_PORT}
-      DMC_LOCAL_DIR: "${PWD}"
+      DMC_LOCAL_DIR: ${PWD} # /home/ubuntu/dmc
       BUCKET: ${BUCKET}
       BUCKET_DIR: ${BUCKET_DIR}
-      DMC_DEBUG: '${DMC_DEBUG}'
-      AIRFLOW_CONN_AWS_DEFAULT: aws://${AWS_ACCESS_KEY}:${AWS_SECRET_KEY}@
-      MIXMASTA_VERSION: "${MIXMASTA_VERSION}"
+      DMC_DEBUG: ${DMC_DEBUG}
+      AIRFLOW_CONN_AWS_DEFAULT: aws://${AWS_ACCESS_KEY:-?}:${AWS_SECRET_KEY:-?}@
+      MIXMASTA_VERSION: ${MIXMASTA_VERSION}
+      HAMMERHEAD_VERSION: latest
+      DAG_TASKS_VERSION: dev
+      IP_ADDRESS: ${IP_ADDRESS}
+      DOCKER_ENGINE_IP: ${IP_ADDRESS} # launch.wm.jata.lol
+      RUN_LOCAL: y
       CAUSEMOS_BASE_URL: ${CAUSEMOS_BASE_URL}
       CAUSEMOS_USER: ${CAUSEMOS_USER}
       CAUSEMOS_PWD: ${CAUSEMOS_PWD}
@@ -68,7 +74,7 @@
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
-      - ./docker.py:/home/airflow/.local/lib/python3.6/site-packages/airflow/providers/docker/operators/docker.py
+      - ./docker.py:/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/docker/operators/docker.py
       - ./results:/results
       - ./mappers:/mappers
       - ./model_configs:/model_configs
@@ -88,7 +94,7 @@
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
       command: tcp-listen:8375,fork,reuseaddr unix-connect:/var/run/docker.sock
-      
+
     postgres:
       image: postgres:13
       environment:
@@ -137,6 +143,13 @@
       <<: *airflow-common
       command: celery worker
       restart: always
+      environment:
+        <<: *airflow-common-env
+        ID_RSA: ${ID_RSA}
+        DOCKERHUB_USER: ${DOCKERHUB_USER}
+        DOCKERHUB_PASS: ${DOCKERHUB_PASS}
+        AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+        AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
 
     airflow-init:
       <<: *airflow-common

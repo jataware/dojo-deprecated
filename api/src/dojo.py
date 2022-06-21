@@ -518,3 +518,46 @@ def get_domains() -> List[str]:
     ]
 
     return domains
+
+
+@router.post("/dojo/run/spec")
+def create_run_spec(payload: DojoSchema.ModelRunSpec):
+    """
+    Create a `ModelRunSpec` for a model.
+    """
+
+    try:
+        es.update(index="run_spec", body={"doc": payload.dict()}, id=payload.model_id)
+        return Response(
+            status_code=status.HTTP_200_OK,
+            headers={"location": f"/dojo/runs/spec/{payload.model_id}"},
+            content=f"Updated run spec for model with id = {payload.model_id}",
+        )
+    except NotFoundError:
+        es.index(index="run_spec", body=payload.json(), id=payload.model_id)
+        return Response(
+            status_code=status.HTTP_201_CREATED,
+            headers={"location": f"/dojo/runs/spec/{payload.model_id}"},
+            content=f"Created run spec for model with id = {payload.model_id}",
+        )
+
+
+@router.get("/dojo/run/spec/{model_id}")
+def get_run_spec(model_id: str) -> DojoSchema.ModelRunSpec:
+    """
+    Returns the Run Spec for a model
+    """
+    try:
+        results = es.search(index="run_spec", body=search_by_model(model_id), size=10)
+        m = [i["_source"] for i in results["hits"]["hits"]][0]
+        return DojoSchema.ModelRunSpec(**m).dict(exclude_none=True)
+    except IndexError:
+        pass
+    except Exception:
+        logger.exception("get run_spec")
+
+    return Response(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content=f"Run Spec for model {model_id} not found.",
+    )
+
