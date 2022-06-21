@@ -156,9 +156,12 @@ def get_datapath_from_indicator(uuid):
 
 
 @router.post("/job/enqueue/{job_string}")
-def enqueue_job(job_string: str, uuid: str):
+def enqueue_job(job_string: str, uuid: str, job_id: str = None):
     context = get_context(uuid=uuid)
-    job = q.enqueue_call(func=job_string, args=[context])
+    if job_id is None:
+        job = q.enqueue_call(func=job_string, args=[context])
+    else:
+        job = q.enqueue_call(func=job_string, args=[context], job_id=job_id)
 
     return Response(
         status_code=status.HTTP_200_OK,
@@ -168,9 +171,12 @@ def enqueue_job(job_string: str, uuid: str):
 
 
 @router.post("/job/synchronous_enqueue/{job_string}")
-def enqueue_job(job_string: str, uuid: str):
+def enqueue_job_sync(job_string: str, uuid: str, job_id: str = None):
     context = get_context(uuid=uuid)
-    job = q.enqueue_call(func=job_string, args=[context])
+    if job_id is None:
+        job = q.enqueue_call(func=job_string, args=[context])
+    else:
+        job = q.enqueue_call(func=job_string, args=[context], job_id=job_id)
 
     while job.get_status(refresh=True) != "finished":
         print(job.get_status(refresh=True))
@@ -229,6 +235,13 @@ def empty_queue():
         )
 
 
+def cancel_job(job_id):
+    job = Job.fetch(job_id, connection=redis)
+    job.cancel()
+
+    return job.get_status()
+
+
 # TEST ENDPOINTS
 
 
@@ -271,3 +284,20 @@ async def test_s3_upload(uuid: str, filename: str, payload: UploadFile = File(..
             headers={"msg": f"Error: {e}"},
             content=f"File could not be uploaded.",
         )
+
+
+@router.get("/data/test/job_cancel_redo")
+def job_cancel_redo_test(uuid: str, job_id: str):
+    response = enqueue_job("geotime_processors.process", uuid, job_id)
+
+    time.sleep(5)
+
+    cancel_status = cancel_job(job_id)
+
+    response2 = enqueue_job("geotime_processors.process", uuid, job_id)
+
+    return Response(
+        status_code=status.HTTP_200_OK,
+        headers={"msg": "Job cancelled and restarted"},
+        content=f"Job cancelled and restarted. Cancel status: {cancel_status}",
+    )

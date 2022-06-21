@@ -5,8 +5,10 @@ pandas
 requests
 rq
 torch
-matplotlib
 numpy
+netCDF4==1.5.3
+matplotlib
+# mixmasta
 python-dateutil
 scipy
 torchvision
