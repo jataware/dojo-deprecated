@@ -246,6 +246,32 @@ def cancel_job(job_id):
 
     return job.get_status()
 
+# Last to not interfere with other routes
+@router.post("/job/{uuid}/{job_string}")
+def job(uuid: str, job_string: str):
+
+    job_id = f'{uuid}_{job_string}'
+
+    logging.warn(q.job_ids)
+
+    if job_id in q.job_ids:
+        job = q.fetch_job(job_id)
+    else:
+        try:
+            context = get_context(uuid=uuid)
+        except Exception as e:
+            logging.error(e)
+        job = q.enqueue_call(func=job_string, args=[context], job_id=job_id)
+
+    logging.warn(job.__dict__)
+    return {
+        "id": job_id,
+        "created_at": job.created_at,
+        "enqueued_at": job.enqueued_at,
+        "started_at": job.started_at,
+        "status": str(job.get_status()),
+    }
+
 
 # TEST ENDPOINTS
 
