@@ -1,4 +1,5 @@
 import logging
+import json
 import os
 
 import pandas as pd
@@ -9,7 +10,7 @@ from tasks import (
     generate_mixmasta_files,
     post_mixmasta_annotation_processing,
 )
-from .base_annotation import BaseProcessor
+from base_annotation import BaseProcessor
 
 
 class MixmastaFileGenerator(BaseProcessor):
@@ -25,7 +26,7 @@ class MixmastaFileGenerator(BaseProcessor):
 
 class MixmastaProcessor(BaseProcessor):
     @staticmethod
-    def run(df, context) -> pd.DataFrame:
+    def run(context) -> pd.DataFrame:
         """final full mixmasta implementation"""
         logging.info(
             f"{context.get('logging_preface', '')} - Running mixmasta processor"
@@ -52,7 +53,7 @@ class MixmastaProcessor(BaseProcessor):
         return ret
 
 
-def process(df, context):
+def run_mixmasta(context):
     file_generator = MixmastaFileGenerator()
     processor = MixmastaProcessor()
     datapath = f"./data/{context['uuid']}"
@@ -63,7 +64,7 @@ def process(df, context):
     mm_ready_annotations = file_generator.run(context)
 
     with open(f"{datapath}/mixmasta_ready_annotations.json", "w") as f:
-        f.write(mm_ready_annotations)
+        f.write(json.dumps(mm_ready_annotations))
     f.close()
 
     file_stream = get_rawfile(context["uuid"], "raw_data.csv")

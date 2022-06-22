@@ -43,7 +43,7 @@ s3 = boto3.resource("s3")
 @router.post("/data/mixmasta_process/{uuid}")
 def run_mixmasta(uuid: str):
     context = get_context(uuid=uuid)
-    job = q.enqueue("mimasta_processors.process", context)
+    job = q.enqueue("mimasta_processors.run_mixmasta", context)
     return Response(
         status_code=status.HTTP_200_OK,
         headers={"msg": "Mixmasta job running"},
@@ -63,7 +63,7 @@ async def geotime_classify(uuid: str, payload: UploadFile = File(...)):
 
         df = pd.read_csv(payload_wrapper, delimiter=",")
 
-        job = q.enqueue("geotime_processors.process", context, df)
+        job = q.enqueue("geotime_processors.geotime_classify", context, df)
 
         return Response(
             status_code=status.HTTP_200_OK,
@@ -160,6 +160,7 @@ def get_datapath_from_indicator(uuid):
 
 # RQ ENDPOINTS
 
+
 @router.post("/job/enqueue/{job_string}")
 def enqueue_job(job_string: str, uuid: str, job_id: str = None):
     context = get_context(uuid=uuid)
@@ -238,6 +239,18 @@ def empty_queue():
             status_code=status.HTTP_400_BAD_REQUEST,
             content=f"Queue could not be deleted.",
         )
+
+
+@router.get("/job/available_job_strings")
+def available_job_strings():
+    # STUB, SHOULD NOT BE HARD CODED.
+    # TODO - get this from the rq worker dynamically?
+    job_string_dict = {
+        "Geotime Classify Job": "geotime_processors.geotime_classify",
+        "Mixmasta Job": "mixmasta_processors.run_mixmasta",
+        "Anomaly Detection": "tasks.anomaly_detection",
+    }
+    return job_string_dict
 
 
 def cancel_job(job_id):

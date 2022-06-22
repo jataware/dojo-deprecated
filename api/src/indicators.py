@@ -14,7 +14,16 @@ from elasticsearch import Elasticsearch
 from pydantic import BaseModel, Field
 import boto3
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status, UploadFile, File
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    Response,
+    status,
+    UploadFile,
+    File,
+)
 from fastapi.logger import logger
 
 from validation import IndicatorSchema, DojoSchema, SpacetagSchema
@@ -48,11 +57,11 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
 
     es.index(index="indicators", body=body, id=indicator_id)
     # TODO: Move this to publish
-        # data = get_ontologies(json.loads(body), type="indicator")
-        # logger.info(f"Sent indicator to UAZ")
+    # data = get_ontologies(json.loads(body), type="indicator")
+    # logger.info(f"Sent indicator to UAZ")
 
-        # Notify Causemos that an indicator was created
-        # notify_causemos(data, type="indicator")
+    # Notify Causemos that an indicator was created
+    # notify_causemos(data, type="indicator")
 
     return Response(
         status_code=status.HTTP_201_CREATED,
@@ -254,7 +263,7 @@ def patch_annotation(payload: SpacetagSchema.SpaceModel, indicator_id: str):
 @router.post("/indicators/{indicator_id}/upload")
 def upload_file(indicator_id: str, file: UploadFile = File(...)):
     original_filename = file.filename
-    _, ext= os.path.splitext(original_filename)
+    _, ext = os.path.splitext(original_filename)
     filename = f"raw_data{ext}"
 
     # Upload file
@@ -266,3 +275,12 @@ def upload_file(indicator_id: str, file: UploadFile = File(...)):
         content=f"Uploaded file to with id {indicator_id}",
     )
 
+
+@router.get("/indicators/{indicator_id}/verbose")
+def get_all_indicator_info(indicator_id: str):
+    indicator = get_indicators(indicator_id)
+    annotations = get_annotations(indicator_id)
+
+    verbose_return_object = {"indicators": indicator, "annotations": annotations}
+
+    return verbose_return_object
