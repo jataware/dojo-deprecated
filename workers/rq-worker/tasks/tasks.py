@@ -372,8 +372,13 @@ def anomaly_detection(context):
     return result
 
 
-def test_job():
+def test_job(context, fail=False, sleep=10, *args, **kwargs):
+    logging.info(f"test_job preparing to sleep for {sleep} seconds")
     # Test RQ job
-    time.sleep(5)
+    time.sleep(10)
+    logging.info("test_job sleep completed")
+    if fail:
+        logging.info("Flag set to force fail, raising exception")
+        raise RuntimeError("Forced failure of test job")
 
-    print("Job Job")
+    logging.info("test_job task completed successfully")
