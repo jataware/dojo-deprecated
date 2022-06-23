@@ -252,25 +252,30 @@ def job(uuid: str, job_string: str):
 
     job_id = f'{uuid}_{job_string}'
 
-    logging.warn(q.job_ids)
-
-    if job_id in q.job_ids:
-        job = q.fetch_job(job_id)
-    else:
+    job = q.fetch_job(job_id)
+    if not job:
         try:
             context = get_context(uuid=uuid)
         except Exception as e:
             logging.error(e)
         job = q.enqueue_call(func=job_string, args=[context], job_id=job_id)
+    
+    status = job.get_status()
+    if status in ("finished", "failed"):
+        job_error = job.exc_info
+        job.cleanup(ttl=0)  # Cleanup/remove data immediately
+    else:
+        job_error = None
 
-    logging.warn(job.__dict__)
-    return {
+    response = {
         "id": job_id,
         "created_at": job.created_at,
         "enqueued_at": job.enqueued_at,
         "started_at": job.started_at,
-        "status": str(job.get_status()),
+        "status": status,
+        "job_error": job_error,
     }
+    return response
 
 
 # TEST ENDPOINTS
