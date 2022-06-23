@@ -2,12 +2,16 @@ from os import mkdir
 import json
 import os
 import logging
+import requests
 
 import pandas as pd
 from geotime_classify import geotime_classify as gc
 
 from base_annotation import BaseProcessor
 from utils import get_rawfile, put_rawfile
+
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
 
 
 class GeotimeProcessor(BaseProcessor):
@@ -53,4 +57,12 @@ def geotime_classify(context):
     gc = GeotimeProcessor()
 
     final = gc.run(df=df, context=context)
-    return final
+
+    # Constructs data object for post that creates the metadata dictionary for the Metadata Model
+    data = {"metadata": {"geotime_classify": json.dumps(final)}, "Annotations": None}
+    api_url = os.environ.get("DOJO_HOST")
+    request_response = requests.post(
+        f"{api_url}/indicators/{context['uuid']}/annotations",
+        data=json.dumps(data),
+    )
+    return json.dumps(final)

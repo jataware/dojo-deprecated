@@ -79,28 +79,6 @@ async def geotime_classify(uuid: str, payload: UploadFile = File(...)):
         )
 
 
-@router.post("/data/preview/{lines}")
-async def create_preview(number_of_lines: int, data: UploadFile = File(...)):
-
-    try:
-        payload_wrapper = tempfile.TemporaryFile()
-        payload_wrapper.write(await data.read())
-        payload_wrapper.seek(0)
-
-        df = pd.read_csv(payload_wrapper, delimiter=",")
-
-        preview = df.head(number_of_lines).to_json(orient="records")
-
-        return preview
-
-    except Exception as e:
-        return Response(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            headers={"msg": f"Error: {e}"},
-            content=f"Queue could not be deleted.",
-        )
-
-
 def convert_data_to_tabular(uuid, payload):
     if payload.filename.endswith(".csv"):
 
@@ -141,11 +119,11 @@ def get_context(uuid):
     except:
         annotations = {}
     try:
-        meta = get_indicators(uuid)
+        datasets = get_indicators(uuid)
     except:
-        meta = {}
+        datasets = {}
 
-    context = {"uuid": uuid, "metadata": meta, "annotations": annotations}
+    context = {"uuid": uuid, "datasets": datasets, "annotations": annotations}
 
     return context
 

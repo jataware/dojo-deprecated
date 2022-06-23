@@ -13,6 +13,7 @@ import traceback
 from elasticsearch import Elasticsearch
 from pydantic import BaseModel, Field
 import boto3
+import pandas as pd
 
 from fastapi import (
     APIRouter,
@@ -26,14 +27,14 @@ from fastapi import (
 )
 from fastapi.logger import logger
 
-from validation import IndicatorSchema, DojoSchema, SpacetagSchema
+from validation import IndicatorSchema, DojoSchema, SpacetagSchema, MetadataSchema
 from src.settings import settings
 
 from src.dojo import search_and_scroll
 from src.ontologies import get_ontologies
 from src.causemos import notify_causemos
 from src.causemos import deprecate_dataset
-from src.utils import put_rawfile
+from src.utils import put_rawfile, get_rawfile
 
 import os
 
@@ -183,9 +184,9 @@ def deprecate_indicator(indicator_id: str):
 
 
 @router.get(
-    "/indicators/{indicator_id}/annotations", response_model=SpacetagSchema.SpaceModel
+    "/indicators/{indicator_id}/annotations", response_model=MetadataSchema.MetaModel
 )
-def get_annotations(indicator_id: str) -> SpacetagSchema.SpaceModel:
+def get_annotations(indicator_id: str) -> MetadataSchema.MetaModel:
     try:
         annotation = es.get(index="annotations", id=indicator_id)["_source"]
         return annotation
@@ -195,7 +196,7 @@ def get_annotations(indicator_id: str) -> SpacetagSchema.SpaceModel:
 
 
 @router.post("/indicators/{indicator_id}/annotations")
-def post_annotation(payload: SpacetagSchema.SpaceModel, indicator_id: str):
+def post_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
 
     try:
 
@@ -217,7 +218,7 @@ def post_annotation(payload: SpacetagSchema.SpaceModel, indicator_id: str):
 
 
 @router.put("/indicators/{indicator_id}/annotations")
-def put_annotation(payload: SpacetagSchema.SpaceModel, indicator_id: str):
+def put_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
 
     try:
 
@@ -239,7 +240,7 @@ def put_annotation(payload: SpacetagSchema.SpaceModel, indicator_id: str):
 
 
 @router.patch("/indicators/{indicator_id}/annotations")
-def patch_annotation(payload: SpacetagSchema.SpaceModel, indicator_id: str):
+def patch_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
 
     try:
 
@@ -284,3 +285,23 @@ def get_all_indicator_info(indicator_id: str):
     verbose_return_object = {"indicators": indicator, "annotations": annotations}
 
     return verbose_return_object
+
+
+@router.post("/indicators/{indicator_id}/preview")
+async def create_preview(indicator_id: str, number_of_lines: int):
+
+    try:
+        file = get_rawfile(indicator_id, "raw_data.csv")
+
+        df = pd.read_csv(file, delimiter=",")
+
+        preview = df.head(number_of_lines).to_json(orient="records")
+
+        return preview
+
+    except Exception as e:
+        return Response(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            headers={"msg": f"Error: {e}"},
+            content=f"Queue could not be deleted.",
+        )

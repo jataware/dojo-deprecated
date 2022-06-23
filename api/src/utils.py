@@ -120,9 +120,6 @@ def get_rawfile(uuid, filename):
     else:
         raise RuntimeError("File storage format is unknown")
 
-    logging.debug(
-        f"INFO from get raw file: Bucket: {bucket.name} | File: {file_location.key}"
-    )
     return raw_file
 
 
