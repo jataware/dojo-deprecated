@@ -5,7 +5,7 @@ import tempfile
 from multiprocessing import context
 import os
 from io import BytesIO
-from typing import List
+from typing import Any, Dict, List, Optional
 
 
 import pandas as pd
@@ -236,6 +236,40 @@ def cancel_job(job_id):
     job.cancel()
 
     return job.get_status()
+
+# Last to not interfere with other routes
+@router.post("/job/{uuid}/{job_string}")
+def job(uuid: str, job_string: str, options: Optional[Dict[Any, Any]] = None):
+
+    if options is None:
+        options = {}
+
+    job_id = f'{uuid}_{job_string}'
+
+    job = q.fetch_job(job_id)
+    if not job:
+        try:
+            context = get_context(uuid=uuid)
+        except Exception as e:
+            logging.error(e)
+        job = q.enqueue_call(func=job_string, args=[context], kwargs=options, job_id=job_id)
+    
+    status = job.get_status()
+    if status in ("finished", "failed"):
+        job_error = job.exc_info
+        job.cleanup(ttl=0)  # Cleanup/remove data immediately
+    else:
+        job_error = None
+
+    response = {
+        "id": job_id,
+        "created_at": job.created_at,
+        "enqueued_at": job.enqueued_at,
+        "started_at": job.started_at,
+        "status": status,
+        "job_error": job_error,
+    }
+    return response
 
 
 # TEST ENDPOINTS
