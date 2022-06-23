@@ -372,7 +372,7 @@ def anomaly_detection(context):
     return result
 
 
-def test_job(fail=False, sleep=10, *args, **kwargs):
+def test_job(context, fail=False, sleep=10, *args, **kwargs):
     logging.info(f"test_job preparing to sleep for {sleep} seconds")
     # Test RQ job
     time.sleep(10)
