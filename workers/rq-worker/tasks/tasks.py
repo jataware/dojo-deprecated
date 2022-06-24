@@ -1,3 +1,4 @@
+import base64
 import copy
 import json
 import logging
@@ -6,7 +7,7 @@ import os
 import time
 from rename import rename as rename_function
 
-from anomaly_detection import AnomalyDetector
+from anomaly_detection import AnomalyDetector, sheet_tensor_to_img
 from utils import get_rawfile
 
 logging.basicConfig()
@@ -354,6 +355,9 @@ def post_mixmasta_annotation_processing(rename, context):
 
 
 def anomaly_detection(context):
+    from matplotlib import pyplot as plt
+    from io import BytesIO
+
     uuid = context["uuid"]
     file_stream = get_rawfile(uuid, "raw_data.csv")
 
@@ -363,13 +367,21 @@ def anomaly_detection(context):
     with open(f"./data/{uuid}/ad_file.csv", "wb") as f:
         f.write(file_stream.read())
 
-    img = detector.csv_to_img(f"./data/{uuid}/ad_file.csv")
+    tensor = detector.csv_to_img(f"./data/{uuid}/ad_file.csv")
 
     result = detector.classify(
-        img, low_threshold=0.33, high_threshold=0.66, entropy_threshold=0.15
+        tensor, low_threshold=0.33, high_threshold=0.66, entropy_threshold=0.15
     )
+    img = sheet_tensor_to_img(tensor)
+    buffer = BytesIO()
+    plt.imshow(img)
+    plt.savefig(buffer, format="png")
+    buffer.seek(0)
 
-    return result
+    return {
+        "anomalyConfidence": result,
+        "img": base64.encodebytes(buffer.read()),
+    }
 
 
 def test_job(context, fail=False, sleep=10, *args, **kwargs):
