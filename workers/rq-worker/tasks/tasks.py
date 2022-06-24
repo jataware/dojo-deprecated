@@ -361,7 +361,7 @@ def anomaly_detection(context):
         os.makedirs(f"./data/{uuid}")
 
     with open(f"./data/{uuid}/ad_file.csv", "wb") as f:
-        f.write(file_stream.getbuffer())
+        f.write(file_stream.read())
 
     img = detector.csv_to_img(f"./data/{uuid}/ad_file.csv")
 
@@ -375,7 +375,7 @@ def anomaly_detection(context):
 def test_job(context, fail=False, sleep=10, *args, **kwargs):
     logging.info(f"test_job preparing to sleep for {sleep} seconds")
     # Test RQ job
-    time.sleep(10)
+    time.sleep(sleep)
     logging.info("test_job sleep completed")
     if fail:
         logging.info("Flag set to force fail, raising exception")

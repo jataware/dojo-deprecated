@@ -18,7 +18,7 @@ def get_rawfile(uuid, filename):
     file_path = os.path.join(file_dir, filename)
 
     if location_info.scheme.lower() == "file":
-        raw_file =  open(file_path, "r")
+        raw_file =  open(file_path, "rb")
         logging.debug(
             f"INFO from get raw file: Path: {file_path}"
         )
