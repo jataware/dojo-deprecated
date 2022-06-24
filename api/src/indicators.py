@@ -200,7 +200,9 @@ def post_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
 
     try:
 
-        body = payload.json()
+        body = json.loads(payload.json())
+
+        logger.warn(f"Body: {body} | Payload: {payload}")
 
         es.index(index="annotations", body=body, id=indicator_id)
 
@@ -222,7 +224,7 @@ def put_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
 
     try:
 
-        body = payload.json()
+        body = json.loads(payload.json())
 
         es.index(index="annotations", body=body, id=indicator_id)
 
@@ -244,9 +246,9 @@ def patch_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
 
     try:
 
-        body = payload.json()
+        body = json.loads(payload.json(exclude_unset=True))
 
-        es.update(index="annotations", body=body, id=indicator_id)
+        es.update(index="annotations", body={"doc": body}, id=indicator_id)
 
         return Response(
             status_code=status.HTTP_201_CREATED,
