@@ -202,8 +202,6 @@ def post_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
 
         body = json.loads(payload.json())
 
-        logger.warn(f"Body: {body} | Payload: {payload}")
-
         es.index(index="annotations", body=body, id=indicator_id)
 
         return Response(
