@@ -187,6 +187,17 @@ def deprecate_indicator(indicator_id: str):
     "/indicators/{indicator_id}/annotations", response_model=MetadataSchema.MetaModel
 )
 def get_annotations(indicator_id: str) -> MetadataSchema.MetaModel:
+    """Get annotations for a dataset.
+
+    Args:
+        indicator_id (str): The UUID of the dataset to retrieve annotations for from elasticsearch.
+
+    Raises:
+        HTTPException: This is raised if no annotation is found for the dataset in elasticsearch.
+
+    Returns:
+        MetadataSchema.MetaModel: Returns the annotations pydantic schema for the dataset that contains a metadata dictionary and an annotations object validated via a nested pydantic schema.
+    """
     try:
         annotation = es.get(index="annotations", id=indicator_id)["_source"]
         return annotation
@@ -197,7 +208,15 @@ def get_annotations(indicator_id: str) -> MetadataSchema.MetaModel:
 
 @router.post("/indicators/{indicator_id}/annotations")
 def post_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
+    """Post annotations for a dataset.
 
+    Args:
+        payload (MetadataSchema.MetaModel): Payload needs to be a fully formed json object representing the pydantic schema MettaDataSchema.MetaModel.
+        indicator_id (str): The UUID of the dataset to retrieve annotations for from elasticsearch.
+
+    Returns:
+        Response: Returns a response with the status code of 201 and the location of the annotation.
+    """
     try:
 
         body = json.loads(payload.json())
@@ -210,7 +229,6 @@ def post_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
             content=f"Updated annotation with id = {indicator_id}",
         )
     except:
-
         return Response(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=f"Could not update annotation with id = {indicator_id}",
@@ -219,7 +237,15 @@ def post_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
 
 @router.put("/indicators/{indicator_id}/annotations")
 def put_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
+    """Put annotation for a dataset to Elasticsearch.
 
+    Args:
+        payload (MetadataSchema.MetaModel): Payload needs to be a fully formed json object representing the pydantic schema MettaDataSchema.MetaModel.
+        indicator_id (str): The UUID of the dataset for which the annotations apply.
+
+    Returns:
+        Response: Response object with status code, informational messages, and content.
+    """
     try:
 
         body = json.loads(payload.json())
@@ -241,7 +267,15 @@ def put_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
 
 @router.patch("/indicators/{indicator_id}/annotations")
 def patch_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
+    """Patch annotation for a dataset to Elasticsearch.
 
+    Args:
+        payload (MetadataSchema.MetaModel): Payload needs to be a partially formed json object valid for the pydantic schema MettaDataSchema.MetaModel.
+        indicator_id (str): The UUID of the dataset for which the annotations apply.
+
+    Returns:
+        Response: Response object with status code, informational messages, and content.
+    """
     try:
 
         body = json.loads(payload.json(exclude_unset=True))
@@ -289,7 +323,14 @@ def get_all_indicator_info(indicator_id: str):
 
 @router.post("/indicators/{indicator_id}/preview")
 async def create_preview(indicator_id: str):
+    """Get preview for a dataset.
 
+    Args:
+        indicator_id (str): The UUID of the dataset to return a preview of.
+
+    Returns:
+        JSON: Returns a json object containing the preview for the dataset.
+    """
     try:
         file = get_rawfile(indicator_id, "raw_data.csv")
 
