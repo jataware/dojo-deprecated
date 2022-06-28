@@ -4,6 +4,7 @@ import time
 import tempfile
 from multiprocessing import context
 import os
+import json
 from io import BytesIO
 from typing import Any, Dict, List, Optional
 
@@ -224,7 +225,7 @@ def get_rq_job_results(job_id: str):
         result = job.result
         return Response(
             status_code=status.HTTP_200_OK,
-            content=result,
+            content=json.dumps(result),
         )
     except NoSuchJobError:
         return Response(
@@ -292,7 +293,7 @@ def job(uuid: str, job_string: str, options: Optional[Dict[Any, Any]] = None):
         )
 
     status = job.get_status()
-    if status in ("finished", "failed"):
+    if status in ("failed"):
         job_error = job.exc_info
         job.cleanup(ttl=0)  # Cleanup/remove data immediately
     else:
@@ -337,9 +338,9 @@ def test_s3_grab(uuid):
 
 
 @router.post("/data/test/s3_upload/{uuid}")
-async def test_s3_upload(uuid: str, filename: str, payload: UploadFile = File(...)):
+def test_s3_upload(uuid: str, filename: str, payload: UploadFile = File(...)):
     try:
-        await put_rawfile(uuid, filename, payload)
+        put_rawfile(uuid, filename, payload.file)
         return Response(
             status_code=status.HTTP_201_CREATED,
             headers={"msg": "File uploaded"},
