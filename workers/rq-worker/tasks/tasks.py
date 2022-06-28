@@ -361,7 +361,7 @@ def anomaly_detection(context):
         os.makedirs(f"./data/{uuid}")
 
     with open(f"./data/{uuid}/ad_file.csv", "wb") as f:
-        f.write(file_stream.getbuffer())
+        f.write(file_stream.read())
 
     img = detector.csv_to_img(f"./data/{uuid}/ad_file.csv")
 

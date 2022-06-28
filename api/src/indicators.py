@@ -297,7 +297,7 @@ async def create_preview(indicator_id: str):
 
         preview = df.head(100).to_json(orient="records")
 
-        return preview
+        return json.loads(preview)
 
     except Exception as e:
         return Response(
