@@ -288,14 +288,14 @@ def get_all_indicator_info(indicator_id: str):
 
 
 @router.post("/indicators/{indicator_id}/preview")
-async def create_preview(indicator_id: str, number_of_lines: int):
+async def create_preview(indicator_id: str):
 
     try:
         file = get_rawfile(indicator_id, "raw_data.csv")
 
         df = pd.read_csv(file, delimiter=",")
 
-        preview = df.head(number_of_lines).to_json(orient="records")
+        preview = df.head(100).to_json(orient="records")
 
         return preview
 

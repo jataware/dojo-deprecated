@@ -42,6 +42,18 @@ s3 = boto3.resource("s3")
 # Main MixMasta API Endpoint
 @router.post("/data/mixmasta_process/{uuid}")
 def run_mixmasta(uuid: str):
+    """Run the mixmasta process on the given uuid.
+    NOTE: DEPRECATED, USE ENQUEUE JOB ENDPOINT.
+
+    Args:
+        uuid (str): UUID of the dataset + indicator + annotation.
+
+    Returns:
+        Response:
+            status_code: 200 if successful
+            headers: Status message
+            content: returns the job_id that can be fed to RQ to check the result of the job via the job/fetch/{job_id}
+    """
     context = get_context(uuid=uuid)
     job = q.enqueue("mimasta_processors.run_mixmasta", context)
     return Response(
@@ -79,7 +91,7 @@ async def geotime_classify(uuid: str, payload: UploadFile = File(...)):
         )
 
 
-def convert_data_to_tabular(uuid, payload):
+def convert_data_to_tabular(uuid: str, payload):
     if payload.filename.endswith(".csv"):
 
         # STUB FOR PUSH TO S3
@@ -141,6 +153,19 @@ def get_datapath_from_indicator(uuid):
 
 @router.post("/job/enqueue/{job_string}")
 def enqueue_job(job_string: str, uuid: str, job_id: str = None):
+    """Enqueue a job to the RQ queue.
+
+    Args:
+        job_string (str): This is a string that tells RQ which job to run. Example: "tasks.anomaly_detection"
+        uuid (str): UUID of the dataset you wish to run the RQ job on.
+        job_id (str, optional): A string used to set a specific job_id for the job being enqueued. Defaults to None.
+
+    Returns:
+        Response:
+            status_code: 200 if successful
+            headers: Status message
+            content: returns the job_id that can be fed to RQ to check the result of the job via the job/fetch/{job_id}
+    """
     context = get_context(uuid=uuid)
     if job_id is None:
         job = q.enqueue_call(func=job_string, args=[context])
@@ -184,12 +209,22 @@ def enqueue_job_sync(job_string: str, uuid: str, job_id: str = None):
 
 @router.post("/job/fetch/{job_id}")
 def get_rq_job_results(job_id: str):
+    """Fetch a job's results from RQ.
+
+    Args:
+        job_id (str): The id of the job being run in RQ. Comes from the job/enqueue/{job_string} endpoint.
+
+    Returns:
+        Response:
+            status_code: 200 if successful, 404 if job does not exist.
+            content: contains the job's results.
+    """
     try:
         job = Job.fetch(job_id, connection=redis)
         result = job.result
         return Response(
             status_code=status.HTTP_200_OK,
-            content=f"Result: {result}",
+            content=result,
         )
     except NoSuchJobError:
         return Response(
@@ -237,14 +272,14 @@ def cancel_job(job_id):
 
     return job.get_status()
 
+
 # Last to not interfere with other routes
 @router.post("/job/{uuid}/{job_string}")
 def job(uuid: str, job_string: str, options: Optional[Dict[Any, Any]] = None):
-
     if options is None:
         options = {}
 
-    job_id = f'{uuid}_{job_string}'
+    job_id = f"{uuid}_{job_string}"
 
     job = q.fetch_job(job_id)
     if not job:
@@ -252,8 +287,10 @@ def job(uuid: str, job_string: str, options: Optional[Dict[Any, Any]] = None):
             context = get_context(uuid=uuid)
         except Exception as e:
             logging.error(e)
-        job = q.enqueue_call(func=job_string, args=[context], kwargs=options, job_id=job_id)
-    
+        job = q.enqueue_call(
+            func=job_string, args=[context], kwargs=options, job_id=job_id
+        )
+
     status = job.get_status()
     if status in ("finished", "failed"):
         job_error = job.exc_info

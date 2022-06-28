@@ -123,7 +123,7 @@ def get_rawfile(uuid, filename):
     return raw_file
 
 
-async def put_rawfile(uuid, filename, fileobj):
+def put_rawfile(uuid, filename, fileobj):
     location_info = urlparse(settings.DATASET_STORAGE_BASE_URL)
     output_dir = os.path.join(location_info.path, uuid)
     output_path = os.path.join(output_dir, filename)
@@ -132,7 +132,7 @@ async def put_rawfile(uuid, filename, fileobj):
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir, exist_ok=True)
         with open(output_path, "wb") as output_file:
-            output_file.write(await fileobj.read())
+            output_file.write(fileobj.read())
     elif location_info.scheme.lower() == "s3":
         output_path = output_path.lstrip("/")
         s3.put_object(Bucket=location_info.netloc, Key=output_path, Body=fileobj)
