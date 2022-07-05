@@ -13,18 +13,28 @@ import traceback
 from elasticsearch import Elasticsearch
 from pydantic import BaseModel, Field
 import boto3
+import pandas as pd
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status, UploadFile, File
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    Response,
+    status,
+    UploadFile,
+    File,
+)
 from fastapi.logger import logger
 
-from validation import IndicatorSchema, DojoSchema, SpacetagSchema
+from validation import IndicatorSchema, DojoSchema, SpacetagSchema, MetadataSchema
 from src.settings import settings
 
 from src.dojo import search_and_scroll
 from src.ontologies import get_ontologies
 from src.causemos import notify_causemos
 from src.causemos import deprecate_dataset
-from src.utils import put_rawfile
+from src.utils import put_rawfile, get_rawfile
 
 import os
 
@@ -48,11 +58,11 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
 
     es.index(index="indicators", body=body, id=indicator_id)
     # TODO: Move this to publish
-        # data = get_ontologies(json.loads(body), type="indicator")
-        # logger.info(f"Sent indicator to UAZ")
+    # data = get_ontologies(json.loads(body), type="indicator")
+    # logger.info(f"Sent indicator to UAZ")
 
-        # Notify Causemos that an indicator was created
-        # notify_causemos(data, type="indicator")
+    # Notify Causemos that an indicator was created
+    # notify_causemos(data, type="indicator")
 
     return Response(
         status_code=status.HTTP_201_CREATED,
@@ -174,9 +184,20 @@ def deprecate_indicator(indicator_id: str):
 
 
 @router.get(
-    "/indicators/{indicator_id}/annotations", response_model=SpacetagSchema.SpaceModel
+    "/indicators/{indicator_id}/annotations", response_model=MetadataSchema.MetaModel
 )
-def get_annotations(indicator_id: str) -> SpacetagSchema.SpaceModel:
+def get_annotations(indicator_id: str) -> MetadataSchema.MetaModel:
+    """Get annotations for a dataset.
+
+    Args:
+        indicator_id (str): The UUID of the dataset to retrieve annotations for from elasticsearch.
+
+    Raises:
+        HTTPException: This is raised if no annotation is found for the dataset in elasticsearch.
+
+    Returns:
+        MetadataSchema.MetaModel: Returns the annotations pydantic schema for the dataset that contains a metadata dictionary and an annotations object validated via a nested pydantic schema.
+    """
     try:
         annotation = es.get(index="annotations", id=indicator_id)["_source"]
         return annotation
@@ -186,11 +207,19 @@ def get_annotations(indicator_id: str) -> SpacetagSchema.SpaceModel:
 
 
 @router.post("/indicators/{indicator_id}/annotations")
-def post_annotation(payload: SpacetagSchema.SpaceModel, indicator_id: str):
+def post_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
+    """Post annotations for a dataset.
 
+    Args:
+        payload (MetadataSchema.MetaModel): Payload needs to be a fully formed json object representing the pydantic schema MettaDataSchema.MetaModel.
+        indicator_id (str): The UUID of the dataset to retrieve annotations for from elasticsearch.
+
+    Returns:
+        Response: Returns a response with the status code of 201 and the location of the annotation.
+    """
     try:
 
-        body = payload.json()
+        body = json.loads(payload.json())
 
         es.index(index="annotations", body=body, id=indicator_id)
 
@@ -200,7 +229,6 @@ def post_annotation(payload: SpacetagSchema.SpaceModel, indicator_id: str):
             content=f"Updated annotation with id = {indicator_id}",
         )
     except:
-
         return Response(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=f"Could not update annotation with id = {indicator_id}",
@@ -208,11 +236,19 @@ def post_annotation(payload: SpacetagSchema.SpaceModel, indicator_id: str):
 
 
 @router.put("/indicators/{indicator_id}/annotations")
-def put_annotation(payload: SpacetagSchema.SpaceModel, indicator_id: str):
+def put_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
+    """Put annotation for a dataset to Elasticsearch.
 
+    Args:
+        payload (MetadataSchema.MetaModel): Payload needs to be a fully formed json object representing the pydantic schema MettaDataSchema.MetaModel.
+        indicator_id (str): The UUID of the dataset for which the annotations apply.
+
+    Returns:
+        Response: Response object with status code, informational messages, and content.
+    """
     try:
 
-        body = payload.json()
+        body = json.loads(payload.json())
 
         es.index(index="annotations", body=body, id=indicator_id)
 
@@ -230,13 +266,21 @@ def put_annotation(payload: SpacetagSchema.SpaceModel, indicator_id: str):
 
 
 @router.patch("/indicators/{indicator_id}/annotations")
-def patch_annotation(payload: SpacetagSchema.SpaceModel, indicator_id: str):
+def patch_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
+    """Patch annotation for a dataset to Elasticsearch.
 
+    Args:
+        payload (MetadataSchema.MetaModel): Payload needs to be a partially formed json object valid for the pydantic schema MettaDataSchema.MetaModel.
+        indicator_id (str): The UUID of the dataset for which the annotations apply.
+
+    Returns:
+        Response: Response object with status code, informational messages, and content.
+    """
     try:
 
-        body = payload.json()
+        body = json.loads(payload.json(exclude_unset=True))
 
-        es.update(index="annotations", body=body, id=indicator_id)
+        es.update(index="annotations", body={"doc": body}, id=indicator_id)
 
         return Response(
             status_code=status.HTTP_201_CREATED,
@@ -254,7 +298,7 @@ def patch_annotation(payload: SpacetagSchema.SpaceModel, indicator_id: str):
 @router.post("/indicators/{indicator_id}/upload")
 def upload_file(indicator_id: str, file: UploadFile = File(...)):
     original_filename = file.filename
-    _, ext= os.path.splitext(original_filename)
+    _, ext = os.path.splitext(original_filename)
     filename = f"raw_data{ext}"
 
     # Upload file
@@ -266,3 +310,41 @@ def upload_file(indicator_id: str, file: UploadFile = File(...)):
         content=f"Uploaded file to with id {indicator_id}",
     )
 
+
+@router.get("/indicators/{indicator_id}/verbose")
+def get_all_indicator_info(indicator_id: str):
+    indicator = get_indicators(indicator_id)
+    annotations = get_annotations(indicator_id)
+
+    verbose_return_object = {"indicators": indicator, "annotations": annotations}
+
+    return verbose_return_object
+
+
+@router.post("/indicators/{indicator_id}/preview")
+async def create_preview(indicator_id: str):
+    """Get preview for a dataset.
+
+    Args:
+        indicator_id (str): The UUID of the dataset to return a preview of.
+
+    Returns:
+        JSON: Returns a json object containing the preview for the dataset.
+    """
+    try:
+        file = get_rawfile(indicator_id, "raw_data.csv")
+
+        df = pd.read_csv(file, delimiter=",")
+
+        # preview = df.head(100).to_json(orient="records")
+        obj = json.loads(df.head(100).to_json(orient="index"))
+        indexed_rows = [{"__id": key, **value} for key, value in obj.items()]
+
+        return indexed_rows
+
+    except Exception as e:
+        return Response(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            headers={"msg": f"Error: {e}"},
+            content=f"Queue could not be deleted.",
+        )
