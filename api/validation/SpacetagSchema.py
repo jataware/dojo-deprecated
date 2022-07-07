@@ -51,6 +51,14 @@ class CoordFormat(str, Enum):
     LATLON = "latlon"
 
 
+class GadmLevel(str, Enum):
+    ADMIN3 = "admin3"
+    ADMIN2 = "admin2"
+    ADMIN1 = "admin1"
+    ADMIN0 = "admin0"
+    COUNTRY = "country"
+
+
 #################################
 #### DEFINE ANNOTATION TYPES ####
 #################################
@@ -77,6 +85,12 @@ class GeoAnnotation(BaseModel):
         example=["crop_production", "malnutrition_rate"],
     )
     aliases: Dict[str, str] = {}
+    gadm_level: Optional[GadmLevel] = Field(
+        None,
+        title="GADM Reverse Geocode Level",
+        description="Level to reverse geocode gadm to",
+        example="admin3",
+    )
 
 
 class TimeField(str, Enum):
