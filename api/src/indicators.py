@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import io
 import time
 from datetime import datetime
 from typing import Any, Dict, Generator, List, Optional
 
 import requests
 import json
+import pandas as pd
 import traceback
 
 from elasticsearch import Elasticsearch
@@ -13,6 +15,7 @@ from pydantic import BaseModel, Field
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.logger import logger
+from fastapi.responses import StreamingResponse
 
 from validation import IndicatorSchema, DojoSchema
 from src.settings import settings
@@ -143,6 +146,40 @@ def get_indicators(indicator_id: str) -> IndicatorSchema.IndicatorMetadataSchema
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return indicator
+
+@router.get("/indicators/{indicator_id}/csv")
+def get_csv(indicator_id: str):
+    try:
+        indicator = es.get(index="indicators", id=indicator_id)["_source"]
+    except:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    # TODO: MAKE THIS WORK
+    """
+    def iter_csv():
+        with io.StringIO() as output:
+            dfs = []
+            for file in indicator.data_paths:
+                df = pd.read_parquet(file)
+                dfs.append(df)
+            result = pd.concat(dfs)
+            result.to_csv(output, index=False)
+            yield from output
+    return StreamingResponse(iter_csv(), media_type="text/plain")
+    """
+    # TODO: DEPRECATE BELOW
+    dfs = []
+    for path in indicator["data_paths"]:
+        df = pd.read_parquet(path)
+        dfs.append(df)
+    result = pd.concat(dfs)
+    
+    return Response(
+        status_code=status.HTTP_200_OK,
+        headers={"location": "no-real-loc"},
+        content=f"{result[0:3]}",
+    )
+
 
 
 @router.put("/indicators/{indicator_id}/deprecate")
