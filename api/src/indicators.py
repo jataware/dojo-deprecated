@@ -156,15 +156,20 @@ def get_csv(indicator_id: str):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     def iter_csv():
+        # Build single dataframe
         df = pd.concat(pd.read_parquet(file) for file in indicator["data_paths"])
+
+        # Prepare for writing CSV to a temperary buffer
         buffer = io.StringIO()
         writer = csv.writer(buffer)
 
+        # Write out the header row
         writer.writerow(list(df.columns))
         yield buffer.getvalue()
-        buffer.seek(0)
+        buffer.seek(0)  # To clear the buffer we need to seek back to the start and truncate
         buffer.truncate()
 
+        # Iterate over dataframe tuples, writing each one out as a CSV line one at a time
         for record in df.itertuples(index=False):
             writer.writerow(record)
             yield buffer.getvalue()
