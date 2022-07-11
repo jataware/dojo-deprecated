@@ -3,6 +3,7 @@
 #   timestamp: 2021-06-25T21:09:05+00:00
 
 from __future__ import annotations
+from doctest import Example
 
 from enum import Enum
 from typing import List, Optional, Any, Dict
@@ -445,3 +446,32 @@ class IndicatorsSearchSchema(BaseModel):
         title="Dataset Maintainer",
     )
    
+
+class DateValidationRequestSchema(BaseModel):
+    format: str = Field(
+        ...,
+        description="Format of date in Python strptime format",
+        examples=["%Y-%m-%d", "%Y", "%b %d, %Y"],
+    )
+    values: List[str] = Field(
+        ...,
+        description="List of values to validate the provided format against",
+        examples=[
+            ["2001-01-01", "2022-07-11", "2011-03-27"],
+            ["2002", "2005", "1998"],
+            ["Nov 11, 1911", "Dec 25, 2020", "Feb 9, 1999"],
+        ]
+    )
+
+
+class DateValidationResponseSchema(BaseModel):
+    format: str = Field(
+        ...,
+        description="Format of date in Python strptime format",
+        examples=["%Y-%m-%d", "%Y", "%b %d, %Y"],
+    )
+    valid: bool = Field(
+        ...,
+        description="Indicates if format provided (and returned) matches the values sent in",
+        examples=[True, False],
+    )

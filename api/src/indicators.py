@@ -321,6 +321,21 @@ def get_all_indicator_info(indicator_id: str):
     return verbose_return_object
 
 
+@router.post("/indicators/validate_date", response_model=IndicatorSchema.DateValidationResponseSchema)
+def validate_date(payload: IndicatorSchema.DateValidationRequestSchema):
+    valid = True
+    try:
+        for value in payload.values:
+            datetime.strptime(value, payload.format)
+    except ValueError:
+        valid = False
+
+    return {
+        "format": payload.format,
+        "valid": valid,
+    }
+
+
 @router.post("/indicators/{indicator_id}/preview")
 async def create_preview(indicator_id: str):
     """Get preview for a dataset.
