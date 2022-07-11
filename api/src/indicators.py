@@ -164,7 +164,7 @@ def get_csv(indicator_id: str):
         writer = csv.writer(buffer)
 
         # Write out the header row
-        writer.writerow(list(df.columns))
+        writer.writerow(df.columns)
         yield buffer.getvalue()
         buffer.seek(0)  # To clear the buffer we need to seek back to the start and truncate
         buffer.truncate()
