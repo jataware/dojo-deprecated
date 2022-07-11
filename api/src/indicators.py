@@ -154,33 +154,15 @@ def get_csv(indicator_id: str):
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    # TODO: MAKE THIS WORK
-    """
     def iter_csv():
-        with io.StringIO() as output:
-            dfs = []
-            for file in indicator.data_paths:
-                df = pd.read_parquet(file)
-                dfs.append(df)
-            result = pd.concat(dfs)
-            result.to_csv(output, index=False)
-            yield from output
-    return StreamingResponse(iter_csv(), media_type="text/plain")
-    """
-    # TODO: DEPRECATE BELOW
-    dfs = []
-    for path in indicator["data_paths"]:
-        df = pd.read_parquet(path)
-        dfs.append(df)
-    result = pd.concat(dfs)
-    
-    return Response(
-        status_code=status.HTTP_200_OK,
-        headers={"location": "no-real-loc"},
-        content=f"{result[0:3]}",
-    )
+        dfs = []
+        for file in indicator["data_paths"]:
+            df = pd.read_parquet(file)
+            dfs.append(df)
+        result = pd.concat(dfs)
+        yield from result.to_csv(None, index=False)
 
-
+    return StreamingResponse(iter_csv(), media_type="text/csv")
 
 @router.put("/indicators/{indicator_id}/deprecate")
 def deprecate_indicator(indicator_id: str):
