@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import io
 import time
 from datetime import datetime
@@ -155,12 +156,25 @@ def get_csv(indicator_id: str):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     def iter_csv():
-        dfs = []
-        for file in indicator["data_paths"]:
-            df = pd.read_parquet(file)
-            dfs.append(df)
-        result = pd.concat(dfs)
-        yield from result.to_csv(None, index=False)
+        # Build single dataframe
+        df = pd.concat(pd.read_parquet(file) for file in indicator["data_paths"])
+
+        # Prepare for writing CSV to a temperary buffer
+        buffer = io.StringIO()
+        writer = csv.writer(buffer)
+
+        # Write out the header row
+        writer.writerow(df.columns)
+        yield buffer.getvalue()
+        buffer.seek(0)  # To clear the buffer we need to seek back to the start and truncate
+        buffer.truncate()
+
+        # Iterate over dataframe tuples, writing each one out as a CSV line one at a time
+        for record in df.itertuples(index=False):
+            writer.writerow(record)
+            yield buffer.getvalue()
+            buffer.seek(0)
+            buffer.truncate()
 
     return StreamingResponse(iter_csv(), media_type="text/csv")
 
