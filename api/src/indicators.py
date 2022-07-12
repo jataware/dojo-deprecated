@@ -147,7 +147,7 @@ def get_indicators(indicator_id: str) -> IndicatorSchema.IndicatorMetadataSchema
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return indicator
 
-@router.get("/indicators/{indicator_id}/csv")
+@router.get("/indicators/{indicator_id}/download/csv")
 def get_csv(indicator_id: str):
     try:
         indicator = es.get(index="indicators", id=indicator_id)["_source"]
