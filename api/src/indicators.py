@@ -157,12 +157,13 @@ def get_csv(indicator_id: str, request: Request):
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
+
     async def iter_csv():
         # Build single dataframe
         df = pd.concat(pd.read_parquet(file) for file in indicator["data_paths"])
 
         # Ensure pandas floats are used because vanilla python ones are problematic
-        df = df.astype( 
+        df = df.fillna('').astype( 
             { col : 'str' for col in df.select_dtypes(include=['float32','float64']).columns }, 
             # Note: This links it to the previous `df` so not a full copy
             copy=False 
@@ -180,11 +181,12 @@ def get_csv(indicator_id: str, request: Request):
         buffer.truncate()
 
         # Iterate over dataframe tuples, writing each one out as a CSV line one at a time
-        for record in df.itertuples(index=False):
+        for record in df.itertuples(index=False, name=None):
             writer.writerow(str(i) for i in record)
             yield buffer.getvalue()
             buffer.seek(0)
             buffer.truncate()
+
 
     async def compress(content):
         compressor = zlib.compressobj()
@@ -192,6 +194,7 @@ def get_csv(indicator_id: str, request: Request):
             yield compressor.compress(buff.encode())
         yield compressor.flush()
  
+
     if "deflate" in request.headers.get("accept-encoding", ""):
         return StreamingResponse(
             compress(iter_csv()), 
