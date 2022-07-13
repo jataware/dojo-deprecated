@@ -159,6 +159,8 @@ def get_csv(indicator_id: str, request: Request):
     def iter_csv():
         # Build single dataframe
         df = pd.concat(pd.read_parquet(file) for file in indicator["data_paths"])
+
+        # Ensure pandas floats are used because vanilla python ones are problematic
         df = df.astype( 
             { col : 'str' for col in df.select_dtypes(include=['float32','float64']).columns }, 
             # Note: This links it to the previous `df` so not a full copy
@@ -189,13 +191,6 @@ def get_csv(indicator_id: str, request: Request):
             yield compressor.compress(buff.encode())
         yield compressor.flush()
  
-
-    """
-    def badbad():
-        yield from pd.concat(pd.read_parquet(file) for file in indicator["data_paths"]).to_csv(None)
-    logger.info(f'\n\n\n\n{indicator["data_paths"]}\n\n\n\n')
-    return StreamingResponse(badbad() , media_type="text/csv")
-    """
 
     if "accept-encoding" in request.headers and \
        "deflate" in request.headers["accept-encoding"]:
