@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import io
 import time
+import zlib
 from datetime import datetime
 from typing import Any, Dict, Generator, List, Optional
 
@@ -155,28 +156,33 @@ def get_csv(indicator_id: str):
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    def iter_csv():
+    async def iter_csv():
         # Build single dataframe
         df = pd.concat(pd.read_parquet(file) for file in indicator["data_paths"])
 
-        # Prepare for writing CSV to a temperary buffer
+        # Prepare for writing CSV to a temporary buffer
         buffer = io.StringIO()
         writer = csv.writer(buffer)
+        compressor = zlib.compressobj()
 
         # Write out the header row
         writer.writerow(df.columns)
-        yield buffer.getvalue()
+
+        yield compressor.compress(buffer.getvalue().encode())
         buffer.seek(0)  # To clear the buffer we need to seek back to the start and truncate
         buffer.truncate()
 
         # Iterate over dataframe tuples, writing each one out as a CSV line one at a time
         for record in df.itertuples(index=False):
-            writer.writerow(record)
-            yield buffer.getvalue()
+            writer.writerow(str(i) for i in record)
+            yield compressor.compress(buffer.getvalue().encode())
             buffer.seek(0)
             buffer.truncate()
 
-    return StreamingResponse(iter_csv(), media_type="text/csv")
+        # Make sure to write any compressed data still in the buffer
+        yield compressor.flush()
+
+    return StreamingResponse(iter_csv(), media_type="text/csv", headers={'Content-Encoding': 'deflate'})
 
 @router.put("/indicators/{indicator_id}/deprecate")
 def deprecate_indicator(indicator_id: str):
