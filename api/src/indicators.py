@@ -15,7 +15,7 @@ import traceback
 from elasticsearch import Elasticsearch
 from pydantic import BaseModel, Field
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, Request, status
 from fastapi.logger import logger
 from fastapi.responses import StreamingResponse
 
@@ -150,39 +150,52 @@ def get_indicators(indicator_id: str) -> IndicatorSchema.IndicatorMetadataSchema
     return indicator
 
 @router.get("/indicators/{indicator_id}/download/csv")
-def get_csv(indicator_id: str):
+def get_csv(indicator_id: str, request: Request):
     try:
         indicator = es.get(index="indicators", id=indicator_id)["_source"]
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    async def iter_csv():
+    def iter_csv():
         # Build single dataframe
         df = pd.concat(pd.read_parquet(file) for file in indicator["data_paths"])
 
         # Prepare for writing CSV to a temporary buffer
         buffer = io.StringIO()
         writer = csv.writer(buffer)
-        compressor = zlib.compressobj()
 
         # Write out the header row
         writer.writerow(df.columns)
 
-        yield compressor.compress(buffer.getvalue().encode())
+        yield buffer.getvalue()
         buffer.seek(0)  # To clear the buffer we need to seek back to the start and truncate
         buffer.truncate()
 
         # Iterate over dataframe tuples, writing each one out as a CSV line one at a time
         for record in df.itertuples(index=False):
             writer.writerow(str(i) for i in record)
-            yield compressor.compress(buffer.getvalue().encode())
+            yield buffer.getvalue()
             buffer.seek(0)
             buffer.truncate()
 
-        # Make sure to write any compressed data still in the buffer
+    async def compress(content):
+        compressor = zlib.compressobj()
+        for buff in content:
+            yield compressor.compress(buff.encode())
         yield compressor.flush()
-
-    return StreamingResponse(iter_csv(), media_type="text/csv", headers={'Content-Encoding': 'deflate'})
+ 
+    if "accept-encoding" in request.headers and \
+       "deflate" in request.headers["accept-encoding"]:
+        return StreamingResponse(
+            compress(iter_csv()), 
+            media_type="text/csv", 
+            headers={'Content-Encoding': 'deflate'}
+        )
+    else:
+        return StreamingResponse(
+            iter_csv(), 
+            media_type="text/csv", 
+        )
 
 @router.put("/indicators/{indicator_id}/deprecate")
 def deprecate_indicator(indicator_id: str):
