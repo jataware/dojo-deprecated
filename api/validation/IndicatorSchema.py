@@ -38,6 +38,12 @@ class Type1(Enum):
     admin2 = "admin2"
     admin3 = "admin3"
 
+
+class PreviewType(Enum):
+    raw = "raw"
+    processed = "processed"
+
+
 # class Alias(BaseModel):
 #     name: Optional[str] = Field(
 #         ...,

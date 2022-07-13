@@ -357,8 +357,8 @@ def validate_date(payload: IndicatorSchema.DateValidationRequestSchema):
     }
 
 
-@router.post("/indicators/{indicator_id}/preview")
-async def create_preview(indicator_id: str):
+@router.post("/indicators/{indicator_id}/preview/{preview_type}")
+async def create_preview(indicator_id: str, preview_type: IndicatorSchema.PreviewType):
     """Get preview for a dataset.
 
     Args:
@@ -368,15 +368,20 @@ async def create_preview(indicator_id: str):
         JSON: Returns a json object containing the preview for the dataset.
     """
     try:
-        file = get_rawfile(indicator_id, "raw_data.csv")
-
-        df = pd.read_csv(file, delimiter=",")
+        if preview_type == IndicatorSchema.PreviewType.processed:
+            file = get_rawfile(indicator_id, f"{indicator_id}.parquet.gzip")
+            df = pd.read_parquet(file)
+        else:
+            file = get_rawfile(indicator_id, "raw_data.csv")
+            df = pd.read_csv(file, delimiter=",")
 
         # preview = df.head(100).to_json(orient="records")
         obj = json.loads(df.head(100).to_json(orient="index"))
         indexed_rows = [{"__id": key, **value} for key, value in obj.items()]
 
         return indexed_rows
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     except Exception as e:
         return Response(
