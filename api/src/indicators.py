@@ -165,6 +165,27 @@ def get_indicators(indicator_id: str) -> IndicatorSchema.IndicatorMetadataSchema
     return indicator
 
 
+@router.put("/indicators/{indicator_id}/publish")
+def publish_indicator(indicator_id: str):
+    try:
+        # Update indicator model with ontologies from UAZ
+        indicator = es.get(index="indicators", id=indicator_id)["_source"]
+        data = get_ontologies(indicator, type="indicator")
+        logger.info(f"Sent indicator to UAZ")
+        es.index(index="indicators", body=data, id=indicator_id)
+
+
+        # Notify Causemos that an indicator was created
+        notify_causemos(data, type="indicator")
+    except:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return Response(
+        status_code=status.HTTP_200_OK,
+        headers={"location": f"/api/indicators/{indicator_id}/publish"},
+        content=f"Published indicator with id {indicator_id}",
+    )
+
+
 @router.put("/indicators/{indicator_id}/deprecate")
 def deprecate_indicator(indicator_id: str):
     try:
