@@ -4,11 +4,10 @@ import os
 
 import pandas as pd
 
-from utils import get_rawfile
+from utils import put_rawfile
 from mixmasta import mixmasta as mix
 from tasks import (
     generate_mixmasta_files,
-    post_mixmasta_annotation_processing,
 )
 from base_annotation import BaseProcessor
 
@@ -26,29 +25,28 @@ class MixmastaFileGenerator(BaseProcessor):
 
 class MixmastaProcessor(BaseProcessor):
     @staticmethod
-    def run(context) -> pd.DataFrame:
+    def run(context, datapath) -> pd.DataFrame:
         """final full mixmasta implementation"""
         logging.info(
             f"{context.get('logging_preface', '')} - Running mixmasta processor"
         )
-        gadm_level = None  # can maybe be left off
-        output_path = f"./data/{context['uuid']}"  # S3 bucket now.
+        output_path = datapath
         mapper_fp = f"{output_path}/mixmasta_ready_annotations.json"  # Filename for json info, will eventually be in Elasticsearch, needs to be written to disk until mixmasta is updated
         raw_data_fp = f"{output_path}/raw_data.csv"  # Raw data
-        admin_level = context["admin_level"]  # This comes from annotations file.
+        admin_level = "admin1"  # TODO: This should come from context but it's not being set currently.
         uuid = context["uuid"]
+        context["mapper_fp"] = mapper_fp
 
-        open(f"data/{uuid}/mixmasta_processed_writing", "w").close()
+        open(f"{output_path}/mixmasta_processed_writing", "w").close()
 
-        ret, rename = mix.process(
-            raw_data_fp, mapper_fp, admin_level, output_path, gadm=gadm_level
-        )
+        # Mixmasta output path (it needs the filename attached to write parquets)
+        mix_output_path = f"{output_path}/{uuid}"
+        # Main mixmasta processing call
+        ret, rename = mix.process(raw_data_fp, mapper_fp, admin_level, mix_output_path)
 
-        post_mixmasta_annotation_processing(rename, context)
-
-        open(f"data/{uuid}/mixmasta_processed_writing", "w").close()
-        ret.to_csv(f"data/{uuid}/mixmasta_processed_df.csv", index=False)
-        os.remove(f"data/{uuid}/mixmasta_processed_writing")
+        open(f"{output_path}/mixmasta_processed_writing", "w").close()
+        ret.to_csv(f"{output_path}/mixmasta_processed_df.csv", index=False)
+        os.remove(f"{output_path}/mixmasta_processed_writing")
 
         return ret
 
@@ -56,21 +54,29 @@ class MixmastaProcessor(BaseProcessor):
 def run_mixmasta(context):
     file_generator = MixmastaFileGenerator()
     processor = MixmastaProcessor()
-    datapath = f"./data/{context['uuid']}"
-
+    uuid = context["uuid"]
+    # Creating folder for temp file storage on the rq worker
+    datapath = f"/datasets/{uuid}"
     if not os.path.isdir(datapath):
         os.makedirs(datapath)
 
-    mm_ready_annotations = file_generator.run(context)
-
+    # Writing out the annotations because mixmasta needs a filepath to this data.
+    # Should probably change mixmasta down the road to accept filepath AND annotations objects.
+    mm_ready_annotations = context["annotations"]["annotations"]
     with open(f"{datapath}/mixmasta_ready_annotations.json", "w") as f:
         f.write(json.dumps(mm_ready_annotations))
     f.close()
 
-    file_stream = get_rawfile(context["uuid"], "raw_data.csv")
+    mixmasta_result_df = processor.run(context, datapath)
+    # Takes all parquet files and puts them into the DATASET_STORAGE_BASE_URL which will be S3 in Production
+    for file in os.listdir(datapath):
+        if file.endswith(".parquet.gzip"):
+            with open(os.path.join(datapath, file), "rb") as fileobj:
+                put_rawfile(uuid=uuid, filename=f"final_{file}", fileobj=fileobj)
 
-    with open(f"{datapath}/raw_data.csv", "wb") as f:
-        f.write(file_stream.read())
-    f.close()
+    return generate_post_mix_preview(mixmasta_result_df)
 
-    processor.run(context)
+
+def generate_post_mix_preview(mixmasta_result):
+
+    return mixmasta_result.head(100).to_json()

@@ -5,10 +5,11 @@ import logging
 from operator import sub
 import os
 import time
-from rename import rename as rename_function
+from urllib.parse import urlparse
 
+from rename import rename as rename_function
 from anomaly_detection import AnomalyDetector, sheet_tensor_to_img
-from utils import get_rawfile
+from utils import get_rawfile, put_rawfile
 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
@@ -200,9 +201,10 @@ def clear_invalid_qualifiers(uuid, annotations):
 
 def build_meta(uuid, d, geo_select, context):
     fnames = [x.split(".")[0] for x in os.listdir(d)]
+    annotations = context["annotations"]["annotations"]
 
-    ft = context.get("ft", "csv")
-    fp = context.get("uploaded_file_fp", f"data/{uuid}/raw_data.csv")
+    ft = annotations["meta"].get("ftype", "csv")
+    fp = context.get("uploaded_file_fp", f"/datasets/{uuid}/raw_data.csv")
     meta = {}
     meta["ftype"] = ft
 
@@ -239,7 +241,7 @@ def build_meta(uuid, d, geo_select, context):
             meta["date"] = tif["geotiff_Date"]
 
     if ft == "excel":
-        xl = json.load(open(f"data/{uuid}/excel_info.json", "r"))
+        xl = json.load(open(f"/datasets/{uuid}/excel_info.json", "r"))
         meta["sheet"] = xl["excel_Sheet"]
 
     # Update meta with geocode_level if set as geo_select above.
@@ -252,7 +254,7 @@ def build_meta(uuid, d, geo_select, context):
 
 def generate_mixmasta_files(context):
     uuid = context["uuid"]
-    annotations = context["annotations"]
+    annotations = context["annotations"]["annotations"]
     annotations = clear_invalid_qualifiers(uuid, annotations)
 
     # Build the mapper.json annotations, and get geo_select for geo_coding
@@ -260,7 +262,7 @@ def generate_mixmasta_files(context):
     mixmasta_ready_annotations, geo_select = build_mapper(uuid, annotations)
 
     logging_preface = "Mixmasta  log start: "
-    d = f"data/{uuid}"
+    d = f"/datasets/{uuid}"
     fp = ""
     meta = {}
     fn = None
@@ -318,8 +320,9 @@ def generate_mixmasta_files(context):
 def post_mixmasta_annotation_processing(rename, context):
     """change annotations to reflect mixmasta's output"""
     uuid = context["uuid"]
-    with open(context["mapper_fp"], "r") as f:
-        mixmasta_ready_annotations = json.load(f)
+    # with open(context["mapper_fp"], "r") as f:
+    #     mixmasta_ready_annotations = json.load(f)
+    mixmasta_ready_annotations = context["annotations"]["annotations"]
     to_rename = {}
     for k, x in rename.items():
         for y in x:
@@ -350,7 +353,7 @@ def post_mixmasta_annotation_processing(rename, context):
 
     json.dump(
         mixmasta_ready_annotations,
-        open(f"data/{uuid}/mixmasta_ready_annotations.json", "w"),
+        open(f"/datasets/{uuid}/mixmasta_ready_annotations.json", "w"),
     )
 
 

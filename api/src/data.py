@@ -1,5 +1,6 @@
 from __future__ import annotations
 import logging
+import re
 import time
 import tempfile
 import os
@@ -10,6 +11,8 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 from sqlite3 import connect
+
+from requests import put
 from fastapi import APIRouter, Response, File, UploadFile, status
 from elasticsearch import Elasticsearch
 from rq import Worker, Queue
@@ -39,92 +42,6 @@ q = Queue(connection=redis)
 s3 = boto3.resource("s3")
 
 
-# Main MixMasta API Endpoint
-@router.post("/data/mixmasta_process/{uuid}")
-def run_mixmasta(uuid: str):
-    """Run the mixmasta process on the given uuid.
-    NOTE: DEPRECATED, USE ENQUEUE JOB ENDPOINT.
-
-    Args:
-        uuid (str): UUID of the dataset + indicator + annotation.
-
-    Returns:
-        Response:
-            status_code: 200 if successful
-            headers: Status message
-            content: returns the job_id that can be fed to RQ to check the result of the job via the job/fetch/{job_id}
-    """
-    context = get_context(uuid=uuid)
-    job = q.enqueue("mimasta_processors.run_mixmasta", context)
-    return Response(
-        status_code=status.HTTP_200_OK,
-        headers={"msg": "Mixmasta job running"},
-        content=f"Job ID: {job.id}",
-    )
-
-
-# Geotime classify endpoint
-@router.post("/data/geotimeclass/{uuid}")
-async def geotime_classify(uuid: str, payload: UploadFile = File(...)):
-    try:
-        context = get_context(uuid)
-
-        payload_wrapper = tempfile.TemporaryFile()
-        payload_wrapper.write(await payload.read())
-        payload_wrapper.seek(0)
-
-        df = pd.read_csv(payload_wrapper, delimiter=",")
-
-        job = q.enqueue("geotime_processors.geotime_classify", context, df)
-
-        return Response(
-            status_code=status.HTTP_200_OK,
-            headers={"msg": "Submitted to geotime classify"},
-            content=f"Job ID: {job.id}",
-        )
-
-    except Exception as e:
-        return Response(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            headers={"msg": f"Error: {e}"},
-            content=f"Queue could not be deleted.",
-        )
-
-
-def convert_data_to_tabular(uuid: str, payload):
-    if payload.filename.endswith(".csv"):
-
-        # STUB FOR PUSH TO S3
-        s3.upload_fileobj(
-            payload, f"{bucket_name}/dev/indicators/{uuid}", "raw_data.csv"
-        )
-        return payload
-
-    elif payload.filename.endswith(".xlsx"):
-        read_file = pd.read_excel(payload)
-
-        read_file.to_csv("xlsx_to.csv", index=None, header=True)
-
-        # STUB FOR PUSH TO S3
-        bucket_name = os.getenv("DMC_BUCKET")
-        s3.upload_fileobj(
-            read_file, f"{bucket_name}/dev/indicators/{uuid}", "raw_data.csv"
-        )
-        return read_file
-
-    elif payload.filename.endswith(".tif"):
-        # STUB FOR CONVERT TIF TO CSV
-
-        # STUB FOR PUSH TO S3
-        return payload
-
-    elif payload.filename.endswith(".netcdf"):
-        # STUB FOR CONVERT NETCDF TO CSV
-
-        # STUB FOR PUSH TO S3
-        return payload
-
-
 def get_context(uuid):
     try:
         annotations = get_annotations(uuid)
@@ -151,62 +68,6 @@ def get_datapath_from_indicator(uuid):
 # RQ ENDPOINTS
 
 
-@router.post("/job/enqueue/{job_string}")
-def enqueue_job(job_string: str, uuid: str, job_id: str = None):
-    """Enqueue a job to the RQ queue.
-
-    Args:
-        job_string (str): This is a string that tells RQ which job to run. Example: "tasks.anomaly_detection"
-        uuid (str): UUID of the dataset you wish to run the RQ job on.
-        job_id (str, optional): A string used to set a specific job_id for the job being enqueued. Defaults to None.
-
-    Returns:
-        Response:
-            status_code: 200 if successful
-            headers: Status message
-            content: returns the job_id that can be fed to RQ to check the result of the job via the job/fetch/{job_id}
-    """
-    context = get_context(uuid=uuid)
-    if job_id is None:
-        job = q.enqueue_call(func=job_string, args=[context])
-    else:
-        job = q.enqueue_call(func=job_string, args=[context], job_id=job_id)
-
-    return Response(
-        status_code=status.HTTP_200_OK,
-        headers={"msg": "Job enqueued"},
-        content=f"Job ID: {job.id}",
-    )
-
-
-@router.post("/job/synchronous_enqueue/{job_string}")
-def enqueue_job_sync(job_string: str, uuid: str, job_id: str = None):
-    context = get_context(uuid=uuid)
-    if job_id is None:
-        job = q.enqueue_call(func=job_string, args=[context])
-    else:
-        job = q.enqueue_call(func=job_string, args=[context], job_id=job_id)
-
-    while job.get_status(refresh=True) != "finished":
-        print(job.get_status(refresh=True))
-        time.sleep(0.5)
-
-        if job.get_status(refresh=True) == "failed":
-            return Response(
-                status_code=status.HTTP_200_OK,
-                headers={"msg": "Job failed"},
-                content=f"Job Failed! Job ID: {job.id}",
-            )
-
-    results = job.result
-
-    return Response(
-        status_code=status.HTTP_200_OK,
-        headers={"msg": "Job finished"},
-        content=f"Result: {results}",
-    )
-
-
 @router.post("/job/fetch/{job_id}")
 def get_rq_job_results(job_id: str):
     """Fetch a job's results from RQ.
@@ -222,10 +83,7 @@ def get_rq_job_results(job_id: str):
     try:
         job = Job.fetch(job_id, connection=redis)
         result = job.result
-        return Response(
-            status_code=status.HTTP_200_OK,
-            content=json.dumps(result),
-        )
+        return result
     except NoSuchJobError:
         return Response(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -312,7 +170,7 @@ def job(uuid: str, job_string: str, options: Optional[Dict[Any, Any]] = None):
     if status in ("finished", "failed"):
         job_result = job.result
         job_error = job.exc_info
-        # job.cleanup(ttl=0)  # Cleanup/remove data immediately
+        job.cleanup(ttl=0)  # Cleanup/remove data immediately
     else:
         job_result = None
         job_error = None

@@ -124,6 +124,8 @@ def get_rawfile(uuid, filename):
 
 
 def put_rawfile(uuid, filename, fileobj):
+    if filename is None:
+        filename = settings.CSV_FILE_NAME
     location_info = urlparse(settings.DATASET_STORAGE_BASE_URL)
     output_dir = os.path.join(location_info.path, uuid)
     output_path = os.path.join(output_dir, filename)
