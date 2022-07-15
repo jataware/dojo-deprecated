@@ -143,6 +143,16 @@ def dispatch_run(run):
     return
 
 
+def apply_params(string, args, parameters):
+    # Assuming overlap and no order  
+    # TODO: Change `display_name` to `name` once changed on React side
+    for p in parameters:
+        name = p["annotation"]["display_name"]
+        value = args[name] if name in args else p["annotation"]["defaultValue"]
+        string = string[:p["start"]] + value + string[p["end"]:]
+        return string
+
+
 @router.post("/runs")
 def create_run(run: RunSchema.ModelRunSchema):
     model = get_model(run.model_id)
@@ -152,7 +162,16 @@ def create_run(run: RunSchema.ModelRunSchema):
 
     # generate command based on directive template
     directive = get_directive(run.model_id)
-    model_command = Template(directive.get("command")).render(params)
+
+    try:
+        # Handle new shorthand format
+        model_command = apply_params(directive.get("command"), params, directive.get("parameters"))
+    except Exception as e:
+        # Handle OLD shorthand format
+        # TODO: DELETE once everything in the old format has been removed.
+        logger.info(f"Fallback onto old shorthand format; New format failed with:{e}")
+        model_command = Template(directive.get("command")).render(params)
+
     logging.info(f"Model Command is: {model_command}")
 
     ### Handle output files and append to volumeArray.
