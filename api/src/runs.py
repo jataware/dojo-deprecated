@@ -147,18 +147,12 @@ def dispatch_run(run):
 def create_run(run: RunSchema.ModelRunSchema):
     model = get_model(run.model_id)
 
-    # handle model run command
-    directive = get_directive(run.model_id)
-    model_command = Template(directive.get("command"))
-
     # get parameters
-    params = run.parameters
-    param_dict = {}
-    for p in params:
-        param_dict[p.name] = p.value
+    params = {p.name: p.value for p in run.parameters}
 
     # generate command based on directive template
-    model_command = model_command.render(param_dict)
+    directive = get_directive(run.model_id)
+    model_command = Template(directive.get("command")).render(params)
     logging.info(f"Model Command is: {model_command}")
 
     ### Handle output files and append to volumeArray.
@@ -170,7 +164,7 @@ def create_run(run: RunSchema.ModelRunSchema):
     for output in outputfiles:
         try:
             # rehydrate file path in
-            mixmasta_input_file = Template(output["path"]).render(param_dict)
+            mixmasta_input_file = Template(output["path"]).render(params)
 
             # get name of the mapper (will be based on output ID)
             mapper_name = f"mapper_{output['id']}.json"
@@ -220,7 +214,7 @@ def create_run(run: RunSchema.ModelRunSchema):
 
             # use the lookup to build the path
             try:
-                # Ussing the accessory_file id (uuid) is breaking the docker mount:
+                # Using the accessory_file id (uuid) is breaking the docker mount:
                 #accessory_dir_volume = dmc_local_dir + f"/results/{run.id}/accessories/{accessory_dirs[accessory_dir]}:{accessory_dir}"
                 accessory_dir_volume = dmc_local_dir + f"/results/{run.id}/accessories:{accessory_dir}"
                 logger.info('accessory_dir_volume: ' + accessory_dir_volume)
@@ -276,7 +270,7 @@ def create_run(run: RunSchema.ModelRunSchema):
         "model_command": model_command,
         # "model_output_directory": model_output_directory,
         "dojo_url": dojo_url,
-        "params": param_dict,
+        "params": params,
         "s3_config_files": model_config_s3_path_objects,
         "volumes": json.dumps(volumeArray),
         "mixmasta_cmd": f"causemosify-multi --inputs='{json.dumps(mixmasta_inputs)}' --output-file=/tmp/{run.id}_{run.model_id}",

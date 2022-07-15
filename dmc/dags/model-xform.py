@@ -76,14 +76,7 @@ def rehydrate(ti, **kwargs):
     print(f'params: {params}')
 
     print(f'kwargs: {kwargs}')
-
-    #build "type" dict:
-    type_dict = {}
-    for param in params:
-        
-        type_dict[param["name"]] = param["type"]
-
-    print(f'type_dict: {type_dict}')  
+    print(f'types: {{param["name"]: param["type"] for param in params}}') # TODO: Is this necessary?
         
     try:
 
