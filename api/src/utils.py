@@ -140,3 +140,21 @@ def put_rawfile(uuid, filename, fileobj):
         s3.put_object(Bucket=location_info.netloc, Key=output_path, Body=fileobj)
     else:
         raise RuntimeError("File storage format is unknown")
+
+
+def list_files(uuid):
+    location_info = urlparse(settings.DATASET_STORAGE_BASE_URL)
+    file_dir = os.path.join(location_info.path, uuid)
+    if location_info.scheme.lower() == "file":
+        return os.listdir(file_dir)
+    elif location_info.scheme.lower() == "s3":
+        s3_list = s3.list_objects(Bucket=location_info.netloc, Marker=file_dir)
+        s3_contents = s3_list["Contents"]
+        final_file_list = []
+        for x in s3_contents:
+            filename = x["Key"]
+            final_file_list.append(f"{file_dir}/{filename}")
+
+        return final_file_list
+    else:
+        raise RuntimeError("File storage format is unknown")

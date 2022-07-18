@@ -1,6 +1,7 @@
 import logging
 import json
 import os
+import requests
 
 import pandas as pd
 
@@ -74,7 +75,12 @@ def run_mixmasta(context):
             with open(os.path.join(datapath, file), "rb") as fileobj:
                 put_rawfile(uuid=uuid, filename=f"final_{file}", fileobj=fileobj)
 
-    return generate_post_mix_preview(mixmasta_result_df)
+    # Run the indicator update
+    api_url = os.environ.get("DOJO_HOST")
+    request_response = requests.post(f"{api_url}/indicators/mixmasta_update/{uuid}")
+    logging.info(f"Response: {request_response}")
+
+    return generate_post_mix_preview(mixmasta_result_df), request_response
 
 
 def generate_post_mix_preview(mixmasta_result):

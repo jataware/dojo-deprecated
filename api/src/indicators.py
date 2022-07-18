@@ -14,7 +14,6 @@ from elasticsearch import Elasticsearch
 from pydantic import BaseModel, Field
 import boto3
 import pandas as pd
-
 from fastapi import (
     APIRouter,
     Depends,
@@ -34,7 +33,14 @@ from src.dojo import search_and_scroll
 from src.ontologies import get_ontologies
 from src.causemos import notify_causemos
 from src.causemos import deprecate_dataset
-from src.utils import put_rawfile, get_rawfile
+from src.utils import put_rawfile, get_rawfile, list_files
+from validation.IndicatorSchema import (
+    IndicatorMetadataSchema,
+    QualifierOutput,
+    Output,
+    Period,
+    Geography,
+)
 
 import os
 
@@ -57,6 +63,8 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
     payload.published = False
 
     es.index(index="indicators", body=body, id=indicator_id)
+    empty_annotations_payload = MetadataSchema.MetaModel(metadata={}).json()
+    es.index(index="annotations", body=empty_annotations_payload, id=indicator_id)
     # TODO: Move this to publish
     # data = get_ontologies(json.loads(body), type="indicator")
     # logger.info(f"Sent indicator to UAZ")
@@ -81,7 +89,21 @@ def update_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
     body = payload.json()
     es.index(index="indicators", body=body, id=indicator_id)
     return Response(
-        status_code=status.HTTP_201_CREATED,
+        status_code=status.HTTP_200_OK,
+        headers={"location": f"/api/indicators/{indicator_id}"},
+        content=f"Updated indicator with id = {indicator_id}",
+    )
+
+
+@router.patch("/indicators")
+def patch_indicator(
+    payload: IndicatorSchema.IndicatorMetadataSchema, indicator_id: str
+):
+    payload.created_at = current_milli_time()
+    body = json.loads(payload.json(exclude_unset=True))
+    es.update(index="indicators", body={"doc": body}, id=indicator_id)
+    return Response(
+        status_code=status.HTTP_200_OK,
         headers={"location": f"/api/indicators/{indicator_id}"},
         content=f"Updated indicator with id = {indicator_id}",
     )
@@ -174,7 +196,6 @@ def publish_indicator(indicator_id: str):
         logger.info(f"Sent indicator to UAZ")
         es.index(index="indicators", body=data, id=indicator_id)
 
-
         # Notify Causemos that an indicator was created
         notify_causemos(data, type="indicator")
     except:
@@ -202,6 +223,145 @@ def deprecate_indicator(indicator_id: str):
         headers={"location": f"/api/indicators/{indicator_id}"},
         content=f"Deprecated indicator with id {indicator_id}",
     )
+
+
+# TODO this function isn't much less gross than the original, needs cleanup.
+@router.post("/indicators/mixmasta_update/{uuid}")
+def update_indicator_with_mixmasta_results(uuid):
+    # Get the mixmasta results
+    parquet_filename = f"final_{uuid}.parquet.gzip"
+    mixmasta_results = get_rawfile(uuid, parquet_filename)
+    parquet_df = pd.read_parquet(mixmasta_results)
+    meta_annotations = get_annotations(uuid)
+    original_indicator = get_indicators(uuid)
+
+    # Init schema
+    indicator = IndicatorMetadataSchema(
+        name=original_indicator["name"],
+        description=original_indicator["description"],
+        maintainer=original_indicator["maintainer"],
+    )
+
+    # We update data_paths, outputs, qualifier_outputs, geography, and period from the mixmasta results and then patch the indicator.
+
+    # Data_paths
+    all_files = list_files(uuid)
+    for file in all_files:
+        if file.endswith(".parquet.gzip"):
+            indicator.data_paths.append(file)
+
+    # Outputs
+    indicator.qualifier_outputs = []
+    indicator.outputs = []
+    feature_names = []
+    for feature in meta_annotations["annotations"]["feature"]:
+        feature_names.append(feature["name"])  # Used for the primary qualifier outputs.
+        output = Output(
+            name=feature["name"],
+            display_name=feature["display_name"],
+            description=feature["description"],
+            type=feature["feature_type"],
+            unit=feature["units"],
+            unit_description=feature["units_description"],
+            ontologies={},
+            is_primary=True,
+            data_resolution={
+                "data_resolution": {
+                    "temporal_resolution": "annual",
+                    "spatial_resolution": None,
+                }
+            },  # TODO will be something like meta_annotations["metadata"]["data_resolution"] instead of hardcoded values.
+            alias=feature["aliases"],
+        )
+        # Append
+        indicator.outputs.append(output)
+        # Qualifier output for qualifying features
+        if len(feature["qualifies"]) > 0:
+            qualifier_output = QualifierOutput(
+                name=feature["name"],
+                display_name=feature["display_name"],
+                description=feature["description"],
+                # Gross conversion between the two output types.
+                type=(
+                    "string"
+                    if feature["feature_type"] == "str"
+                    else "binary"
+                    if feature["feature_type"] == "boolean"
+                    else feature["feature_type"]
+                ),
+                unit=feature["units"],
+                unit_description=feature["units_description"],
+                ontologies={},
+                related_features=feature["qualifies"],
+            )
+            # Append to qualifier outputs
+            indicator.qualifier_outputs.append(qualifier_output)
+
+    # Qualifier_outputs
+    for date in meta_annotations["annotations"]["date"]:
+        if date["primary_date"]:
+            qualifier_output = QualifierOutput(
+                name=date["name"],
+                display_name=date["display_name"],
+                description=date["description"],
+                type="datetime",
+                unit=date.get("units", None),
+                unit_description=date.get("units_description", None),
+                ontologies={},
+                related_features=feature_names,
+                # Extra field (Schema allows extras)
+                qualifier_role="breakdown",
+            )
+            # Append
+            indicator.qualifier_outputs.append(qualifier_output)
+
+    # TODO potentially update description dynamically if present in annotations
+    for geo_str in ["country", "admin1", "admin2", "admin3", "lat", "lng"]:
+        qualifier_output = QualifierOutput(
+            name=geo_str,
+            display_name=geo_str,
+            description="location",
+            type=geo_str,
+            unit=None,
+            unit_description=None,
+            ontologies={},
+            related_features=feature_names,
+            # Extra field (Schema allows extras)
+            qualifier_role="breakdown",
+        )
+        # Append
+        indicator.qualifier_outputs.append(qualifier_output)
+
+    # Geography
+    geography_dict = {}
+    for x in ["admin1", "admin2", "admin3", "country"]:
+        geography_dict[x] = [
+            x for x in parquet_df[parquet_df[x].notna()][x].unique() if x != "nan"
+        ]
+    if len(geography_dict["country"]) < 10:
+        geography = Geography(
+            country=geography_dict["country"],
+            admin1=geography_dict["admin1"],
+            admin2=geography_dict["admin2"],
+            admin3=geography_dict["admin3"],
+        )
+        indicator.geography = geography
+    else:
+        geography = Geography(
+            country=geography_dict["country"],
+        )
+        indicator.geography = geography
+
+    # Period
+    if not parquet_df.timestamp.isnull().all():
+        indicator.period = Period(
+            gte=int(max(parquet_df.timestamp)), lte=int(min(parquet_df.timestamp))
+        )
+
+    logger.info(f"INDICATOR {indicator}")
+
+    # Patch the indicator with the results
+    return patch_indicator(payload=indicator, indicator_id=uuid)
 
 
 @router.get(
@@ -342,7 +502,10 @@ def get_all_indicator_info(indicator_id: str):
     return verbose_return_object
 
 
-@router.post("/indicators/validate_date", response_model=IndicatorSchema.DateValidationResponseSchema)
+@router.post(
+    "/indicators/validate_date",
+    response_model=IndicatorSchema.DateValidationResponseSchema,
+)
 def validate_date(payload: IndicatorSchema.DateValidationRequestSchema):
     valid = True
     try:
