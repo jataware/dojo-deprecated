@@ -1,3 +1,10 @@
+import io
+
+import os
+import hashlib
+
+import boto3
+
 from validation import ModelSchema
 import time
 from elasticsearch import Elasticsearch
@@ -78,3 +85,31 @@ def run_model_with_defaults(model_id):
     es.index(index="tests", body=body, id=model_id)
 
     return run_id    
+
+
+# TODO: DELETE; THIS SHOULD NOT BE SET HERE!
+os.environ["S3_BUCKET"] = "jataware-world-modelers"
+
+s3_client = boto3.client(
+    "s3",
+    aws_access_key_id=os.environ["S3_ACCESS_KEY_ID"],
+    aws_secret_access_key=os.environ["S3_SECRET_ACCESS_KEY"],
+    # aws_session_token=os.environ["SESSION_TOKEN"]
+)
+
+def gen_s3_file(model_id, path, contents):
+    if path.startswith("/"):
+        path = path[1:]  # trim leading slash
+    s3_key = f"dojo/shorthand_templates/{model_id}/{path}.txt"
+
+    s3_client.upload_fileobj(
+        io.BytesIO(contents.encode('utf-8')),
+        Bucket=os.environ["S3_BUCKET"],
+        Key=s3_key,
+        ExtraArgs={'ACL':'public-read'},
+    )
+
+    return "https://{bucket}.s3.amazonaws.com/{key}".format(
+        bucket=os.environ["S3_BUCKET"],
+        key=s3_key
+    )

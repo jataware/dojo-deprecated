@@ -69,15 +69,6 @@ def rehydrate(ti, **kwargs):
     saveFolder =  f"/model_configs/{run_id}/"
     output_dir =kwargs['dag_run'].conf.get('model_output_directory')
 
-    # get the model
-    req = requests.get(f"{dojo_url}/models/{model_id}")
-    respData = json.loads(req.content)
-    params = respData["parameters"]
-    print(f'params: {params}')
-
-    print(f'kwargs: {kwargs}')
-    print(f'types: {{param["name"]: param["type"] for param in params}}') # TODO: Is this necessary?
-        
     try:
 
         for configFile in kwargs['dag_run'].conf.get('s3_config_files'):
@@ -88,22 +79,53 @@ def rehydrate(ti, **kwargs):
 
             respTemplate = requests.get(model_config_s3)
             dehydrated_config = respTemplate.content.decode('utf-8')
-            for p in params:
-                defaultDict[p['name']] = p['default']
 
             # parameters the user sent in
             hydrateData = kwargs['dag_run'].conf.get('params')
 
-            # need to loop over defaultDict and update with hydrateData values
-            for key in hydrateData:
-                if key in defaultDict.keys():
-                    defaultDict[key] = hydrateData[key]
+            try:
+                # TODO: THIS FUNCTION SHOULD NOT BE REDEFINED HERE;
+                # ... SHOULD BE PUT IN LIB SHARED BY DOJO API
+                def apply_params(string, args, parameters):
+                    # Assuming no overlap
+                    for p in sorted(parameters, key = lambda x: x['start'], reversed=True):
+                        # TODO: Change `display_name` to `name` once changed on React side
+                        name = p["annotation"]["display_name"]
+                        value = args[name] if name in args else p["annotation"]["defaultValue"]
+                        string = string[:p["start"]] + value + string[p["end"]:]
+                        return string
 
-            finalDict = {}
-            for key in defaultDict:
-                 print(f'DEFAULT: key: {key} value: {defaultDict[key]}   type: {type(defaultDict[key])}')
-            for key in hydrateData:
-                 print(f'hydrateData: key: {key} value: {hydrateData[key]}   type: {type(hydrateData[key])}')
+                params = configFile.get('parameters')
+
+                dataToSave = apply_params(dehydrated_config, hydrateData, params)
+
+            except Exception as e:
+                print(f"Fallback onto old shorthand format:{e}")
+
+                # get the model
+                req = requests.get(f"{dojo_url}/models/{model_id}")
+                respData = json.loads(req.content)
+                params = respData["parameters"]
+                print(f'params: {params}')
+
+                print(f'kwargs: {kwargs}')
+                print(f'types: {{param["name"]: param["type"] for param in params}}')
+
+                for p in params:
+                    defaultDict[p['name']] = p['default']
+
+                # need to loop over defaultDict and update with hydrateData values
+                for key in hydrateData:
+                    if key in defaultDict.keys():
+                        defaultDict[key] = hydrateData[key]
+
+                finalDict = {}
+                for key in defaultDict:
+                     print(f'DEFAULT: key: {key} value: {defaultDict[key]}   type: {type(defaultDict[key])}')
+                for key in hydrateData:
+                     print(f'hydrateData: key: {key} value: {hydrateData[key]}   type: {type(hydrateData[key])}')
+
+                dataToSave = Template(dehydrated_config).render(defaultDict)
             
             # Hydrate the config
             if os.path.exists(saveFolder):
@@ -115,8 +137,6 @@ def rehydrate(ti, **kwargs):
 
             os.chmod(saveFolder, mode=0o777)
 
-            # Template(dehydrated_config).stream(finalDict).dump(savePath)
-            dataToSave = Template(dehydrated_config).render(defaultDict)
 
             print(f'dataToSave: {dataToSave}')
             # savePath needs to be hard coded for ubuntu path with run id and model name or something.

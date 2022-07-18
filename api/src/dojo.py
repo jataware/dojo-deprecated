@@ -12,7 +12,7 @@ from elasticsearch.exceptions import NotFoundError
 from fastapi import APIRouter, Response, status
 from validation import DojoSchema
 from src.settings import settings
-from src.utils import delete_matching_records_from_model
+from src.utils import delete_matching_records_from_model, gen_s3_file
 import logging
 
 logger = logging.getLogger(__name__)
@@ -192,6 +192,13 @@ def create_configs(payload: List[DojoSchema.ModelConfig]):
         response = es.search(index="configs", body=search_for_config(p.model_id, p.path), size=10000)
         for hit in response["hits"]["hits"]:
             es.delete(index="configs", id=hit["_id"])
+
+        try: 
+            p.s3_url = gen_s3_file(p.model_id, p.path, p.contents)
+            p.s3_url_raw = p.s3_url # TODO: Remove once schema is updated
+            # TODO: DELETE FILE CONTENTS FROM SCHEMA SO NOT ALL FILE CONTENTS ARE UPLOADED
+        except Exception as e:
+            logger.info(f"Fallback onto old shorthand format; New format failed with:{e}")
 
         es.index(index="configs", body=p.json())
     return Response(

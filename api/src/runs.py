@@ -144,9 +144,9 @@ def dispatch_run(run):
 
 
 def apply_params(string, args, parameters):
-    # Assuming overlap and no order  
-    # TODO: Change `display_name` to `name` once changed on React side
-    for p in parameters:
+    # Assuming no overlap
+    for p in sorted(parameters, key = lambda x: x['start'], reversed=True):
+        # TODO: Change `display_name` to `name` once changed on React side
         name = p["annotation"]["display_name"]
         value = args[name] if name in args else p["annotation"]["defaultValue"]
         string = string[:p["start"]] + value + string[p["end"]:]
