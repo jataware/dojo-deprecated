@@ -63,6 +63,8 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
     payload.published = False
 
     es.index(index="indicators", body=body, id=indicator_id)
+    empty_annotations_payload = MetadataSchema.MetaModel(metadata={}).json()
+    es.index(index="annotations", body=empty_annotations_payload, id=indicator_id)
     # TODO: Move this to publish
     # data = get_ontologies(json.loads(body), type="indicator")
     # logger.info(f"Sent indicator to UAZ")
@@ -193,7 +195,6 @@ def publish_indicator(indicator_id: str):
         data = get_ontologies(indicator, type="indicator")
         logger.info(f"Sent indicator to UAZ")
         es.index(index="indicators", body=data, id=indicator_id)
-
 
         # Notify Causemos that an indicator was created
         notify_causemos(data, type="indicator")
@@ -501,7 +502,10 @@ def get_all_indicator_info(indicator_id: str):
     return verbose_return_object
 
 
-@router.post("/indicators/validate_date", response_model=IndicatorSchema.DateValidationResponseSchema)
+@router.post(
+    "/indicators/validate_date",
+    response_model=IndicatorSchema.DateValidationResponseSchema,
+)
 def validate_date(payload: IndicatorSchema.DateValidationRequestSchema):
     valid = True
     try:
