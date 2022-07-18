@@ -58,12 +58,12 @@ def geotime_classify(context):
 
     final = gc.run(df=df, context=context)
 
-    # Constructs data object for post that creates the metadata dictionary for the Metadata Model
+    # Constructs data object for patch that updates the metadata dictionary for the MetadataModel
     json_final = json.loads(json.dumps(final))
-    data = {"metadata": {"geotime_classify": json_final}, "annotations": None}
+    data = {"metadata": {"geotime_classify": json_final}}
     api_url = os.environ.get("DOJO_HOST")
-    request_response = requests.post(
+    request_response = requests.patch(
         f"{api_url}/indicators/{context['uuid']}/annotations",
         json=data,
     )
-    return json_final
+    return json_final, request_response
