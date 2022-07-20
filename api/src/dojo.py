@@ -4,7 +4,7 @@ import os
 import requests
 import uuid
 
-from typing import List
+from typing import List, Union
 
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
@@ -128,7 +128,7 @@ def import_json_data():
 
 
 @router.post("/dojo/directive")
-def create_directive(payload: DojoSchema.ModelDirective):
+def create_directive(payload: Union[DojoSchema.ModelDirective, DojoSchema.ModelDirectiveUpdated]):
     """
     Create a `directive` for a model. This is the command which is used to execute
     the model container. The `directive` is templated out using Jinja, where each templated `{{ item }}`
@@ -152,7 +152,7 @@ def create_directive(payload: DojoSchema.ModelDirective):
 
 
 @router.get("/dojo/directive/{model_id}")
-def get_directive(model_id: str) -> DojoSchema.ModelDirective:
+def get_directive(model_id: str) -> Union[DojoSchema.ModelDirective, DojoSchema.ModelDirectiveUpdated]:
     results = es.search(index="directives", body=search_by_model(model_id))
     try:
         directive = results["hits"]["hits"][-1]["_source"]
@@ -177,7 +177,7 @@ def copy_directive(model_id: str, new_model_id: str):
     create_directive(d)
 
 @router.post("/dojo/config")
-def create_configs(payload: List[DojoSchema.ModelConfig]):
+def create_configs(payload: List[Union[DojoSchema.ModelConfig, DojoSchema.ModelConfigUpdated]]):
     """
     Create one or more model `configs`. A `config` is a settings file which is used by the model to
     set a specific parameter level. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
@@ -194,9 +194,9 @@ def create_configs(payload: List[DojoSchema.ModelConfig]):
             es.delete(index="configs", id=hit["_id"])
 
         try: 
-            p.s3_url = gen_s3_file(p.model_id, p.path, p.contents)
+            p.s3_url = gen_s3_file(p.model_id, p.path, p.file_content)
             p.s3_url_raw = p.s3_url # TODO: Remove once schema is updated
-            # TODO: DELETE FILE CONTENTS FROM SCHEMA SO NOT ALL FILE CONTENTS ARE UPLOADED
+            p.file_content = None
         except Exception as e:
             logger.info(f"Fallback onto old shorthand format; New format failed with:{e}")
 
@@ -208,7 +208,7 @@ def create_configs(payload: List[DojoSchema.ModelConfig]):
     )
 
 @router.get("/dojo/config/{model_id}")
-def get_configs(model_id: str) -> List[DojoSchema.ModelConfig]:
+def get_configs(model_id: str) -> List[Union[DojoSchema.ModelConfig, DojoSchema.ModelConfigUpdated]]:
     results = es.search(index="configs", body=search_by_model(model_id), size=10000)
     try:
         return [i["_source"] for i in results["hits"]["hits"]]

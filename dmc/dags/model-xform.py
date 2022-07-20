@@ -88,18 +88,17 @@ def rehydrate(ti, **kwargs):
                 # ... SHOULD BE PUT IN LIB SHARED BY DOJO API
                 def apply_params(string, args, parameters):
                     # Assuming no overlap
-                    for p in sorted(parameters, key = lambda x: x['start'], reversed=True):
+                    for p in sorted(parameters, key = lambda x: x['start'], reverse=True):
                         # TODO: Change `display_name` to `name` once changed on React side
                         name = p["annotation"]["display_name"]
                         value = args[name] if name in args else p["annotation"]["defaultValue"]
                         string = string[:p["start"]] + value + string[p["end"]:]
-                        return string
+                    return string
 
                 params = configFile.get('parameters')
-
                 dataToSave = apply_params(dehydrated_config, hydrateData, params)
 
-            except Exception as e:
+            except Exception as e: # TODO: DELETE once everything in the old format has been removed.
                 print(f"Fallback onto old shorthand format:{e}")
 
                 # get the model

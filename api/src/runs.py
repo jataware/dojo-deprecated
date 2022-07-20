@@ -145,12 +145,12 @@ def dispatch_run(run):
 
 def apply_params(string, args, parameters):
     # Assuming no overlap
-    for p in sorted(parameters, key = lambda x: x['start'], reversed=True):
+    for p in sorted(parameters, key = lambda x: x['start'], reverse=True):
         # TODO: Change `display_name` to `name` once changed on React side
         name = p["annotation"]["display_name"]
         value = args[name] if name in args else p["annotation"]["defaultValue"]
         string = string[:p["start"]] + value + string[p["end"]:]
-        return string
+    return string
 
 
 @router.post("/runs")
@@ -166,9 +166,9 @@ def create_run(run: RunSchema.ModelRunSchema):
     try:
         # Handle new shorthand format
         model_command = apply_params(directive.get("command"), params, directive.get("parameters"))
-    except Exception as e:
+        logger.info(f"\n\n\n\n{directive.get('command')} ?= {model_command}\n\n\n\n\n\n\n")
+    except Exception as e: # TODO: DELETE once everything in the old format has been removed.
         # Handle OLD shorthand format
-        # TODO: DELETE once everything in the old format has been removed.
         logger.info(f"Fallback onto old shorthand format; New format failed with:{e}")
         model_command = Template(directive.get("command")).render(params)
 
@@ -267,14 +267,25 @@ def create_run(run: RunSchema.ModelRunSchema):
             mountPath = '/'.join(configFile["path"].split("/")[:-1])
             fileName = configFile["path"].split("/")[-1]
         savePath = dmc_local_dir + f"/model_configs/{run.id}/{fileName}"
-        model_config_s3_path_objects.append(
-            {
-                "s3_url": configFile["s3_url"],
-                "savePath": savePath,
-                "path": mountPath,
-                "fileName": fileName,
-            }
-        )
+        try:
+            model_config_s3_path_objects.append(
+                {
+                    "s3_url": configFile["s3_url"],
+                    "savePath": savePath,
+                    "path": mountPath,
+                    "fileName": fileName,
+                    "parameters": configFile["parameters"]
+                }
+            )
+        except Exception as e: # TODO: DELETE once everything in the old format has been removed.
+            model_config_s3_path_objects.append(
+                {
+                    "s3_url": configFile["s3_url"],
+                    "savePath": savePath,
+                    "path": mountPath,
+                    "fileName": fileName,
+                }
+            )
         volumeArray.append(dmc_local_dir + f"/model_configs/{run.id}/{fileName}:{mountPath}/{fileName}")
 
     # remove redundant volume mounts
