@@ -4,7 +4,7 @@ import os
 import requests
 import uuid
 
-from typing import List, Union
+from typing import List
 
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
@@ -128,31 +128,29 @@ def import_json_data():
 
 
 @router.post("/dojo/directive")
-def create_directive(payload: Union[DojoSchema.ModelDirective, DojoSchema.ModelDirectiveUpdated]):
+def create_directive(payload: DojoSchema.ModelDirective):
     """
     Create a `directive` for a model. This is the command which is used to execute
-    the model container. The `directive` is templated out using Jinja, where each templated `{{ item }}`
-    maps directly to the name of a specific `parameter.
+    the model container. The `directive` is given a set of parameters and the indices
+    that must be modified in order to insert the user parameters.
     """
 
+
     try:
-        es.update(index="directives", body={"doc": payload.dict()}, id=payload.model_id)
-        return Response(
-            status_code=status.HTTP_200_OK,
-            headers={"location": f"/dojo/directive/{payload.model_id}"},
-            content=f"Created directive for model with id = {payload.model_id}",
-        )
-    except NotFoundError:
-        es.index(index="directives", body=payload.json(), id=payload.model_id)
-        return Response(
-            status_code=status.HTTP_201_CREATED,
-            headers={"location": f"/dojo/directive/{payload.model_id}"},
-            content=f"Created directive for model with id = {payload.model_id}",
-        )
+        es.delete(index="directives", id=payload.model_id)
+    except:
+        logger.info("Creating directive for new model")
+
+    es.index(index="directives", body=payload.json(), id=payload.model_id)
+    return Response(
+        status_code=status.HTTP_201_CREATED,
+        headers={"location": f"/dojo/directive/{payload.model_id}"},
+        content=f"Created directive for model with id = {payload.model_id}",
+    )
 
 
 @router.get("/dojo/directive/{model_id}")
-def get_directive(model_id: str) -> Union[DojoSchema.ModelDirective, DojoSchema.ModelDirectiveUpdated]:
+def get_directive(model_id: str) -> DojoSchema.ModelDirective:
     results = es.search(index="directives", body=search_by_model(model_id))
     try:
         directive = results["hits"]["hits"][-1]["_source"]
@@ -177,11 +175,11 @@ def copy_directive(model_id: str, new_model_id: str):
     create_directive(d)
 
 @router.post("/dojo/config")
-def create_configs(payload: List[Union[DojoSchema.ModelConfig, DojoSchema.ModelConfigUpdated]]):
+def create_configs(payload: List[DojoSchema.ModelConfig]):
     """
     Create one or more model `configs`. A `config` is a settings file which is used by the model to
-    set a specific parameter level. Each `config` is stored to S3, templated out using Jinja, where each templated `{{ item }}`
-    maps directly to the name of a specific `parameter.
+    set a specific parameter level. Each `config` is stored to S3 and contains a list of parameters
+    which show which indices to replace with user input.
     """
     if len(payload) == 0:
         return Response(status_code=status.HTTP_400_BAD_REQUEST,content=f"No payload")
@@ -193,14 +191,11 @@ def create_configs(payload: List[Union[DojoSchema.ModelConfig, DojoSchema.ModelC
         for hit in response["hits"]["hits"]:
             es.delete(index="configs", id=hit["_id"])
 
-        try: 
-            p.s3_url = gen_s3_file(p.model_id, p.path, p.file_content)
-            p.s3_url_raw = p.s3_url # TODO: Remove once schema is updated
-            p.file_content = None
-        except Exception as e:
-            logger.info(f"Fallback onto old shorthand format; New format failed with:{e}")
+        p.url = gen_s3_file(p.model_id, p.path, p.file_content)
+        
+        initializing_fields = {'file_content'}
 
-        es.index(index="configs", body=p.json())
+        es.index(index="configs", body=p.json(exclude=initializing_fields))
     return Response(
         status_code=status.HTTP_201_CREATED,
         headers={"location": f"/dojo/config/{p.model_id}"},
@@ -208,7 +203,7 @@ def create_configs(payload: List[Union[DojoSchema.ModelConfig, DojoSchema.ModelC
     )
 
 @router.get("/dojo/config/{model_id}")
-def get_configs(model_id: str) -> List[Union[DojoSchema.ModelConfig, DojoSchema.ModelConfigUpdated]]:
+def get_configs(model_id: str) -> List[DojoSchema.ModelConfig]:
     results = es.search(index="configs", body=search_by_model(model_id), size=10000)
     try:
         return [i["_source"] for i in results["hits"]["hits"]]
@@ -261,6 +256,7 @@ def copy_configs(model_id: str, new_model_id: str):
     for config in configs:
         config['id'] = str(uuid.uuid4())
         config['model_id'] = new_model_id
+        config['file_content'] = requests.get(config['url']).content.decode()
 
         c = DojoSchema.ModelConfig(**config)
         new_configs.append(c)

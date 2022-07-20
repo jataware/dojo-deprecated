@@ -146,9 +146,8 @@ def dispatch_run(run):
 def apply_params(string, args, parameters):
     # Assuming no overlap
     for p in sorted(parameters, key = lambda x: x['start'], reverse=True):
-        # TODO: Change `display_name` to `name` once changed on React side
-        name = p["annotation"]["display_name"]
-        value = args[name] if name in args else p["annotation"]["defaultValue"]
+        name = p["annotation"]["name"]
+        value = args[name] if name in args else p["annotation"]["default_value"]
         string = string[:p["start"]] + value + string[p["end"]:]
     return string
 
@@ -163,14 +162,7 @@ def create_run(run: RunSchema.ModelRunSchema):
     # generate command based on directive template
     directive = get_directive(run.model_id)
 
-    try:
-        # Handle new shorthand format
-        model_command = apply_params(directive.get("command"), params, directive.get("parameters"))
-        logger.info(f"\n\n\n\n{directive.get('command')} ?= {model_command}\n\n\n\n\n\n\n")
-    except Exception as e: # TODO: DELETE once everything in the old format has been removed.
-        # Handle OLD shorthand format
-        logger.info(f"Fallback onto old shorthand format; New format failed with:{e}")
-        model_command = Template(directive.get("command")).render(params)
+    model_command = apply_params(directive.get("command"), params, directive.get("parameters"))
 
     logging.info(f"Model Command is: {model_command}")
 
@@ -248,45 +240,29 @@ def create_run(run: RunSchema.ModelRunSchema):
     # get config in s3
     try:
         configs = get_configs(run.model_id)
-        configsData = configs
     except Exception as e:
-        configsData = []
+        configs = []
         logging.exception(e)
 
 
-    model_config_s3_path_objects = []
+    model_config_objects = []
 
     # get volumes
-    for configFile in configsData:
-        if 'fileName' in configFile:
-            mountPath = configFile["path"]
-            fileName = configFile["fileName"]
+    for config_file in configs:
 
-        # This is the typical case currently with Phantom/Shorthand
-        else:
-            mountPath = '/'.join(configFile["path"].split("/")[:-1])
-            fileName = configFile["path"].split("/")[-1]
-        savePath = dmc_local_dir + f"/model_configs/{run.id}/{fileName}"
-        try:
-            model_config_s3_path_objects.append(
-                {
-                    "s3_url": configFile["s3_url"],
-                    "savePath": savePath,
-                    "path": mountPath,
-                    "fileName": fileName,
-                    "parameters": configFile["parameters"]
-                }
-            )
-        except Exception as e: # TODO: DELETE once everything in the old format has been removed.
-            model_config_s3_path_objects.append(
-                {
-                    "s3_url": configFile["s3_url"],
-                    "savePath": savePath,
-                    "path": mountPath,
-                    "fileName": fileName,
-                }
-            )
-        volumeArray.append(dmc_local_dir + f"/model_configs/{run.id}/{fileName}:{mountPath}/{fileName}")
+        mount_path = '/'.join(config_file["path"].split("/")[:-1])
+        file_name = config_file["path"].split("/")[-1]
+        save_path = dmc_local_dir + f"/model_configs/{run.id}/{file_name}"
+        model_config_objects.append(
+            {
+                "url": config_file["url"],
+                "save_path": save_path,
+                "path": mount_path,
+                "file_name": file_name,
+                "parameters": config_file["parameters"]
+            }
+        )
+        volumeArray.append(dmc_local_dir + f"/model_configs/{run.id}/{file_name}:{mount_path}/{file_name}")
 
     # remove redundant volume mounts
     volumeArray = list(set(volumeArray))
@@ -301,7 +277,7 @@ def create_run(run: RunSchema.ModelRunSchema):
         # "model_output_directory": model_output_directory,
         "dojo_url": dojo_url,
         "params": params,
-        "s3_config_files": model_config_s3_path_objects,
+        "config_files": model_config_objects,
         "volumes": json.dumps(volumeArray),
         "mixmasta_cmd": f"causemosify-multi --inputs='{json.dumps(mixmasta_inputs)}' --output-file=/tmp/{run.id}_{run.model_id}",
     }

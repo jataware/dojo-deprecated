@@ -38,59 +38,6 @@ class ModelAccessory(BaseModel):
         example="This is an image of a flooding forecast",
     )
 
-
-class ModelConfig(BaseModel):
-    model_id: str = Field(
-        title="Model ID",
-        description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
-        example="abcd-efg-1233",
-    )
-    s3_url: str = Field(
-        title="S3 URL",
-        description="The S3 URL where the config file is located",
-        example="https://jataware-world-modelers.s3.amazonaws.com/dummy-model/config.json",
-    )
-    s3_url_raw: str = Field(
-        title="S3 URL (raw)",
-        description="The S3 URL where the raw config file is located",
-        example="https://jataware-world-modelers.s3.amazonaws.com/dummy-model/raw-config.json",
-    )
-    path: str = Field(
-        title="File Path",
-        description="The file path where the conf file must be mounted.",
-        example="/model/settings/config.json",
-    )
-
-    class Config:
-        extra = "allow"
-
-
-class ModelDirective(BaseModel):
-    model_id: str = Field(
-        title="Model ID",
-        description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
-        example="abcd-efg-1233",
-    )
-    command: str = Field(
-        title="Model Container command",
-        description="The model container command, templated using Jinja. Templated fields must correspond with the name of the model parameters.",
-        example="python3 dssat.py --management_practice = {{ management_practice }}",
-    )
-    command_raw: str = Field(
-        title="Model Container command",
-        description="The raw model container command",
-        example="python3 dssat.py --rainfall = .5 ",
-    )
-    cwd: str = Field(
-        title="Current Working Directory",
-        description="Current Working Directory for Model Container command",
-        example="/home/clouseau/model",
-    )
-
-    class Config:
-        extra = "allow"
-
-
 class Annotation(BaseModel):
     name: str = Field(
         ...,
@@ -150,7 +97,7 @@ class Annotation(BaseModel):
     )
 
 
-class ParameterUpdated(BaseModel):
+class Parameter(BaseModel):
     start: int = Field(
         ...,
         description="The index that indicates where to start replacement",
@@ -173,7 +120,7 @@ class ParameterUpdated(BaseModel):
     )
 
 
-class ModelConfigUpdated(BaseModel):
+class ModelConfig(BaseModel):
     model_id: str = Field(
         title="Model ID",
         description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
@@ -190,7 +137,7 @@ class ModelConfigUpdated(BaseModel):
         description="The file path where the conf file must be mounted.",
         example="/model/settings/config.json",
     )
-    parameters: List[ParameterUpdated] = Field(
+    parameters: List[Parameter] = Field(
         ...,
         description="The parameters that apply to the configuration file given by path",
         title="Config Parameters",
@@ -200,7 +147,7 @@ class ModelConfigUpdated(BaseModel):
         extra = "allow"
 
 
-class ModelDirectiveUpdated(BaseModel):
+class ModelDirective(BaseModel):
     model_id: str = Field(
         title="Model ID",
         description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
@@ -211,17 +158,12 @@ class ModelDirectiveUpdated(BaseModel):
         description="The model container command, templated usin",
         example="python3 main.py --temp 1.3 ",
     )
-    command_raw: str = Field(
-        title="Model Container command",
-        description="The raw model container command",
-        example="python3 dssat.py --rainfall = .5 ",
-    )
     cwd: str = Field(
         title="Current Working Directory",
         description="Current Working Directory for Model Container command",
         example="/home/clouseau/model",
     )
-    parameters: List[ParameterUpdated] = Field(
+    parameters: List[Parameter] = Field(
         ...,
         description="The parameters that apply to this directive",
         title="Directive Parameters",
