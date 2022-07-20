@@ -61,92 +61,51 @@ dag = DAG(
 #########################
 
 def rehydrate(ti, **kwargs):
-    # get default dict
-    defaultDict = {}
     dojo_url = kwargs['dag_run'].conf.get('dojo_url')
     model_id = kwargs['dag_run'].conf.get('model_id')
     run_id = kwargs['dag_run'].conf.get('run_id')
-    saveFolder =  f"/model_configs/{run_id}/"
+    save_folder =  f"/model_configs/{run_id}/"
     output_dir =kwargs['dag_run'].conf.get('model_output_directory')
 
-    try:
+    for config_file in kwargs['dag_run'].conf.get('config_files'):
 
-        for configFile in kwargs['dag_run'].conf.get('s3_config_files'):
+        file_name = config_file.get('file_name')
+        model_config = config_file.get('url')
 
-            fileName = configFile.get('fileName')
-            model_config_s3 = configFile.get('s3_url')
-            mountPath = configFile.get('path')
+        dehydrated_config = requests.get(model_config).content.decode('utf-8')
 
-            respTemplate = requests.get(model_config_s3)
-            dehydrated_config = respTemplate.content.decode('utf-8')
+        # TODO: THIS FUNCTION SHOULD NOT BE REDEFINED HERE;
+        # ... SHOULD BE PUT IN LIB SHARED BY DOJO API
+        def apply_params(string, args, parameters):
+            # Assuming no overlap
+            for p in sorted(parameters, key = lambda x: x['start'], reverse=True):
+                name = p["annotation"]["name"]
+                value = args[name] if name in args else p["annotation"]["default_value"]
+                string = string[:p["start"]] + value + string[p["end"]:]
+            return string
 
-            # parameters the user sent in
-            hydrateData = kwargs['dag_run'].conf.get('params')
+        data_to_save = apply_params(
+            dehydrated_config, # Original Config Text
+            kwargs['dag_run'].conf.get('params'), # User Parameters
+            config_file.get('parameters') # Available Parameters
+        )
 
-            try:
-                # TODO: THIS FUNCTION SHOULD NOT BE REDEFINED HERE;
-                # ... SHOULD BE PUT IN LIB SHARED BY DOJO API
-                def apply_params(string, args, parameters):
-                    # Assuming no overlap
-                    for p in sorted(parameters, key = lambda x: x['start'], reverse=True):
-                        # TODO: Change `display_name` to `name` once changed on React side
-                        name = p["annotation"]["display_name"]
-                        value = args[name] if name in args else p["annotation"]["defaultValue"]
-                        string = string[:p["start"]] + value + string[p["end"]:]
-                    return string
+        # Hydrate the config
+        if os.path.exists(save_folder):
+            print('here')
+            pass
 
-                params = configFile.get('parameters')
-                dataToSave = apply_params(dehydrated_config, hydrateData, params)
+        else:
+            os.mkdir(save_folder, mode=0o777)
 
-            except Exception as e: # TODO: DELETE once everything in the old format has been removed.
-                print(f"Fallback onto old shorthand format:{e}")
+        os.chmod(save_folder, mode=0o777)
 
-                # get the model
-                req = requests.get(f"{dojo_url}/models/{model_id}")
-                respData = json.loads(req.content)
-                params = respData["parameters"]
-                print(f'params: {params}')
-
-                print(f'kwargs: {kwargs}')
-                print(f'types: {{param["name"]: param["type"] for param in params}}')
-
-                for p in params:
-                    defaultDict[p['name']] = p['default']
-
-                # need to loop over defaultDict and update with hydrateData values
-                for key in hydrateData:
-                    if key in defaultDict.keys():
-                        defaultDict[key] = hydrateData[key]
-
-                finalDict = {}
-                for key in defaultDict:
-                     print(f'DEFAULT: key: {key} value: {defaultDict[key]}   type: {type(defaultDict[key])}')
-                for key in hydrateData:
-                     print(f'hydrateData: key: {key} value: {hydrateData[key]}   type: {type(hydrateData[key])}')
-
-                dataToSave = Template(dehydrated_config).render(defaultDict)
-            
-            # Hydrate the config
-            if os.path.exists(saveFolder):
-                print('here')
-                pass
-
-            else:
-                os.mkdir(saveFolder, mode=0o777)
-
-            os.chmod(saveFolder, mode=0o777)
-
-
-            print(f'dataToSave: {dataToSave}')
-            # savePath needs to be hard coded for ubuntu path with run id and model name or something.
-            saveFileName=saveFolder+fileName
-            with open(saveFileName, "w+") as fh:
-                fh.write(dataToSave)
-            os.chmod(saveFileName, mode=0o777)
-
-    except Exception as e:
-        print(e)
-    print('done')
+        print(f'data_to_save: {data_to_save}')
+        # save path needs to be hard coded for ubuntu path with run id and model name or something.
+        save_file_name=save_folder+file_name
+        with open(save_file_name, "w+") as fh:
+            fh.write(data_to_save)
+        os.chmod(save_file_name, mode=0o777)
 
 
 def accessoryNodeTask(**kwargs):
