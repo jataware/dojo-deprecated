@@ -176,7 +176,7 @@ def copy_directive(model_id: str, new_model_id: str):
     create_directive(d)
 
 @router.post("/dojo/config")
-def create_configs(payload: List[DojoSchema.ModelConfig]):
+def create_configs(payload: List[DojoSchema.ModelConfigCreate]):
     """
     Create one or more model `configs`. A `config` is a settings file which is used by the model to
     set a specific parameter level. Each `config` is stored to S3 and contains a list of parameters
@@ -185,24 +185,23 @@ def create_configs(payload: List[DojoSchema.ModelConfig]):
     if len(payload) == 0:
         return Response(status_code=status.HTTP_400_BAD_REQUEST,content=f"No payload")
 
-    for p in payload:
+    for config_data in payload:
+        model_config = config_data.model_config
+        file_content = config_data.file_content
 
         # remove existing configs with this model_id and path
-        response = es.search(index="configs", body=search_for_config(p.model_id, p.path), size=10000)
+        response = es.search(index="configs", body=search_for_config(model_config.model_id, model_config.path), size=10000)
         for hit in response["hits"]["hits"]:
             es.delete(index="configs", id=hit["_id"])
 
-        fileobj = io.BytesIO(p.file_content.encode('utf-8'))
-        put_rawfile(p.model_id, p.path, fileobj)
+        fileobj = io.BytesIO(file_content.encode('utf-8'))
+        put_rawfile(model_config.model_id, model_config.path, fileobj)
 
-        # TODO: Come up with better documentation for 'file_content' since it's not officially part of the schema
-        initializing_fields = {'file_content'} # extra fields needed for config creation but should not be stored in es
-
-        es.index(index="configs", body=p.json(exclude=initializing_fields))
+        es.index(index="configs", body=model_config.json())
     return Response(
         status_code=status.HTTP_201_CREATED,
-        headers={"location": f"/dojo/config/{p.model_id}"},
-        content=f"Created config(s) for model with id = {p.model_id}",
+        headers={"location": f"/dojo/config/{model_config.model_id}"},
+        content=f"Created config(s) for model with id = {model_config.model_id}",
     )
 
 @router.get("/dojo/config/{model_id}")
@@ -254,22 +253,35 @@ def copy_configs(model_id: str, new_model_id: str):
     configs = get_configs(model_id)
     if type(configs) == Response:
         return False
-    new_configs = []
+    config_create_request = []
 
     for config in configs:
-        config['file_content'] = get_rawfile(
+        content = get_rawfile(
             config['model_id'],
             config['path']
         ).read().decode()
         config['id'] = str(uuid.uuid4())
         config['model_id'] = new_model_id
 
-        c = DojoSchema.ModelConfig(**config)
-        new_configs.append(c)
+        config_data = DojoSchema.ModelConfigCreate(
+            model_config=DojoSchema.ModelConfig(**config),
+            file_content=content
+        )
+        config_create_request.append(config_data)
 
-    create_configs(new_configs)
+    create_configs(config_create_request)
 
 
+
+@router.get("/dojo/parameters/{model_id}")
+def get_parameters(model_id: str) -> List[DojoSchema.Parameter]:
+    config_params = [ param for config in get_configs(model_id)
+                            for param in config['parameters']
+                    ]
+    directive_params = [ param for param in get_directive(model_id)['parameters']]
+    return config_params + directive_params
+    
+    
 
 @router.post("/dojo/outputfile")
 def create_outputfiles(payload: List[DojoSchema.ModelOutputFile]):

@@ -49,9 +49,9 @@ class Annotation(BaseModel):
         description="The description of the parameter",
         text="Description"
     )
-    type: str = Field( # TODO: Use Enum
+    type: ModelSchema.Type = Field(
         ...,
-        description="The basic type f",
+        description="The basic type",
         text="Type"
     )
     default_value: str = Field(
@@ -120,33 +120,6 @@ class Parameter(BaseModel):
     )
 
 
-class ModelConfig(BaseModel):
-    model_id: str = Field(
-        title="Model ID",
-        description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
-        example="abcd-efg-1233",
-    )
-    url: str = Field(
-        title="URL",
-        description="The URL where the config file is located",
-        example="https://jataware-world-modelers.s3.amazonaws.com/dummy-model/config.json",
-        default=""
-    )
-    path: str = Field(
-        title="File Path",
-        description="The file path where the conf file must be mounted.",
-        example="/model/settings/config.json",
-    )
-    parameters: List[Parameter] = Field(
-        ...,
-        description="The parameters that apply to the configuration file given by path",
-        title="Config Parameters",
-    )
-
-    class Config:
-        extra = "allow"
-
-
 class ModelDirective(BaseModel):
     model_id: str = Field(
         title="Model ID",
@@ -172,6 +145,37 @@ class ModelDirective(BaseModel):
     class Config:
         extra = "allow"
 
+
+class ModelConfig(BaseModel):
+    model_id: str = Field(
+        title="Model ID",
+        description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
+        example="abcd-efg-1233",
+    )
+    path: str = Field(
+        title="File Path",
+        description="The file path where the conf file must be mounted.",
+        example="/model/settings/config.json",
+    )
+    parameters: List[Parameter] = Field(
+        ...,
+        description="The parameters that apply to the configuration file given by path",
+        title="Config Parameters",
+    )
+
+    class Config:
+        extra = "allow"
+
+class ModelConfigCreate(BaseModel):
+    model_config: ModelConfig = Field(
+        title="Model Config",
+        description="A config that needs to be registered"
+    )
+    file_content: str = Field(
+        title="File Contents",
+        description="The contents of the config file that need to be written"
+    )
+    
 
 class ModelOutputFile(BaseModel):
     id: str

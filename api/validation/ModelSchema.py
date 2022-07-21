@@ -433,7 +433,7 @@ class QualifierOutput(BaseModel):
     )
 
 
-class ModelMetadataSchema(BaseModel):
+class InternalModelMetadataSchema(BaseModel):
     class Config:
         extra = Extra.allow
 
@@ -497,11 +497,7 @@ class ModelMetadataSchema(BaseModel):
     is_stochastic: Optional[bool] = Field(
         False, description="Is the model stochastic", title="Is the model stochastic"
     )
-    parameters: List[Parameter] = Field(
-        ...,
-        description="The parameters exposed for the model",
-        title="Model Parameters",
-    )
+
     outputs: List[Output] = Field(
         ..., description="An array of model outputs", title="Model Outputs"
     )
@@ -546,6 +542,15 @@ class ModelMetadataSchema(BaseModel):
         title="Commit message",
 
     )
+
+class ModelMetadataSchema(InternalModelMetadataSchema):
+    parameters: List[Parameter] = Field(
+        ...,
+        description="The parameters exposed for the model",
+        title="Model Parameters",
+    )
+    class Config:
+        exclude = {}
 
 
 class ModelMetadataPatchSchema(BaseModel):
