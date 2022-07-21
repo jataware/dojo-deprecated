@@ -1,16 +1,17 @@
-import io
-
 import os
 import hashlib
 
-import boto3
+from urllib.parse import urlparse
 
 from validation import ModelSchema
 import time
 from elasticsearch import Elasticsearch
+import logging #TODO: HEYO
 
 from src.settings import settings
 es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
+
+logger = logging.getLogger(__name__)
 
 def try_parse_int(s: str, default: int = 0) -> int:
     try:
@@ -87,29 +88,70 @@ def run_model_with_defaults(model_id):
     return run_id    
 
 
-# TODO: DELETE; THIS SHOULD NOT BE SET HERE!
-os.environ["S3_BUCKET"] = "jataware-world-modelers"
+def handle_path(filename):
+    return filename.replace("/",".")
 
-s3_client = boto3.client(
-    "s3",
-    aws_access_key_id=os.environ["S3_ACCESS_KEY_ID"],
-    aws_secret_access_key=os.environ["S3_SECRET_ACCESS_KEY"],
-    # aws_session_token=os.environ["SESSION_TOKEN"]
-)
+def get_rawfile(uuid, filename):
+    filename = handle_path(filename)
+    location_info = urlparse(settings.DATASET_STORAGE_BASE_URL)
+    file_dir = os.path.join(location_info.path, uuid)
+    file_path = os.path.join(file_dir, filename)
 
-def gen_s3_file(model_id, path, contents):
-    if path.startswith("/"):
-        path = path[1:]  # trim leading slash
-    s3_key = f"dojo/shorthand_templates/{model_id}/{path}.txt"
+    if location_info.scheme.lower() == "file":
+        raw_file = open(file_path, "rb")
+    elif location_info.scheme.lower() == "s3":
+        file_path = file_path.lstrip("/")
+        raw_file = tempfile.TemporaryFile()
+        s3.download_fileobj(
+            Bucket=location_info.netloc, Key=file_path, Fileobj=raw_file
+        )
+        raw_file.seek(0)
+    else:
+        raise RuntimeError("File storage format is unknown")
 
-    s3_client.upload_fileobj(
-        io.BytesIO(contents.encode('utf-8')),
-        Bucket=os.environ["S3_BUCKET"],
-        Key=s3_key,
-        ExtraArgs={'ACL':'public-read'},
-    )
+    return raw_file
 
-    return "https://{bucket}.s3.amazonaws.com/{key}".format(
-        bucket=os.environ["S3_BUCKET"],
-        key=s3_key
-    )
+
+def put_rawfile(uuid, filename, fileobj):
+    if filename is None:
+        filename = settings.CSV_FILE_NAME
+
+    logger.info(f"\n\n\n\n\nSTART\n\n\n\n\n\n")
+    filename = handle_path(filename)
+    location_info = urlparse(settings.DATASET_STORAGE_BASE_URL)
+    output_dir = os.path.join(location_info.path, uuid)
+    output_path = os.path.join(output_dir, filename)
+
+    if location_info.scheme.lower() == "file":
+        if not os.path.isdir(output_dir):
+            os.makedirs(output_dir, exist_ok=True)
+            logger.info(f"\n\n\n\n\nHEYO\n\n\n\n\n\n")
+        logger.info(f"{output_path}")
+        with open(output_path, "wb") as output_file:
+            output_file.write(fileobj.read())
+    elif location_info.scheme.lower() == "s3":
+        logger.info(f"\n\n\n\n\nWOAH\n\n\n\n\n\n")
+        output_path = output_path.lstrip("/")
+        s3.put_object(Bucket=location_info.netloc, Key=output_path, Body=fileobj)
+    else:
+        raise RuntimeError("File storage format is unknown")
+
+
+def list_files(uuid):
+    location_info = urlparse(settings.DATASET_STORAGE_BASE_URL)
+    file_dir = os.path.join(location_info.path, uuid)
+    if location_info.scheme.lower() == "file":
+        return os.listdir(file_dir)
+    elif location_info.scheme.lower() == "s3":
+        s3_list = s3.list_objects(Bucket=location_info.netloc, Marker=file_dir)
+        s3_contents = s3_list["Contents"]
+        final_file_list = []
+        for x in s3_contents:
+            filename = x["Key"]
+            final_file_list.append(f"{file_dir}/{filename}")
+
+        return final_file_list
+    else:
+        raise RuntimeError("File storage format is unknown")
+
+

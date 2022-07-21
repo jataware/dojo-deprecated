@@ -25,6 +25,7 @@ from validation import RunSchema, DojoSchema
 
 from src.models import get_model
 from src.dojo import get_directive, get_outputfiles, get_configs, get_accessory_files
+from src.utils import get_rawfile
 
 logger = logging.getLogger(__name__)
 
@@ -253,9 +254,13 @@ def create_run(run: RunSchema.ModelRunSchema):
         mount_path = '/'.join(config_file["path"].split("/")[:-1])
         file_name = config_file["path"].split("/")[-1]
         save_path = dmc_local_dir + f"/model_configs/{run.id}/{file_name}"
+        file_content = get_rawfile(
+            run.model_id, 
+            config_file["path"]
+        ).read().decode()
         model_config_objects.append(
             {
-                "url": config_file["url"],
+                "file_content": file_content,
                 "save_path": save_path,
                 "path": mount_path,
                 "file_name": file_name,

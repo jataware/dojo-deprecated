@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     DOCKERHUB_PWD: str = ""
     DOCKERHUB_ORG: str = "jataware"
 
+    DATASET_STORAGE_BASE_URL: str = "file:///datasets/"
+
     UVICORN_RELOAD: bool = False
 
     UAZ_URL: str = ""

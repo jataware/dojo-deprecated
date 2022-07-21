@@ -1,6 +1,7 @@
 
 import hashlib
 import os
+import io
 import requests
 import uuid
 
@@ -12,7 +13,7 @@ from elasticsearch.exceptions import NotFoundError
 from fastapi import APIRouter, Response, status
 from validation import DojoSchema
 from src.settings import settings
-from src.utils import delete_matching_records_from_model, gen_s3_file
+from src.utils import delete_matching_records_from_model, put_rawfile, get_rawfile
 import logging
 
 logger = logging.getLogger(__name__)
@@ -191,9 +192,11 @@ def create_configs(payload: List[DojoSchema.ModelConfig]):
         for hit in response["hits"]["hits"]:
             es.delete(index="configs", id=hit["_id"])
 
-        p.url = gen_s3_file(p.model_id, p.path, p.file_content)
-        
-        initializing_fields = {'file_content'}
+        fileobj = io.BytesIO(p.file_content.encode('utf-8'))
+        put_rawfile(p.model_id, p.path, fileobj)
+
+        # TODO: Come up with better documentation for 'file_content' since it's not officially part of the schema
+        initializing_fields = {'file_content'} # extra fields needed for config creation but should not be stored in es
 
         es.index(index="configs", body=p.json(exclude=initializing_fields))
     return Response(
@@ -254,9 +257,12 @@ def copy_configs(model_id: str, new_model_id: str):
     new_configs = []
 
     for config in configs:
+        config['file_content'] = get_rawfile(
+            config['model_id'],
+            config['path']
+        ).read().decode()
         config['id'] = str(uuid.uuid4())
         config['model_id'] = new_model_id
-        config['file_content'] = requests.get(config['url']).content.decode()
 
         c = DojoSchema.ModelConfig(**config)
         new_configs.append(c)

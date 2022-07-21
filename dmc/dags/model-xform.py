@@ -65,17 +65,10 @@ def rehydrate(ti, **kwargs):
     model_id = kwargs['dag_run'].conf.get('model_id')
     run_id = kwargs['dag_run'].conf.get('run_id')
     save_folder =  f"/model_configs/{run_id}/"
-    output_dir =kwargs['dag_run'].conf.get('model_output_directory')
 
     for config_file in kwargs['dag_run'].conf.get('config_files'):
 
-        file_name = config_file.get('file_name')
-        model_config = config_file.get('url')
-
-        dehydrated_config = requests.get(model_config).content.decode('utf-8')
-
-        # TODO: THIS FUNCTION SHOULD NOT BE REDEFINED HERE;
-        # ... SHOULD BE PUT IN LIB SHARED BY DOJO API
+        # NOTE: Identical function to Dojo API
         def apply_params(string, args, parameters):
             # Assuming no overlap
             for p in sorted(parameters, key = lambda x: x['start'], reverse=True):
@@ -85,7 +78,7 @@ def rehydrate(ti, **kwargs):
             return string
 
         data_to_save = apply_params(
-            dehydrated_config, # Original Config Text
+            config_file.get("file_content"), # Original Config Text
             kwargs['dag_run'].conf.get('params'), # User Parameters
             config_file.get('parameters') # Available Parameters
         )
@@ -102,7 +95,7 @@ def rehydrate(ti, **kwargs):
 
         print(f'data_to_save: {data_to_save}')
         # save path needs to be hard coded for ubuntu path with run id and model name or something.
-        save_file_name=save_folder+file_name
+        save_file_name=save_folder+config_file.get('file_name')
         with open(save_file_name, "w+") as fh:
             fh.write(data_to_save)
         os.chmod(save_file_name, mode=0o777)
