@@ -1,3 +1,4 @@
+from fileinput import filename
 import logging
 
 import pandas as pd
@@ -133,21 +134,12 @@ class SaveProcessorCsv(BaseProcessor):
 def file_conversion(context):
     # Get raw file
     uuid = context["uuid"]
-    filepath = context["datasets"]["data_paths"][0]
-    filename = filepath.split("/")[-1]
+    filename = context["annotations"]["metadata"]["rawFileName"]
     raw_file = get_rawfile(uuid, filename)
     excel_tuple = ("xlsx", "xls")
     tif_tuple = ("tif", "tiff")
 
-    if filename.endswith(".csv"):
-
-        # Using filename of None defaults to the csv file name in the envfile
-        put_rawfile(uuid, None, raw_file)
-
-        # Probably dont need return here.
-        return raw_file
-
-    elif filename.endswith(excel_tuple):
+    if filename.endswith(excel_tuple):
         sheet = context.get(
             "excel_Sheet", 0
         )  # 0 is the first sheet if none is provided.
@@ -155,10 +147,12 @@ def file_conversion(context):
         read_file = pd.read_excel(raw_file, sheet_name=sheet)
 
         read_file.to_csv("xlsx_to.csv", index=None, header=True)
+        with open("./xlsx_to.csv", "rb") as f:
+            put_rawfile(uuid, None, f)
 
-        put_rawfile(uuid, None, read_file)
+        # put_rawfile(uuid, None, read_file)
         # Probably dont need return here.
-        return read_file
+        return None
 
     elif filename.endswith(tif_tuple):
 
