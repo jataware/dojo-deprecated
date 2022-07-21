@@ -6,12 +6,9 @@ from urllib.parse import urlparse
 from validation import ModelSchema
 import time
 from elasticsearch import Elasticsearch
-import logging #TODO: HEYO
 
 from src.settings import settings
 es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
-
-logger = logging.getLogger(__name__)
 
 def try_parse_int(s: str, default: int = 0) -> int:
     try:
@@ -116,7 +113,6 @@ def put_rawfile(uuid, filename, fileobj):
     if filename is None:
         filename = settings.CSV_FILE_NAME
 
-    logger.info(f"\n\n\n\n\nSTART\n\n\n\n\n\n")
     filename = handle_path(filename)
     location_info = urlparse(settings.DATASET_STORAGE_BASE_URL)
     output_dir = os.path.join(location_info.path, uuid)
@@ -125,12 +121,9 @@ def put_rawfile(uuid, filename, fileobj):
     if location_info.scheme.lower() == "file":
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir, exist_ok=True)
-            logger.info(f"\n\n\n\n\nHEYO\n\n\n\n\n\n")
-        logger.info(f"{output_path}")
         with open(output_path, "wb") as output_file:
             output_file.write(fileobj.read())
     elif location_info.scheme.lower() == "s3":
-        logger.info(f"\n\n\n\n\nWOAH\n\n\n\n\n\n")
         output_path = output_path.lstrip("/")
         s3.put_object(Bucket=location_info.netloc, Key=output_path, Body=fileobj)
     else:
