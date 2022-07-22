@@ -1,4 +1,5 @@
 import logging
+import os
 
 import pandas as pd
 import xarray as xr
@@ -7,6 +8,9 @@ from raster2xyz.raster2xyz import Raster2xyz
 from mixmasta import mixmasta as mix
 from base_annotation import BaseProcessor
 from utils import get_rawfile, put_rawfile
+
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
 
 
 class FileLoadProcessor(BaseProcessor):
@@ -92,7 +96,7 @@ class GeotiffLoadProcessor(BaseProcessor):
                 geotiff_meta["Feature_Name"],
                 geotiff_meta.get("band", 1),
                 geotiff_meta["date"],
-                geotiff_meta["Null_Val"],
+                geotiff_meta["null_value"],
             )
 
             df = mix.raster2df(
@@ -107,15 +111,15 @@ class GeotiffLoadProcessor(BaseProcessor):
             logging.info(f"context is: {context}")
             df = mix.raster2df(
                 fp,
-                feature_name=context.get("Feature_name", "feature"),
-                band_name=context.get("Feature_name", "feature"),
-                date=context.get("date", "01/01/2001"),
-                bands=context.get("bands", {}),
-                band_type=context.get("band_type", "categorical"),
+                feature_name=context.get("geotiff_Feature_name", "feature"),
+                band_name=context.get("geotiff_Feature_name", "feature"),
+                date=context.get("geotiff_date", "01/01/2001"),
+                bands=context.get("geotiff_bands", {}),
+                band_type=context.get("geotiff_band_type", "category"),
             )
             return df.sort_values(by="date")
 
-        if context.get("bands", False):
+        if context.get("geotiff_bands", False):
             return multiband_run()
         else:
             return single_band_run()
@@ -133,8 +137,7 @@ class SaveProcessorCsv(BaseProcessor):
 def file_conversion(context):
     # Get raw file
     uuid = context["uuid"]
-    filepath = context["datasets"]["data_paths"][0]
-    filename = filepath.split("/")[-1]
+    filename = context["annotations"]["metadata"]["rawFileName"]
     raw_file = get_rawfile(uuid, filename)
     excel_tuple = ("xlsx", "xls")
     tif_tuple = ("tif", "tiff")
@@ -144,21 +147,19 @@ def file_conversion(context):
         # Using filename of None defaults to the csv file name in the envfile
         put_rawfile(uuid, None, raw_file)
 
-        # Probably dont need return here.
-        return raw_file
-
     elif filename.endswith(excel_tuple):
-        sheet = context.get(
-            "excel_Sheet", 0
+        sheet = context["annotations"]["metadata"].get(
+            "excel_sheet", 0
         )  # 0 is the first sheet if none is provided.
 
         read_file = pd.read_excel(raw_file, sheet_name=sheet)
 
-        read_file.to_csv("xlsx_to.csv", index=None, header=True)
+        read_file.to_csv("./xlsx_to.csv", index=None, header=True)
 
-        put_rawfile(uuid, None, read_file)
-        # Probably dont need return here.
-        return read_file
+        with open("./xlsx_to.csv", "rb") as fileobj:
+            put_rawfile(uuid, None, fileobj)
+
+        os.remove("./xlsx_to.csv")
 
     elif filename.endswith(tif_tuple):
 
@@ -182,24 +183,39 @@ def netCDF_to_CSV(uuid, fileobj):
     with open("./convertedCSV.csv", "rb") as f:
         put_rawfile(uuid, None, f)
 
+    os.remove("./convertedCSV.csv")
+
 
 def geotif_to_CSV(context, fileobj):
     original_file = fileobj
     uuid = context["uuid"]
+    context_metadata = context["annotations"]["metadata"]
 
     with open("./tempGeoTif.tif", "wb") as f:
         f.write(original_file.read())
 
     glp = GeotiffLoadProcessor()
     context["uploaded_file_fp"] = "./tempGeoTif.tif"
-    # TODO HARDCODED VALUES THAT NEED TO BE POPULATED FROM THE FIRST PAGE FROM REGISTER DATASET
-    context["geotiff_Null_Val"] = 0
     context["geotiff_Feature_Name"] = "feature"
-    context["geotiff_band"] = 1
-    context["geotiff_date"] = "01/01/2001"
+    # Makes the band/bands dictionary. Band is set for single band runs, bands is set for multiband runs.
+    context["geotiff_null_value"] = context_metadata.get("geotiff_null_value", 0)
+    if len(context_metadata["geotiff_bands"]) > 1:
+        context["geotiff_bands"] = context_metadata["geotiff_bands"]
+        context["geotiff_band_type"] = context_metadata["geotiff_band_type"]
+        context["geotiff_date"] = (
+            context_metadata["geotiff_value"]
+            if context_metadata["geotiff_band_type"] == "category"
+            else "01/01/2001"
+        )
+    else:
+        context["geotiff_band"] = (context_metadata["geotiff_bands"].keys())[0]
+        context["geotiff_date"] = context_metadata["geotiff_value"]
 
     df = glp.run(context)
     df.to_csv("./convertedCSV.csv", index=None, header=True)
 
     with open("./convertedCSV.csv", "rb") as f:
         put_rawfile(uuid, None, f)
+
+    os.remove("./tempGeoTif.tif")
+    os.remove("./convertedCSV.csv")
