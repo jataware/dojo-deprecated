@@ -74,9 +74,8 @@ class Annotation(BaseModel):
         description="Some additional type information used by Causemos",
         text="Data Value Type"
     )
-
     predefined: bool = Field(
-        ...,
+        False,
         description="Whether to use a list of options",
         text="Predefined"
     )
@@ -85,6 +84,8 @@ class Annotation(BaseModel):
         description="The only options if predefined",
         text="Options"
     )
+    # NOTE: DO we want to store these as floats instead?
+    # Currently, Causemos wants them as a float, but what if they are ints?
     min: str = Field(
         ...,
         description="If the parameter is a numeric type, state the inclusive min of parameter values",
@@ -128,7 +129,7 @@ class ModelDirective(BaseModel):
     )
     command: str = Field(
         title="Model Container command",
-        description="The model container command, templated usin",
+        description="The model container command",
         example="python3 main.py --temp 1.3 ",
     )
     cwd: str = Field(

@@ -433,9 +433,9 @@ class QualifierOutput(BaseModel):
     )
 
 
-class InternalModelMetadataSchema(BaseModel):
+class ModelMetadataSchema(BaseModel):
     class Config:
-        extra = Extra.allow
+        extra = Extra.ignore
 
     id: str = Field(
         ...,
@@ -540,17 +540,17 @@ class InternalModelMetadataSchema(BaseModel):
         description="Optional message explaining the intention of or changes to the model at time of publication",
         examples=[{"commit_message": "Updated model to account for additional parameters"}],
         title="Commit message",
-
     )
 
-class ModelMetadataSchema(InternalModelMetadataSchema):
+
+class CausemosModelMetadataSchema(ModelMetadataSchema):
     parameters: List[Parameter] = Field(
         ...,
         description="The parameters exposed for the model",
         title="Model Parameters",
     )
     class Config:
-        exclude = {}
+        extra = 'allow'
 
 
 class ModelMetadataPatchSchema(BaseModel):

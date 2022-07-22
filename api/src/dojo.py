@@ -11,7 +11,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 
 from fastapi import APIRouter, Response, status
-from validation import DojoSchema
+from validation import DojoSchema, ModelSchema
 from src.settings import settings
 from src.utils import delete_matching_records_from_model, put_rawfile, get_rawfile
 import logging
@@ -135,7 +135,6 @@ def create_directive(payload: DojoSchema.ModelDirective):
     the model container. The `directive` is given a set of parameters and the indices
     that must be modified in order to insert the user parameters.
     """
-
 
     try:
         es.delete(index="directives", id=payload.model_id)
@@ -278,8 +277,12 @@ def get_parameters(model_id: str) -> List[DojoSchema.Parameter]:
     config_params = [ param for config in get_configs(model_id)
                             for param in config['parameters']
                     ]
-    directive_params = [ param for param in get_directive(model_id)['parameters']]
-    return config_params + directive_params
+    try:
+        directive_params = [ param for param in get_directive(model_id)['parameters']]
+        return config_params + directive_params
+    except Exception as e:
+        logger.info(f"No directives returned. Likely using a defunct model. Directive fetch failed with: {e}")
+        return config_params
     
     
 
