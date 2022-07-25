@@ -1,3 +1,4 @@
+from fileinput import filename
 import logging
 import os
 
@@ -142,12 +143,7 @@ def file_conversion(context):
     excel_tuple = ("xlsx", "xls")
     tif_tuple = ("tif", "tiff")
 
-    if filename.endswith(".csv"):
-
-        # Using filename of None defaults to the csv file name in the envfile
-        put_rawfile(uuid, None, raw_file)
-
-    elif filename.endswith(excel_tuple):
+    if filename.endswith(excel_tuple):
         sheet = context["annotations"]["metadata"].get(
             "excel_sheet", 0
         )  # 0 is the first sheet if none is provided.
