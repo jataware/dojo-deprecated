@@ -82,21 +82,17 @@ class GeotiffLoadProcessor(BaseProcessor):
     @staticmethod
     def run(context):
         """load geotiff"""
-        fp = context["uploaded_file_fp"]
+        fp = context["annotations"]["metadata"]["uploaded_file_fp"]
         ft = "geotiff"
-        context["ft"] = ft
+        context["annotations"]["metadata"]["ft"] = ft
+        context_annotations_meta = context["annotations"]["metadata"]
 
         def single_band_run():
-            geotiff_meta = {
-                x.replace("geotiff_", ""): context[x]
-                for x in context
-                if x.find("geotiff_") != -1
-            }
             feature_name, band, date, nodataval = (
-                geotiff_meta["Feature_Name"],
-                geotiff_meta.get("band", 1),
-                geotiff_meta["date"],
-                geotiff_meta["null_value"],
+                context_annotations_meta["geotiff_feature_name"],
+                context_annotations_meta.get("band", 1),
+                context_annotations_meta["geotiff_date"],
+                context_annotations_meta["geotiff_null_value"],
             )
 
             df = mix.raster2df(
@@ -105,17 +101,21 @@ class GeotiffLoadProcessor(BaseProcessor):
             return df
 
         def multiband_run():
-            fp = context["uploaded_file_fp"]
+            fp = context_annotations_meta["uploaded_file_fp"]
 
             # time
             logging.info(f"context is: {context}")
             df = mix.raster2df(
                 fp,
-                feature_name=context.get("geotiff_Feature_name", "feature"),
-                band_name=context.get("geotiff_Feature_name", "feature"),
-                date=context.get("geotiff_date", "01/01/2001"),
-                bands=context.get("geotiff_bands", {}),
-                band_type=context.get("geotiff_band_type", "category"),
+                feature_name=context_annotations_meta.get(
+                    "geotiff_feature_name", "feature"
+                ),
+                band_name=context_annotations_meta.get(
+                    "geotiff_feature_name", "feature"
+                ),
+                date=context_annotations_meta.get("geotiff_date", "01/01/2001"),
+                bands=context_annotations_meta.get("geotiff_bands", {}),
+                band_type=context_annotations_meta.get("geotiff_band_type", "category"),
             )
             return df.sort_values(by="date")
 
@@ -195,21 +195,24 @@ def geotif_to_CSV(context, fileobj):
         f.write(original_file.read())
 
     glp = GeotiffLoadProcessor()
-    context["uploaded_file_fp"] = "./tempGeoTif.tif"
-    context["geotiff_Feature_Name"] = "feature"
+    context["annotations"]["metadata"]["uploaded_file_fp"] = "./tempGeoTif.tif"
+    context["annotations"]["metadata"]["geotiff_feature_name"] = "feature"
     # Makes the band/bands dictionary. Band is set for single band runs, bands is set for multiband runs.
     context["geotiff_null_value"] = context_metadata.get("geotiff_null_value", 0)
     if len(context_metadata["geotiff_bands"]) > 1:
         context["geotiff_bands"] = context_metadata["geotiff_bands"]
-        context["geotiff_band_type"] = context_metadata["geotiff_band_type"]
-        context["geotiff_date"] = (
+        context["annotations"]["metadata"]["geotiff_date"] = (
             context_metadata["geotiff_value"]
             if context_metadata["geotiff_band_type"] == "category"
             else "01/01/2001"
         )
     else:
-        context["geotiff_band"] = (context_metadata["geotiff_bands"].keys())[0]
-        context["geotiff_date"] = context_metadata["geotiff_value"]
+        context["annotations"]["metadata"]["geotiff_band"] = (
+            context_metadata["geotiff_bands"].keys()
+        )[0]
+        context["annotations"]["metadata"]["geotiff_date"] = context_metadata[
+            "geotiff_value"
+        ]
 
     df = glp.run(context)
     df.to_csv("./convertedCSV.csv", index=None, header=True)
