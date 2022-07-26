@@ -283,8 +283,8 @@ def update_indicator_with_mixmasta_results(uuid):
                 description=feature["description"],
                 # Gross conversion between the two output types.
                 type=(
-                    "string"
-                    if feature["feature_type"] == "str"
+                    "str"
+                    if feature["feature_type"] == "string"
                     else "binary"
                     if feature["feature_type"] == "boolean"
                     else feature["feature_type"]

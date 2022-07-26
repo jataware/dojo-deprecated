@@ -3,6 +3,7 @@ import json
 import os
 import logging
 import requests
+import shutil
 
 import pandas as pd
 from geotime_classify import geotime_classify as gc
@@ -16,7 +17,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 class GeotimeProcessor(BaseProcessor):
     @staticmethod
-    def run(context, df):
+    def run(context, df, output_path):
         """apply gc to df and write"""
         logging.info(
             f"{context.get('logging_preface', '')} - Applying geotime classification"
@@ -32,12 +33,12 @@ class GeotimeProcessor(BaseProcessor):
             return ret
 
         GeoTimeClass = gc.GeoTimeClassify(50)
-        if not os.path.exists(f"./data/{context['uuid']}"):
-            os.makedirs(f"./data/{context['uuid']}")
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
 
-        df.head(50).to_csv(f"data/{context['uuid']}/raw_data_geotime.csv", index=False)
+        df.head(50).to_csv(f"{output_path}/raw_data_geotime.csv", index=False)
         c_classified = GeoTimeClass.columns_classified(
-            f"data/{context['uuid']}/raw_data_geotime.csv"
+            f"{output_path}/raw_data_geotime.csv"
         )
         try:
             c_classifiedConverted = convert_gc(c_classified)
@@ -45,7 +46,7 @@ class GeotimeProcessor(BaseProcessor):
             logging.error(f"Error: {e}, Classified object: {c_classified}")
         json.dump(
             c_classifiedConverted,
-            open(f"data/{context['uuid']}/geotime_classification.json", "w"),
+            open(f"{output_path}/geotime_classification.json", "w"),
         )
         return c_classifiedConverted
 
@@ -55,8 +56,9 @@ def geotime_classify(context):
     file = get_rawfile(context["uuid"], "raw_data.csv")
     df = pd.read_csv(file, delimiter=",")
     gc = GeotimeProcessor()
+    datapath = f"./data/{context['uuid']}"
 
-    final = gc.run(df=df, context=context)
+    final = gc.run(df=df, context=context, output_path=datapath)
 
     # Constructs data object for patch that updates the metadata dictionary for the MetadataModel
     json_final = json.loads(json.dumps(final))
@@ -66,4 +68,8 @@ def geotime_classify(context):
         f"{api_url}/indicators/{context['uuid']}/annotations",
         json=data,
     )
+
+    # Final cleanup of temp directory
+    shutil.rmtree(datapath)
+
     return json_final, request_response
