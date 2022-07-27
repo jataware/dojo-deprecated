@@ -20,24 +20,6 @@ class Id(BaseModel):
     )
 
 
-class Parameter1(BaseModel):
-    class Config:
-        extra = Extra.allow
-
-    name: str = Field(
-        ...,
-        description="The name of the parameter",
-        examples=["management_practice"],
-        title="Parameter Name",
-    )
-    value: Union[str, float, bool] = Field(
-        ...,
-        description="Set value of parameter during run",
-        examples=["irrig"],
-        title="Parameter Value",
-    )
-
-
 class Type(Enum):
     int = "int"
     float = "float"
@@ -58,21 +40,7 @@ class DataType(Enum):
     freeform = "freeform"
 
 
-class Type1(Enum):
-    int = "int"
-    float = "float"
-    str = "str"
-    boolean = "boolean"
-    datetime = "datetime"
-    lat = "lat"
-    lng = "lng"
-    country = "country"
-    admin1 = "admin1"
-    admin2 = "admin2"
-    admin3 = "admin3"
-
-
-class Type2(Enum):
+class OutputType(Enum):
     int = "int"
     float = "float"
     str = "str"
@@ -164,21 +132,6 @@ class Period(BaseModel):
     )
 
 
-class ConceptMatch(BaseModel):
-    name: Optional[str] = Field(
-        None,
-        description="The name of the concept component in the ontology",
-        examples=["wm/concept/humanitarian_assistance/food_aid"],
-        title="Concept Component Name",
-    )
-    score: Optional[float] = Field(
-        None,
-        description="A score between 0 and 1 representing the strength of the match",
-        examples=[0.785829484462738],
-        title="Match Score",
-    )
-
-
 class TemporalResolution(Enum):
     annual = "annual"
     monthly = "monthly"
@@ -201,106 +154,6 @@ class Resolution(BaseModel):
         max_items=2,
         min_items=2,
         title="Spatial Resolution",
-    )
-
-
-class OntologyComponents(BaseModel):
-    concepts: List[ConceptMatch] = Field(
-        ...,
-        description="A list of concepts matched for this variable",
-        title="Matched concepts",
-    )
-    processes: List[ConceptMatch] = Field(
-        ...,
-        description="A list of processes matched for this variable",
-        title="Matched Processes",
-    )
-    properties: List[ConceptMatch] = Field(
-        ...,
-        description="A list of properties matched for this variable",
-        title="Matched Properties",
-    )
-
-
-class Parameter(BaseModel):
-    class Config:
-        extra = Extra.allow
-
-    name: str = Field(
-        ...,
-        description="The name of the parameter",
-        examples=["management_practice"],
-        title="Parameter Name",
-    )
-    display_name: str = Field(
-        ...,
-        description="The user visible name of the parameter",
-        examples=["Management Practice"],
-        title="Parameter Display Name",
-    )
-    description: str = Field(
-        ...,
-        description="The description of the parameter",
-        examples=[
-            "The management practice to model. rf_highN corresponds to a high nitrogen management  practice. irrig corresponds to a high nitrogen, irrigated management practice. rf_0N  corresponds to a subsistence management practice. rf_lowN corresponds to a low nitrogen  managemet practice."
-        ],
-        title="Parameter Description",
-    )
-    type: Type = Field(..., description="The type of parameter", title="Parameter Type")
-    unit: Optional[str] = Field(
-        None,
-        description="The unit of the parameter value",
-        examples=["degC"],
-        title="Unit",
-    )
-    unit_description: Optional[str] = Field(
-        None,
-        description="A short description of the unit",
-        examples=["degrees Celcius"],
-        title="Unit Description",
-    )
-    ontologies: Optional[OntologyComponents] = Field(
-        None,
-        description="The three ontological parts representing the concepts matched to this varible",
-        title="Ontology Components",
-    )
-    is_drilldown: Optional[bool] = Field(
-        None,
-        description="Does this variable represent a drilldown",
-        examples=[True],
-        title="Is Drilldown?",
-    )
-    additional_options: Optional[Dict[str, Any]] = Field(
-        None, description="Model specific extras", title="Additional Options"
-    )
-    data_type: DataType = Field(
-        ...,
-        description="Describes whether the data values will be categorical, ordered, or numerical",
-        title="Data Value Type",
-    )
-    default: Any = Field(
-        ...,
-        description="The default value of the parameter",
-        examples=["irrig", 5, [44, 32]],
-        title="Default Parameter Value",
-    )
-    choices: Optional[List[str]] = Field(
-        None,
-        description="If the parameter is a string type, then enumerate the choices for that parameter",
-        examples=[["irrig", "rf_highN"]],
-        title="Parameter Choices",
-    )
-    min: Optional[float] = Field(
-        None,
-        description="If the parameter is a numeric type, state the inclusive min of parameter values",
-        examples=[5],
-        title="Parameter Min",
-    )
-    max: Optional[float] = Field(
-        None,
-        description="If the parameter is a numeric type, state the inclusive max of parameter values",
-        examples=[10],
-        title="Parameter Max",
     )
 
 
@@ -328,7 +181,7 @@ class Output(BaseModel):
         ],
         title="Output variable Description",
     )
-    type: Type1 = Field(
+    type: OutputType = Field(
         ..., description="The type of output variable", title="Output variable Type"
     )
     unit: Optional[str] = Field(
@@ -342,11 +195,6 @@ class Output(BaseModel):
         description="A short description of the unit",
         examples=["degrees Celcius"],
         title="Unit Description",
-    )
-    ontologies: OntologyComponents = Field(
-        ...,
-        description="The three ontological parts representing the concepts matched to this varible",
-        title="Ontology Components",
     )
     is_primary: bool = Field(
         ...,
@@ -404,7 +252,7 @@ class QualifierOutput(BaseModel):
         examples=["Type of money service used"],
         title="Output Qualifier Description",
     )
-    type: Type2 = Field(
+    type: OutputType = Field(
         ...,
         description="The type of the output qualifier",
         title="Output Qualifier Type",
@@ -421,11 +269,6 @@ class QualifierOutput(BaseModel):
         examples=[""],
         title="Unit Description",
     )
-    ontologies: OntologyComponents = Field(
-        ...,
-        description="The three ontological parts representing the concepts matched to this output",
-        title="Ontology Components",
-    )
     related_features: List[str] = Field(
         ...,
         description="The feature names that this data should be used as a qualifier for",
@@ -435,7 +278,7 @@ class QualifierOutput(BaseModel):
 
 class ModelMetadataSchema(BaseModel):
     class Config:
-        extra = Extra.ignore
+        extra = Extra.allow
 
     id: str = Field(
         ...,
@@ -543,14 +386,157 @@ class ModelMetadataSchema(BaseModel):
     )
 
 
+class ConceptMatch(BaseModel):
+    name: Optional[str] = Field(
+        None,
+        description="The name of the concept component in the ontology",
+        examples=["wm/concept/humanitarian_assistance/food_aid"],
+        title="Concept Component Name",
+    )
+    score: Optional[float] = Field(
+        None,
+        description="A score between 0 and 1 representing the strength of the match",
+        examples=[0.785829484462738],
+        title="Match Score",
+    )
+
+
+class OntologyComponents(BaseModel):
+    concepts: List[ConceptMatch] = Field(
+        ...,
+        description="A list of concepts matched for this variable",
+        title="Matched concepts",
+    )
+    processes: List[ConceptMatch] = Field(
+        ...,
+        description="A list of processes matched for this variable",
+        title="Matched Processes",
+    )
+    properties: List[ConceptMatch] = Field(
+        ...,
+        description="A list of properties matched for this variable",
+        title="Matched Properties",
+    )
+
+
+class CausemosParameter(BaseModel):
+    class Config:
+        extra = Extra.allow
+
+    name: str = Field(
+        ...,
+        description="The name of the parameter",
+        examples=["management_practice"],
+        title="Parameter Name",
+    )
+    display_name: str = Field(
+        ...,
+        description="The user visible name of the parameter",
+        examples=["Management Practice"],
+        title="Parameter Display Name",
+    )
+    description: str = Field(
+        ...,
+        description="The description of the parameter",
+        examples=[
+            "The management practice to model. rf_highN corresponds to a high nitrogen management  practice. irrig corresponds to a high nitrogen, irrigated management practice. rf_0N  corresponds to a subsistence management practice. rf_lowN corresponds to a low nitrogen  managemet practice."
+        ],
+        title="Parameter Description",
+    )
+    type: Type = Field(..., description="The type of parameter", title="Parameter Type")
+    unit: Optional[str] = Field(
+        None,
+        description="The unit of the parameter value",
+        examples=["degC"],
+        title="Unit",
+    )
+    unit_description: Optional[str] = Field(
+        None,
+        description="A short description of the unit",
+        examples=["degrees Celcius"],
+        title="Unit Description",
+    )
+    ontologies: Optional[OntologyComponents] = Field(
+        None,
+        description="The three ontological parts representing the concepts matched to this varible",
+        title="Ontology Components",
+    )
+    is_drilldown: Optional[bool] = Field(
+        None,
+        description="Does this variable represent a drilldown",
+        examples=[True],
+        title="Is Drilldown?",
+    )
+    additional_options: Optional[Dict[str, Any]] = Field(
+        None, description="Model specific extras", title="Additional Options"
+    )
+    data_type: DataType = Field(
+        ...,
+        description="Describes whether the data values will be categorical, ordered, or numerical",
+        title="Data Value Type",
+    )
+    default: Any = Field(
+        ...,
+        description="The default value of the parameter",
+        examples=["irrig", 5, [44, 32]],
+        title="Default Parameter Value",
+    )
+    choices: Optional[List[str]] = Field(
+        None,
+        description="If the parameter is a string type, then enumerate the choices for that parameter",
+        examples=[["irrig", "rf_highN"]],
+        title="Parameter Choices",
+    )
+    min: Optional[float] = Field(
+        None,
+        description="If the parameter is a numeric type, state the inclusive min of parameter values",
+        examples=[5],
+        title="Parameter Min",
+    )
+    max: Optional[float] = Field(
+        None,
+        description="If the parameter is a numeric type, state the inclusive max of parameter values",
+        examples=[10],
+        title="Parameter Max",
+    )
+
+
+class CausemosOutput(Output):
+    ontologies: OntologyComponents = Field(
+        ...,
+        description="The three ontological parts representing the concepts matched to this varible",
+        title="Ontology Components",
+    )
+    class Config:
+        extra = Extra.allow
+
+
+class CausemosQualifierOutput(QualifierOutput):
+    ontologies: OntologyComponents = Field(
+        ...,
+        description="The three ontological parts representing the concepts matched to this output",
+        title="Ontology Components",
+    )
+    class Config:
+        extra = Extra.allow
+
+
 class CausemosModelMetadataSchema(ModelMetadataSchema):
-    parameters: List[Parameter] = Field(
+    parameters: List[CausemosParameter] = Field(
         ...,
         description="The parameters exposed for the model",
         title="Model Parameters",
     )
+    outputs: List[CausemosOutput] = Field(
+        ..., description="An array of model outputs", title="Model Outputs"
+    )
+    qualifier_outputs: Optional[List[CausemosQualifierOutput]] = Field(
+        None,
+        description="An array describing the additional qualifier columns in the output data files",
+        title="Model Qualifier Outputs",
+    )
     class Config:
-        extra = 'allow'
+        extra = Extra.allow
 
 
 class ModelMetadataPatchSchema(BaseModel):
@@ -594,6 +580,7 @@ class VersionSchema(BaseModel):
         examples=[["01234567-e89b-12d3-a456-426614174000", "edcba567-e89b-12d3-a456-426614174000"]],
         title="Later versions",
     )
+
 
 class PublishSchema(BaseModel):
 
