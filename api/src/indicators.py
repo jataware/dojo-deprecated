@@ -477,18 +477,28 @@ def patch_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
 
 
 @router.post("/indicators/{indicator_id}/upload")
-def upload_file(indicator_id: str, file: UploadFile = File(...)):
+def upload_file(
+    indicator_id: str,
+    file: UploadFile = File(...),
+    filename: Optional[str] = None,
+    append: Optional[bool] = False,
+):
     original_filename = file.filename
     _, ext = os.path.splitext(original_filename)
-    filename = f"raw_data{ext}"
+    if filename is None:
+        if append:
+            filenum = len([f for f in list_files(indicator_id) if f.startswith('raw_data') and f.endswith(ext)])
+            filename = f"raw_data_{filenum}{ext}"
+        else:
+            filename = f"raw_data{ext}"
 
     # Upload file
     put_rawfile(uuid=indicator_id, filename=filename, fileobj=file.file)
 
     return Response(
         status_code=status.HTTP_201_CREATED,
-        headers={"location": f"/api/indicators/{indicator_id}"},
-        content=f"Uploaded file to with id {indicator_id}",
+        headers={"location": f"/api/indicators/{indicator_id}", "content-type": "application/json"},
+        content=json.dumps({"id": indicator_id, "filename": filename})
     )
 
 
