@@ -135,10 +135,16 @@ class SaveProcessorCsv(BaseProcessor):
         return df
 
 
-def file_conversion(context):
+def file_conversion(context, filename=None):
     # Get raw file
     uuid = context["uuid"]
-    filename = context["annotations"]["metadata"]["rawFileName"]
+    # Changing the file name if it is passed in, i.e. from an append action.
+    if not filename:
+        filename = context["annotations"]["metadata"]["rawFileName"]
+        # Replacing the file metadata in the case where we pass them into the metadata context for an append action.
+        context["annotations"]["metadata"] = context["annotations"]["metadata"][
+            filename
+        ]  # This change to context is not persisted.
     raw_file = get_rawfile(uuid, filename)
     excel_tuple = ("xlsx", "xls")
     tif_tuple = ("tif", "tiff")
