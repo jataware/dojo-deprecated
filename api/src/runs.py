@@ -255,8 +255,7 @@ def create_run(run: RunSchema.ModelRunSchema):
         file_name = config_file["path"].split("/")[-1]
         save_path = dmc_local_dir + f"/model_configs/{run.id}/{file_name}"
         file_content = get_rawfile(
-            run.model_id, 
-            config_file["path"]
+            run.model_id + config_file["path"]
         ).read().decode()
         model_config_objects.append(
             {

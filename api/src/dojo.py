@@ -194,7 +194,7 @@ def create_configs(payload: List[DojoSchema.ModelConfigCreate]):
             es.delete(index="configs", id=hit["_id"])
 
         fileobj = io.BytesIO(file_content.encode('utf-8'))
-        put_rawfile(model_config.model_id, model_config.path, fileobj)
+        put_rawfile(model_config.model_id + model_config.path, fileobj)
 
         es.index(index="configs", body=model_config.json())
     return Response(
@@ -256,8 +256,7 @@ def copy_configs(model_id: str, new_model_id: str):
 
     for config in configs:
         content = get_rawfile(
-            config['model_id'],
-            config['path']
+            config['model_id'] + config['path']
         ).read().decode()
         config['id'] = str(uuid.uuid4())
         config['model_id'] = new_model_id
