@@ -103,9 +103,9 @@ def run_model_with_defaults(model_id):
     return run_id
 
 
-def get_rawfile(uuid, filename):
+def get_rawfile(uuid, filename, file_prefix=None):
     location_info = urlparse(settings.DATASET_STORAGE_BASE_URL)
-    file_dir = os.path.join(location_info.path, uuid)
+    file_dir = os.path.join(location_info.path, file_prefix, uuid)
     file_path = os.path.join(file_dir, filename)
 
     if location_info.scheme.lower() == "file":
