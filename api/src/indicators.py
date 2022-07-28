@@ -229,7 +229,7 @@ def deprecate_indicator(indicator_id: str):
 @router.post("/indicators/mixmasta_update/{uuid}")
 def update_indicator_with_mixmasta_results(uuid):
     # Get the mixmasta results
-    parquet_filename = f"final_{uuid}.parquet.gzip"
+    parquet_filename = f"{uuid}.parquet.gzip"
     mixmasta_results = get_rawfile(uuid, parquet_filename)
     parquet_df = pd.read_parquet(mixmasta_results)
     meta_annotations = get_annotations(uuid)

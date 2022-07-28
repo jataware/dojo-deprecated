@@ -84,7 +84,7 @@ def run_mixmasta(context):
     for file in os.listdir(datapath):
         if file.endswith(".parquet.gzip"):
             with open(os.path.join(datapath, file), "rb") as fileobj:
-                put_rawfile(uuid=uuid, filename=f"final_{file}", fileobj=fileobj)
+                put_rawfile(uuid=uuid, filename=file, fileobj=fileobj)
 
     # Run the indicator update via post to endpoint
     api_url = os.environ.get("DOJO_HOST")
