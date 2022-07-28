@@ -103,10 +103,9 @@ def run_model_with_defaults(model_id):
     return run_id
 
 
-def get_rawfile(uuid, filename):
+def get_rawfile(path):
     location_info = urlparse(settings.DATASET_STORAGE_BASE_URL)
-    file_dir = os.path.join(location_info.path, uuid)
-    file_path = os.path.join(file_dir, filename)
+    file_path = os.path.join(location_info.path, path)
 
     if location_info.scheme.lower() == "file":
         raw_file = open(file_path, "rb")
@@ -123,16 +122,15 @@ def get_rawfile(uuid, filename):
     return raw_file
 
 
-def put_rawfile(uuid, filename, fileobj, file_prefix=None):
+def put_rawfile(path, fileobj):
     if filename is None:
         filename = settings.CSV_FILE_NAME
     location_info = urlparse(settings.DATASET_STORAGE_BASE_URL)
-    output_dir = os.path.join(location_info.path, file_prefix, uuid)
-    output_path = os.path.join(output_dir, filename)
+    output_path = os.path.join(location_info.path, path)
 
     if location_info.scheme.lower() == "file":
-        if not os.path.isdir(output_dir):
-            os.makedirs(output_dir, exist_ok=True)
+        if not os.path.isdir(os.path.dirname(output_path)):
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
         with open(output_path, "wb") as output_file:
             output_file.write(fileobj.read())
     elif location_info.scheme.lower() == "s3":
@@ -142,9 +140,9 @@ def put_rawfile(uuid, filename, fileobj, file_prefix=None):
         raise RuntimeError("File storage format is unknown")
 
 
-def list_files(uuid):
+def list_files(path):
     location_info = urlparse(settings.DATASET_STORAGE_BASE_URL)
-    file_dir = os.path.join(location_info.path, uuid)
+    file_dir = os.path.join(location_info.path, path)
     if location_info.scheme.lower() == "file":
         return os.listdir(file_dir)
     elif location_info.scheme.lower() == "s3":
