@@ -487,7 +487,13 @@ def upload_file(
     _, ext = os.path.splitext(original_filename)
     if filename is None:
         if append:
-            filenum = len([f for f in list_files(indicator_id) if f.startswith('raw_data') and f.endswith(ext)])
+            filenum = len(
+                [
+                    f
+                    for f in list_files(indicator_id)
+                    if f.startswith("raw_data") and f.endswith(ext)
+                ]
+            )
             filename = f"raw_data_{filenum}{ext}"
         else:
             filename = f"raw_data{ext}"
@@ -497,8 +503,11 @@ def upload_file(
 
     return Response(
         status_code=status.HTTP_201_CREATED,
-        headers={"location": f"/api/indicators/{indicator_id}", "content-type": "application/json"},
-        content=json.dumps({"id": indicator_id, "filename": filename})
+        headers={
+            "location": f"/api/indicators/{indicator_id}",
+            "content-type": "application/json",
+        },
+        content=json.dumps({"id": indicator_id, "filename": filename}),
     )
 
 
@@ -531,7 +540,9 @@ def validate_date(payload: IndicatorSchema.DateValidationRequestSchema):
 
 
 @router.post("/indicators/{indicator_id}/preview/{preview_type}")
-async def create_preview(indicator_id: str, preview_type: IndicatorSchema.PreviewType):
+async def create_preview(
+    indicator_id: str, preview_type: IndicatorSchema.PreviewType, filename: str = None
+):
     """Get preview for a dataset.
 
     Args:
@@ -541,7 +552,10 @@ async def create_preview(indicator_id: str, preview_type: IndicatorSchema.Previe
         JSON: Returns a json object containing the preview for the dataset.
     """
     try:
-        if preview_type == IndicatorSchema.PreviewType.processed:
+        if filename:
+            file = get_rawfile(indicator_id, filename)
+            df = pd.read_parquet(file)
+        elif preview_type == IndicatorSchema.PreviewType.processed:
             file = get_rawfile(indicator_id, f"{indicator_id}.parquet.gzip")
             df = pd.read_parquet(file)
         else:

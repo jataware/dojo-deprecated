@@ -138,9 +138,11 @@ class SaveProcessorCsv(BaseProcessor):
 def file_conversion(context, filename=None):
     # Get raw file
     uuid = context["uuid"]
-    # Changing the file name if it is passed in, i.e. from an append action.
+    # Grabbing filename from context if it isn't passed in.
     if not filename:
         filename = context["annotations"]["metadata"]["rawFileName"]
+
+    else:
         # Replacing the file metadata in the case where we pass them into the metadata context for an append action.
         context["annotations"]["metadata"] = context["annotations"]["metadata"][
             filename

@@ -51,9 +51,12 @@ class GeotimeProcessor(BaseProcessor):
         return c_classifiedConverted
 
 
-def geotime_classify(context):
+def geotime_classify(context, filename=None):
 
-    file = get_rawfile(context["uuid"], "raw_data.csv")
+    if filename:
+        file = get_rawfile(context["uuid"], filename)
+    else:
+        file = get_rawfile(context["uuid"], "raw_data.csv")
     df = pd.read_csv(file, delimiter=",")
     gc = GeotimeProcessor()
     datapath = f"./data/{context['uuid']}"

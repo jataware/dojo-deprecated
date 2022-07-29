@@ -55,8 +55,7 @@ class MixmastaProcessor(BaseProcessor):
         return ret
 
 
-def run_mixmasta(context):
-    file_generator = MixmastaFileGenerator()
+def run_mixmasta(context, filename=None):
     processor = MixmastaProcessor()
     uuid = context["uuid"]
     # Creating folder for temp file storage on the rq worker since following functions are dependent on file paths
@@ -66,7 +65,10 @@ def run_mixmasta(context):
 
     # Copy raw data file into rq-worker
     # Could change mixmasta to accept file-like objects as well as filepaths.
-    raw_file_obj = get_rawfile(uuid, "raw_data.csv")
+    if filename:
+        raw_file_obj = get_rawfile(context["uuid"], filename)
+    else:
+        raw_file_obj = get_rawfile(context["uuid"], "raw_data.csv")
     with open(f"{datapath}/raw_data.csv", "wb") as f:
         f.write(raw_file_obj.read())
 
