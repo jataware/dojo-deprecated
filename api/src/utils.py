@@ -123,8 +123,6 @@ def get_rawfile(path):
 
 
 def put_rawfile(path, fileobj):
-    if path is None:
-        path = settings.CSV_FILE_NAME
     location_info = urlparse(settings.DATASET_STORAGE_BASE_URL)
     output_path = os.path.join(location_info.path, path)
 
