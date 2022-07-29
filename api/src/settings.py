@@ -24,6 +24,8 @@ class Settings(BaseSettings):
 
     DATASET_STORAGE_BASE_URL: str = "file:///datasets/"
 
+    CONFIG_STORAGE_BASE: str = "/dojo/configs/"
+
     UVICORN_RELOAD: bool = False
 
     UAZ_URL: str = ""

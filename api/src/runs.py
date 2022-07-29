@@ -24,7 +24,7 @@ from typing_extensions import final
 from validation import RunSchema, DojoSchema
 
 from src.models import get_model
-from src.dojo import get_directive, get_outputfiles, get_configs, get_accessory_files
+from src.dojo import get_directive, get_outputfiles, get_configs, get_accessory_files, get_config_path
 from src.utils import get_rawfile
 
 logger = logging.getLogger(__name__)
@@ -255,7 +255,7 @@ def create_run(run: RunSchema.ModelRunSchema):
         file_name = config_file["path"].split("/")[-1]
         save_path = dmc_local_dir + f"/model_configs/{run.id}/{file_name}"
         file_content = get_rawfile(
-            run.model_id + config_file["path"]
+            get_config_path(run.model_id,config_file["path"])
         ).read().decode()
         model_config_objects.append(
             {
