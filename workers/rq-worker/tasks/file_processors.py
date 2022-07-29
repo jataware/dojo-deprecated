@@ -139,7 +139,7 @@ def file_conversion(context, filename=None):
     # Get raw file
     uuid = context["uuid"]
     # Grabbing filename from context if it isn't passed in.
-    if not filename:
+    if filename is None:
         filename = context["annotations"]["metadata"]["rawFileName"]
 
     else:

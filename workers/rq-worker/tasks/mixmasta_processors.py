@@ -65,10 +65,9 @@ def run_mixmasta(context, filename=None):
 
     # Copy raw data file into rq-worker
     # Could change mixmasta to accept file-like objects as well as filepaths.
-    if filename:
-        raw_file_obj = get_rawfile(context["uuid"], filename)
-    else:
-        raw_file_obj = get_rawfile(context["uuid"], "raw_data.csv")
+    if filename is None:
+        filename = "raw_data.csv"
+    raw_file_obj = get_rawfile(context["uuid"], filename)
     with open(f"{datapath}/raw_data.csv", "wb") as f:
         f.write(raw_file_obj.read())
 
