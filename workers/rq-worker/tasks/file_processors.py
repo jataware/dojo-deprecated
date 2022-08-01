@@ -145,6 +145,8 @@ def file_conversion(context, filename=None):
     else:
         # Replacing the file metadata in the case where we pass them into the metadata context for an append action.
         context["annotations"]["metadata"] = context["annotations"]["metadata"][
+            "files"
+        ][
             filename
         ]  # This change to context is not persisted.
     raw_file = get_rawfile(uuid, filename)
