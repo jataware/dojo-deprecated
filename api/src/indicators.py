@@ -123,7 +123,18 @@ def get_latest_indicators(size=10000):
             "maintainer.name",
             "maintainer.email",
         ],
-        "query": {"match_all": {}},
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "match_all": {}
+                    }
+                ],
+                "filter": [
+                    { "term":  { "published": True }}
+                ]
+            }
+        }
     }
     results = es.search(index="indicators", body=q, size=size)["hits"]["hits"]
     IndicatorsSchemaArray = []
@@ -192,6 +203,7 @@ def publish_indicator(indicator_id: str):
     try:
         # Update indicator model with ontologies from UAZ
         indicator = es.get(index="indicators", id=indicator_id)["_source"]
+        indicator["published"] = True
         data = get_ontologies(indicator, type="indicator")
         logger.info(f"Sent indicator to UAZ")
         es.index(index="indicators", body=data, id=indicator_id)
