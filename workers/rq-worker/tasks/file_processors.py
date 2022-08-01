@@ -198,11 +198,18 @@ def geotif_to_CSV(context, fileobj):
     context["geotiff_null_value"] = context_metadata.get("geotiff_null_value", 0)
     if len(context_metadata.get("geotiff_bands", [])) > 1:
         context["geotiff_bands"] = context_metadata["geotiff_bands"]
-        context["annotations"]["metadata"]["geotiff_date"] = (
-            context_metadata["geotiff_value"]
-            if context_metadata["geotiff_band_type"] == "category"
-            else "01/01/2001"
-        )
+        band_type = context_metadata["geotiff_band_type"]
+        if band_type == "temporal":
+            band_type = "datetime"
+            context["annotations"]["metadata"]["geotiff_feature_name"] = context_metadata["geotiff_value"]
+        elif band_type == "category":
+            context["annotations"]["metadata"]["geotiff_date"] = (
+                context_metadata["geotiff_value"]
+                if context_metadata["geotiff_band_type"] == "category"
+                else "01/01/2001"
+            )
+        
+        context["annotations"]["metadata"]["geotiff_band_type"] = band_type
     else:
         context["annotations"]["metadata"]["geotiff_feature_name"] = context_metadata["geotiff_value"]
         context["annotations"]["metadata"]["geotiff_date"] = context_metadata[
