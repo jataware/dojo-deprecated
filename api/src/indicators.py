@@ -499,7 +499,13 @@ def upload_file(
     _, ext = os.path.splitext(original_filename)
     if filename is None:
         if append:
-            filenum = len([f for f in list_files(indicator_id) if f.startswith('raw_data') and f.endswith(ext)])
+            filenum = len(
+                [
+                    f
+                    for f in list_files(indicator_id)
+                    if f.startswith("raw_data") and f.endswith(ext)
+                ]
+            )
             filename = f"raw_data_{filenum}{ext}"
         else:
             filename = f"raw_data{ext}"
@@ -509,8 +515,11 @@ def upload_file(
 
     return Response(
         status_code=status.HTTP_201_CREATED,
-        headers={"location": f"/api/indicators/{indicator_id}", "content-type": "application/json"},
-        content=json.dumps({"id": indicator_id, "filename": filename})
+        headers={
+            "location": f"/api/indicators/{indicator_id}",
+            "content-type": "application/json",
+        },
+        content=json.dumps({"id": indicator_id, "filename": filename}),
     )
 
 
@@ -553,9 +562,17 @@ async def create_preview(indicator_id: str, preview_type: IndicatorSchema.Previe
         JSON: Returns a json object containing the preview for the dataset.
     """
     try:
+        # TODO - Get all potential string files concatenated together using list file utility
         if preview_type == IndicatorSchema.PreviewType.processed:
             file = get_rawfile(indicator_id, f"{indicator_id}.parquet.gzip")
             df = pd.read_parquet(file)
+            try:
+                file = get_rawfile(indicator_id, f"{indicator_id}_str.parquet.gzip")
+                df_str = pd.read_parquet(file)
+                df = pd.concat([df, df_str])
+            except FileNotFoundError:
+                pass
+
         else:
             file = get_rawfile(indicator_id, "raw_data.csv")
             df = pd.read_csv(file, delimiter=",")
