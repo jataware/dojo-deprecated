@@ -557,7 +557,7 @@ async def create_preview(indicator_id: str, preview_type: IndicatorSchema.Previe
             try:
                 file = get_rawfile(indicator_id, f"{indicator_id}_str.parquet.gzip")
                 df_str = pd.read_parquet(file)
-                df = pd.concat(df, df_str)
+                df = pd.concat([df, df_str])
             except FileNotFoundError:
                 pass
 
