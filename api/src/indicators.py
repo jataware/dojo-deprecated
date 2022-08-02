@@ -1,32 +1,33 @@
 from __future__ import annotations
 
+import csv
+import io
 import time
+import zlib
 import uuid
 from datetime import datetime
 from typing import Any, Dict, Generator, List, Optional
 from urllib.parse import urlparse
 
-import requests
 import json
-import traceback
+import pandas as pd
 
 from elasticsearch import Elasticsearch
-from pydantic import BaseModel, Field
-import boto3
 import pandas as pd
 from fastapi import (
     APIRouter,
-    Depends,
     HTTPException,
     Query,
     Response,
     status,
     UploadFile,
     File,
+    Request,
 )
 from fastapi.logger import logger
+from fastapi.responses import StreamingResponse
 
-from validation import IndicatorSchema, DojoSchema, SpacetagSchema, MetadataSchema
+from validation import IndicatorSchema, DojoSchema, MetadataSchema
 from src.settings import settings
 
 from src.dojo import search_and_scroll
@@ -123,7 +124,12 @@ def get_latest_indicators(size=10000):
             "maintainer.name",
             "maintainer.email",
         ],
-        "query": {"match_all": {}},
+        "query": {
+            "bool": {
+                "must": [{"match_all": {}}],
+                "filter": [{"term": {"published": True}}],
+            }
+        },
     }
     results = es.search(index="indicators", body=q, size=size)["hits"]["hits"]
     IndicatorsSchemaArray = []
@@ -192,6 +198,7 @@ def publish_indicator(indicator_id: str):
     try:
         # Update indicator model with ontologies from UAZ
         indicator = es.get(index="indicators", id=indicator_id)["_source"]
+        indicator["published"] = True
         data = get_ontologies(indicator, type="indicator")
         logger.info(f"Sent indicator to UAZ")
         es.index(index="indicators", body=data, id=indicator_id)
@@ -205,6 +212,66 @@ def publish_indicator(indicator_id: str):
         headers={"location": f"/api/indicators/{indicator_id}/publish"},
         content=f"Published indicator with id {indicator_id}",
     )
+
+
+@router.get("/indicators/{indicator_id}/download/csv")
+def get_csv(indicator_id: str, request: Request):
+    try:
+        indicator = es.get(index="indicators", id=indicator_id)["_source"]
+    except:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    async def iter_csv():
+        # Build single dataframe
+        df = pd.concat(pd.read_parquet(file) for file in indicator["data_paths"])
+
+        # Ensure pandas floats are used because vanilla python ones are problematic
+        df = df.fillna("").astype(
+            {
+                col: "str"
+                for col in df.select_dtypes(include=["float32", "float64"]).columns
+            },
+            # Note: This links it to the previous `df` so not a full copy
+            copy=False,
+        )
+
+        # Prepare for writing CSV to a temporary buffer
+        buffer = io.StringIO()
+        writer = csv.writer(buffer)
+
+        # Write out the header row
+        writer.writerow(df.columns)
+
+        yield buffer.getvalue()
+        buffer.seek(
+            0
+        )  # To clear the buffer we need to seek back to the start and truncate
+        buffer.truncate()
+
+        # Iterate over dataframe tuples, writing each one out as a CSV line one at a time
+        for record in df.itertuples(index=False, name=None):
+            writer.writerow(str(i) for i in record)
+            yield buffer.getvalue()
+            buffer.seek(0)
+            buffer.truncate()
+
+    async def compress(content):
+        compressor = zlib.compressobj()
+        async for buff in content:
+            yield compressor.compress(buff.encode())
+        yield compressor.flush()
+
+    if "deflate" in request.headers.get("accept-encoding", ""):
+        return StreamingResponse(
+            compress(iter_csv()),
+            media_type="text/csv",
+            headers={"Content-Encoding": "deflate"},
+        )
+    else:
+        return StreamingResponse(
+            iter_csv(),
+            media_type="text/csv",
+        )
 
 
 @router.put("/indicators/{indicator_id}/deprecate")
@@ -230,7 +297,10 @@ def deprecate_indicator(indicator_id: str):
 def update_indicator_with_mixmasta_results(uuid):
     # Get the mixmasta results
     parquet_filename = f"{uuid}.parquet.gzip"
-    mixmasta_results = get_rawfile(uuid, parquet_filename)
+    parquet_path = os.path.join(
+        settings.DATASET_STORAGE_BASE_URL, uuid, parquet_filename
+    )
+    mixmasta_results = get_rawfile(parquet_path)
     parquet_df = pd.read_parquet(mixmasta_results)
     meta_annotations = get_annotations(uuid)
     original_indicator = get_indicators(uuid)
@@ -442,7 +512,7 @@ def put_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
 
         return Response(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content=f"Could not create annotation with id = {annotation_uuid}",
+            content=f"Could not create annotation with id = {indicator_id}",
         )
 
 
@@ -499,7 +569,8 @@ def upload_file(
             filename = f"raw_data{ext}"
 
     # Upload file
-    put_rawfile(uuid=indicator_id, filename=filename, fileobj=file.file)
+    dest_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, indicator_id, filename)
+    put_rawfile(path=dest_path, fileobj=file.file)
 
     return Response(
         status_code=status.HTTP_201_CREATED,
@@ -552,14 +623,32 @@ async def create_preview(
         JSON: Returns a json object containing the preview for the dataset.
     """
     try:
-        if filename:
-            file = get_rawfile(indicator_id, filename)
+        # TODO - Get all potential string files concatenated together using list file utility
+        if preview_type == IndicatorSchema.PreviewType.processed:
+            rawfile_path = os.path.join(
+                settings.DATASET_STORAGE_BASE_URL,
+                indicator_id,
+                f"{indicator_id}.parquet.gzip",
+            )
+            file = get_rawfile(rawfile_path)
             df = pd.read_parquet(file)
-        elif preview_type == IndicatorSchema.PreviewType.processed:
-            file = get_rawfile(indicator_id, f"{indicator_id}.parquet.gzip")
-            df = pd.read_parquet(file)
+            try:
+                strparquet_path = os.path.join(
+                    settings.DATASET_STORAGE_BASE_URL,
+                    indicator_id,
+                    f"{indicator_id}_str.parquet.gzip",
+                )
+                file = get_rawfile(strparquet_path)
+                df_str = pd.read_parquet(file)
+                df = pd.concat([df, df_str])
+            except FileNotFoundError:
+                pass
+
         else:
-            file = get_rawfile(indicator_id, "raw_data.csv")
+            rawfile_path = os.path.join(
+                settings.DATASET_STORAGE_BASE_URL, indicator_id, "raw_data.csv"
+            )
+            file = get_rawfile(rawfile_path)
             df = pd.read_csv(file, delimiter=",")
 
         # preview = df.head(100).to_json(orient="records")

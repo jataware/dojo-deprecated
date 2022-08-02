@@ -13,7 +13,6 @@ class Settings(BaseSettings):
     DMC_LOCAL_DIR: str
 
     DATASET_STORAGE_BASE_URL: str
-    CSV_FILE_NAME: str = "raw_data.csv"
     DOJO_URL: str
 
     REDIS_HOST: str

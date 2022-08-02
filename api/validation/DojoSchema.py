@@ -5,8 +5,7 @@
 
 from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
-from validation import ModelSchema, IndicatorSchema
-
+from validation import RunSchema, ModelSchema, IndicatorSchema
 
 
 class IndicatorSearchResult(BaseModel):
@@ -144,6 +143,15 @@ class ModelSearchResult(BaseModel):
         description="Provide this scroll ID to receive the next page of results",
     )
 
+class RunSearchResult(BaseModel):
+    hits: int = Field(title="Total hits for query", example="113")
+    results: List[RunSchema.ModelRunSchema] = Field(
+        title="Results", description="Array of result objects"
+    )
+    scroll_id: Optional[str] = Field(
+        title="Scroll ID",
+        description="Provide this scroll ID to receive the next page of results",
+    )
 
 class ParameterFormatter(BaseModel):
     """

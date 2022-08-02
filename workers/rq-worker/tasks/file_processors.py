@@ -185,7 +185,7 @@ def netCDF_to_CSV(uuid, fileobj):
 
     open_netcdf = xr.open_dataset(original_file)
     df = open_netcdf.to_dataframe()
-    df.reset_index().to_csv("./convertedCSV.csv")
+    df.reset_index().to_csv("./convertedCSV.csv", index=False)
     with open("./convertedCSV.csv", "rb") as f:
         put_rawfile(uuid, None, f)
 
@@ -196,6 +196,7 @@ def geotif_to_CSV(context, fileobj):
     original_file = fileobj
     uuid = context["uuid"]
     context_metadata = context["annotations"]["metadata"]
+    logging.warn(context_metadata)
 
     with open("./tempGeoTif.tif", "wb") as f:
         f.write(original_file.read())
@@ -205,19 +206,24 @@ def geotif_to_CSV(context, fileobj):
     context["annotations"]["metadata"]["geotiff_feature_name"] = "feature"
     # Makes the band/bands dictionary. Band is set for single band runs, bands is set for multiband runs.
     context["geotiff_null_value"] = context_metadata.get("geotiff_null_value", 0)
-    if len(context_metadata["geotiff_bands"]) > 1:
+    if len(context_metadata.get("geotiff_bands", [])) > 1:
         context["geotiff_bands"] = context_metadata["geotiff_bands"]
-        context["annotations"]["metadata"]["geotiff_date"] = (
-            context_metadata["geotiff_value"]
-            if context_metadata["geotiff_band_type"] == "category"
-            else "01/01/2001"
-        )
+        band_type = context_metadata["geotiff_band_type"]
+        if band_type == "temporal":
+            band_type = "datetime"
+            context["annotations"]["metadata"]["geotiff_feature_name"] = context_metadata["geotiff_value"]
+        elif band_type == "category":
+            context["annotations"]["metadata"]["geotiff_date"] = (
+                context_metadata["geotiff_value"]
+                if context_metadata["geotiff_band_type"] == "category"
+                else "01/01/2001"
+            )
+        
+        context["annotations"]["metadata"]["geotiff_band_type"] = band_type
     else:
-        context["annotations"]["metadata"]["geotiff_band"] = (
-            context_metadata["geotiff_bands"].keys()
-        )[0]
+        context["annotations"]["metadata"]["geotiff_feature_name"] = context_metadata["geotiff_value"]
         context["annotations"]["metadata"]["geotiff_date"] = context_metadata[
-            "geotiff_value"
+            "geotiff_date_value"
         ]
 
     df = glp.run(context)
