@@ -4,10 +4,11 @@ import os
 from fastapi.logger import logger
 
 from validation import ModelSchema
+from src.dojo import get_parameters
 from src.ontologies import get_ontologies
 
 
-def to_causemos(model: ModelSchema.ModelMetadataSchema) -> ModelSchema.CausemosModelMetadataSchema:
+def convert_to_causemos_format(model: ModelSchema.ModelMetadataSchema) -> ModelSchema.CausemosModelMetadataSchema:
     """
     Transforms model from internal representation to the representation 
     accepted by Cauesmos.
@@ -34,7 +35,7 @@ def to_causemos(model: ModelSchema.ModelMetadataSchema) -> ModelSchema.CausemosM
             "max": float(annot["max"]) if annot["max"] != "" else None
         }
         
-    params = [ to_parameter(p["annotation"]) for p in get_parameters(model['id']) ]
+    params = [ to_parameter(parameters["annotation"]) for parameters in get_parameters(model['id']) ]
     payload = ModelSchema.CausemosModelMetadataSchema(parameters=params,**model)
     payload = get_ontologies(payload,type='model')
     return payload
@@ -88,7 +89,7 @@ def notify_causemos(data, type="indicator"):
         endpoint = "indicators/post-process"
     elif type == "model":
         endpoint = "datacubes"
-        data = to_causemos(data)
+        data = convert_to_causemos_format(data)
 
     # Notify Causemos that a model was created
     logger.info("Notifying CauseMos of model registration")

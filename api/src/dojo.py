@@ -136,11 +136,6 @@ def create_directive(payload: DojoSchema.ModelDirective):
     that must be modified in order to insert the user parameters.
     """
 
-    try:
-        es.delete(index="directives", id=payload.model_id)
-    except:
-        logger.info("Creating directive for new model")
-
     es.index(index="directives", body=payload.json(), id=payload.model_id)
     return Response(
         status_code=status.HTTP_201_CREATED,
@@ -175,7 +170,7 @@ def copy_directive(model_id: str, new_model_id: str):
     create_directive(d)
 
 def get_config_path(model_id, path):
-    return settings.CONFIG_STORAGE_BASE + model_id + path
+    return f'{settings.CONFIG_STORAGE_BASE}{model_id}{path}'
 
 @router.post("/dojo/config")
 def create_configs(payload: List[DojoSchema.ModelConfigCreate]):

@@ -144,14 +144,13 @@ def dispatch_run(run):
     return
 
 
-def apply_params(string, args, parameters):
+def replace_along_params(string, new_values, available_parameters):
     # Assuming no overlap
-    for p in sorted(parameters, key = lambda x: x['start'], reverse=True):
-        name = p["annotation"]["name"]
-        value = args[name] if name in args else p["annotation"]["default_value"]
-        string = string[:p["start"]] + value + string[p["end"]:]
+    for param in sorted(available_parameters, key = lambda param: param['start'], reverse=True):
+        name = param["annotation"]["name"]
+        value = new_values[name] if name in new_values else param["annotation"]["default_value"]
+        string = string[:param["start"]] + value + string[param["end"]:]
     return string
-
 
 @router.post("/runs")
 def create_run(run: RunSchema.ModelRunSchema):
@@ -163,7 +162,7 @@ def create_run(run: RunSchema.ModelRunSchema):
     # generate command based on directive template
     directive = get_directive(run.model_id)
 
-    model_command = apply_params(directive.get("command"), params, directive.get("parameters"))
+    model_command = replace_along_params(directive.get("command"), params, directive.get("parameters"))
 
     logging.info(f"Model Command is: {model_command}")
 

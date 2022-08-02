@@ -69,33 +69,29 @@ def rehydrate(ti, **kwargs):
     for config_file in kwargs['dag_run'].conf.get('config_files'):
 
         # NOTE: Identical function to Dojo API
-        def apply_params(string, args, parameters):
+        def replace_along_params(string, new_values, available_parameters):
             # Assuming no overlap
-            for p in sorted(parameters, key = lambda x: x['start'], reverse=True):
-                name = p["annotation"]["name"]
-                value = args[name] if name in args else p["annotation"]["default_value"]
-                string = string[:p["start"]] + value + string[p["end"]:]
+            for param in sorted(available_parameters, key = lambda param: param['start'], reverse=True):
+                name = param["annotation"]["name"]
+                value = new_values[name] if name in new_values else param["annotation"]["default_value"]
+                string = string[:param["start"]] + value + string[param["end"]:]
             return string
 
-        data_to_save = apply_params(
+        data_to_save = replace_along_params(
             config_file.get("file_content"), # Original Config Text
             kwargs['dag_run'].conf.get('params'), # User Parameters
             config_file.get('parameters') # Available Parameters
         )
 
         # Hydrate the config
-        if os.path.exists(save_folder):
-            print('here')
-            pass
-
-        else:
+        try:
             os.mkdir(save_folder, mode=0o777)
-
-        os.chmod(save_folder, mode=0o777)
+        except FileExistsError:
+            os.chmod(save_folder, mode=0o777)
 
         print(f'data_to_save: {data_to_save}')
         # save path needs to be hard coded for ubuntu path with run id and model name or something.
-        save_file_name=save_folder+config_file.get('file_name')
+        save_file_name=os.path.join(save_folder,config_file.get('file_name'))
         with open(save_file_name, "w+") as fh:
             fh.write(data_to_save)
         os.chmod(save_file_name, mode=0o777)
