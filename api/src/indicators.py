@@ -4,6 +4,7 @@ import csv
 import io
 import time
 import zlib
+import uuid
 from datetime import datetime
 from typing import Any, Dict, Generator, List, Optional
 from urllib.parse import urlparse
