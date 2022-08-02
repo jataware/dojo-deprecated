@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     DMC_PASSWORD: str
     DMC_LOCAL_DIR: str
 
+    DATASET_STORAGE_BASE_URL: str
     DOJO_URL: str
 
     REDIS_HOST: str
