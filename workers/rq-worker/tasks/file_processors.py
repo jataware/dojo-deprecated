@@ -175,7 +175,7 @@ def netCDF_to_CSV(uuid, fileobj):
 
     open_netcdf = xr.open_dataset(original_file)
     df = open_netcdf.to_dataframe()
-    df.reset_index().to_csv("./convertedCSV.csv")
+    df.reset_index().to_csv("./convertedCSV.csv", index=False)
     with open("./convertedCSV.csv", "rb") as f:
         put_rawfile(uuid, None, f)
 
