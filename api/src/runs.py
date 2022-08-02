@@ -21,7 +21,7 @@ from pydantic import BaseModel
 from pydantic.json import pydantic_encoder
 from typing_extensions import final
 
-from validation import RunSchema
+from validation import RunSchema, DojoSchema
 
 from src.models import get_model
 from src.dojo import get_directive, get_outputfiles, get_configs, get_accessory_files
@@ -55,7 +55,7 @@ headers = {"Content-Type": "application/json"}
 
 
 @router.get("/runs")
-def search_runs(request: Request, model_name: str = Query(None), model_id: str = Query(None)) -> List[RunSchema.ModelRunSchema]:
+def search_runs(request: Request, model_name: str = Query(None), model_id: str = Query(None), size=100, scroll_id=None) -> DojoSchema.RunSearchResult:
     """
     Allows users to search for runs. Note that a `model_name` or `model_id` query argument
     will be used to filter the records in elasticsearch. Any other arbitrary `&key=value` pairs
@@ -63,6 +63,7 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
     know ahead of time what all of the possible key/values are that people might search for in
     the run's parameters, we're accessing the raw FastAPI/Starlette request object's query args.
     """
+
     if model_name:
         q = {"query": {"term": {"model_name.keyword": {"value": model_name, "boost": 1.0}}}}
     elif model_id:
@@ -70,21 +71,44 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
     else:  # no model name specified
         q = {"query": {"match_all": {}}}
 
-    response = es.search(index="runs", body=q)
-    results = [i["_source"] for i in response["hits"]["hits"]]
+    count = es.count(index='runs', body=q)
+
+    if count["count"] == 0:
+        return {
+            "hits": 0,
+            "scroll_id": None,
+            "results": []
+        }
+
+    if not scroll_id:
+        results = es.search(index='runs', body=q, scroll="2m", size=size)
+    else:
+        results = es.scroll(scroll_id=scroll_id, scroll="2m")
 
     param_filters = dict(request.query_params)
 
     # don't use these keys to filter params
-    for reserved_param in ["model_id", "model_name"]:
+    for reserved_param in ["model_id", "model_name", "size", "scroll_id"]:
         param_filters.pop(reserved_param, None)
 
+    # if results are less than the page size don't return a scroll_id
+    if len(results["hits"]["hits"]) < int(size):
+        scroll_id = None
+    else:
+        scroll_id = results.get("_scroll_id", None)
+
+    results = [i["_source"] for i in results["hits"]["hits"]]
+
     if not param_filters:
-        return results  # no need to filter params
+        return {
+            "hits": count["count"],
+            "scroll_id": scroll_id,
+            "results": results,
+        }
 
     to_return = []
-    for result in results:
 
+    for result in results:
         run_params = {}  # convert run's params into dict for quick lookups
         for param in result.get("parameters", []):
             run_params[ param["name"] ] = param["value"]
@@ -99,7 +123,11 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
                     if filter_value == str(run_param_value):
                         to_return.append(result)
 
-    return to_return
+    return {
+        "hits": count["count"],
+        "scroll_id": scroll_id,
+        "results": to_return,
+    }
 
 
 @router.get("/runs/{run_id}")
@@ -141,7 +169,7 @@ def create_run(run: RunSchema.ModelRunSchema):
     volumeArray = [ "/var/run/docker.sock:/var/run/docker.sock" ]
     for output in outputfiles:
         try:
-            # rehydrate file path in 
+            # rehydrate file path in
             mixmasta_input_file = Template(output["path"]).render(param_dict)
 
             # get name of the mapper (will be based on output ID)
@@ -158,7 +186,7 @@ def create_run(run: RunSchema.ModelRunSchema):
                 output_dirs[output_dir] = output_id
 
             # use the lookup to build the path
-            output_dir_volume = dmc_local_dir + f"/results/{run.id}/{output_dirs[output_dir]}:{output_dir}"               
+            output_dir_volume = dmc_local_dir + f"/results/{run.id}/{output_dirs[output_dir]}:{output_dir}"
             logger.info('output_dir_volume:' + output_dir_volume)
 
             # add it to the volumeArray
@@ -167,7 +195,7 @@ def create_run(run: RunSchema.ModelRunSchema):
             # build mixmasta input object
             mixmasta_input = {"input_file": f"/tmp/{output_dirs[output_dir]}/{mixmasta_input_file}",
                               "mapper": f"/mappers/{mapper_name}"}
-            
+
             mixmasta_inputs.append(mixmasta_input)
         except Exception as e:
             logging.exception(e)
@@ -175,7 +203,7 @@ def create_run(run: RunSchema.ModelRunSchema):
 
     ### Handle accessory files.
     accessoryFiles = get_accessory_files(run.model_id) # call dojo.py API method directly.
-    
+
     logger.info(accessoryFiles)
     accessory_dirs = {}
     for accessoryFile in accessoryFiles:
@@ -220,7 +248,7 @@ def create_run(run: RunSchema.ModelRunSchema):
         if 'fileName' in configFile:
             mountPath = configFile["path"]
             fileName = configFile["fileName"]
-        
+
         # This is the typical case currently with Phantom/Shorthand
         else:
             mountPath = '/'.join(configFile["path"].split("/")[:-1])
@@ -268,6 +296,11 @@ def create_run(run: RunSchema.ModelRunSchema):
     logging.info(f"Response from DMC: {json.dumps(response.json(), indent=4)}")
 
     run.created_at = current_milli_time()
+    if hasattr(run, 'attributes'):
+        run.attributes["status"] = "Running"
+    else:
+        run.attributes = {"status": "Running"}
+
     es.index(index="runs", body=run.dict(), id=run.id)
     return Response(
         status_code=status.HTTP_201_CREATED,
@@ -306,7 +339,7 @@ def get_run_logs(run_id: str) -> RunSchema.RunLogsSchema:
         "failed-task": "Run failed",
     }
 
-    for task in sorted(task_instances, key=itemgetter("start_date")):
+    for task in sorted(task_instances, key=lambda obj: obj.get("start_date") or ""):
         task_id = task["task_id"]
         task_name = task_name_map.get(task_id, task_id)
 
@@ -344,11 +377,11 @@ def test_run_status(run_id: str) -> RunSchema.RunStatusSchema:
     status = run.get("attributes",{}).get("status",None)
     model_id = run.get("model_id")
     body = {"run_id": run_id,
-            "status": status, 
-            "model_name": run.get("model_name"), 
+            "status": status,
+            "model_name": run.get("model_name"),
             "executed_at": run.get("attributes",{}).get("executed_at",None)}
     if status:
         es.index(index="tests", body=body, id=model_id)
         return status
     else:
-        return "running" 
+        return "running"
