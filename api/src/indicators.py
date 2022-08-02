@@ -315,7 +315,8 @@ def update_indicator_with_mixmasta_results(uuid):
     # We update data_paths, outputs, qualifier_outputs, geography, and period from the mixmasta results and then patch the indicator.
 
     # Data_paths
-    all_files = list_files(uuid)
+    dir_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid)
+    all_files = list_files(dir_path)
     for file in all_files:
         if file.endswith(".parquet.gzip"):
             indicator.data_paths.append(file)
@@ -555,12 +556,13 @@ def upload_file(
 ):
     original_filename = file.filename
     _, ext = os.path.splitext(original_filename)
+    dir_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, indicator_id)
     if filename is None:
         if append:
             filenum = len(
                 [
                     f
-                    for f in list_files(indicator_id)
+                    for f in list_files(dir_path)
                     if f.startswith("raw_data") and f.endswith(ext)
                 ]
             )
