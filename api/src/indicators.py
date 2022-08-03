@@ -317,6 +317,7 @@ def update_indicator_with_mixmasta_results(uuid):
     # Data_paths
     dir_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid)
     all_files = list_files(dir_path)
+    indicator.data_paths = []
     for file in all_files:
         if file.endswith(".parquet.gzip"):
             indicator.data_paths.append(file)
