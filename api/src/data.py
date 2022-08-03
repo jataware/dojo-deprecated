@@ -24,6 +24,7 @@ import boto3
 
 from src.utils import get_rawfile, put_rawfile
 from src.indicators import get_indicators, get_annotations
+from src.settings import settings
 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.DEBUG)
@@ -205,7 +206,8 @@ def run_test_jobs(num_of_jobs):
 
 @router.get("/data/test/s3_grab/{uuid}")
 def test_s3_grab(uuid):
-    file = get_rawfile(uuid, "raw_data.csv")
+    rawfile_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid, "raw_data.csv")
+    file = get_rawfile(rawfile_path)
 
     df = pd.read_csv(file, delimiter=",")
 
@@ -217,7 +219,8 @@ def test_s3_grab(uuid):
 @router.post("/data/test/s3_upload/{uuid}")
 def test_s3_upload(uuid: str, filename: str, payload: UploadFile = File(...)):
     try:
-        put_rawfile(uuid, filename, payload.file)
+        dest_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid, filename)
+        put_rawfile(path=dest_path, fileobj=payload.file)
         return Response(
             status_code=status.HTTP_201_CREATED,
             headers={"msg": "File uploaded"},

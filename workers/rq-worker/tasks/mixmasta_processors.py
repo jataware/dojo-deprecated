@@ -12,6 +12,7 @@ from tasks import (
     generate_mixmasta_files,
 )
 from base_annotation import BaseProcessor
+from settings import settings
 
 
 class MixmastaFileGenerator(BaseProcessor):
@@ -55,8 +56,7 @@ class MixmastaProcessor(BaseProcessor):
         return ret
 
 
-def run_mixmasta(context):
-    file_generator = MixmastaFileGenerator()
+def run_mixmasta(context, filename=None):
     processor = MixmastaProcessor()
     uuid = context["uuid"]
     # Creating folder for temp file storage on the rq worker since following functions are dependent on file paths
@@ -66,7 +66,10 @@ def run_mixmasta(context):
 
     # Copy raw data file into rq-worker
     # Could change mixmasta to accept file-like objects as well as filepaths.
-    raw_file_obj = get_rawfile(uuid, "raw_data.csv")
+    if filename is None:
+        filename = "raw_data.csv"
+    rawfile_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid, filename)
+    raw_file_obj = get_rawfile(rawfile_path)
     with open(f"{datapath}/raw_data.csv", "wb") as f:
         f.write(raw_file_obj.read())
 
@@ -84,7 +87,8 @@ def run_mixmasta(context):
     for file in os.listdir(datapath):
         if file.endswith(".parquet.gzip"):
             with open(os.path.join(datapath, file), "rb") as fileobj:
-                put_rawfile(uuid=uuid, filename=file, fileobj=fileobj)
+                dest_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid, file)
+                put_rawfile(path=dest_path, fileobj=fileobj)
 
     # Run the indicator update via post to endpoint
     api_url = os.environ.get("DOJO_HOST")

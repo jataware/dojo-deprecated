@@ -10,6 +10,7 @@ from geotime_classify import geotime_classify as gc
 
 from base_annotation import BaseProcessor
 from utils import get_rawfile, put_rawfile
+from settings import settings
 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.DEBUG)
@@ -51,9 +52,16 @@ class GeotimeProcessor(BaseProcessor):
         return c_classifiedConverted
 
 
-def geotime_classify(context):
+def geotime_classify(context, filename=None):
 
-    file = get_rawfile(context["uuid"], "raw_data.csv")
+    # If no filename is passed in, default to the converted raw_data file.
+    if filename is None:
+        filename = "raw_data.csv"
+
+    rawfile_path = os.path.join(
+        settings.DATASET_STORAGE_BASE_URL, context["uuid"], filename
+    )
+    file = get_rawfile(rawfile_path)
     df = pd.read_csv(file, delimiter=",")
     gc = GeotimeProcessor()
     datapath = f"./data/{context['uuid']}"
