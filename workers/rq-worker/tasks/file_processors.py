@@ -200,7 +200,7 @@ def netCDF_to_CSV(uuid, fileobj, filename):
 def geotif_to_CSV(context, fileobj, filename):
     original_file = fileobj
     uuid = context["uuid"]
-    context_metadata = context["annotations"]["metadata"]
+    context_metadata = context["annotations"]["metadata"]["files"][filename]
     logging.warn(context_metadata)
 
     with open("./tempGeoTif.tif", "wb") as f:
