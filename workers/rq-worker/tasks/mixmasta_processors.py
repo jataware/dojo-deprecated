@@ -6,7 +6,7 @@ import shutil
 
 import pandas as pd
 
-from utils import get_rawfile, put_rawfile
+from utils import get_rawfile, put_rawfile, list_files
 from mixmasta import mixmasta as mix
 from tasks import (
     generate_mixmasta_files,
@@ -56,7 +56,7 @@ class MixmastaProcessor(BaseProcessor):
         return ret
 
 
-def run_mixmasta(context, filename=None):
+def run_mixmasta(context, filename=None, is_append=False):
     processor = MixmastaProcessor()
     uuid = context["uuid"]
     # Creating folder for temp file storage on the rq worker since following functions are dependent on file paths
@@ -66,8 +66,6 @@ def run_mixmasta(context, filename=None):
 
     # Copy raw data file into rq-worker
     # Could change mixmasta to accept file-like objects as well as filepaths.
-    if filename is None:
-        filename = "raw_data.csv"
     rawfile_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid, filename)
     raw_file_obj = get_rawfile(rawfile_path)
     with open(f"{datapath}/raw_data.csv", "wb") as f:
@@ -84,15 +82,63 @@ def run_mixmasta(context, filename=None):
     mixmasta_result_df = processor.run(context, datapath)
 
     # Takes all parquet files and puts them into the DATASET_STORAGE_BASE_URL which will be S3 in Production
+    filename = ""
     for file in os.listdir(datapath):
         if file.endswith(".parquet.gzip"):
             with open(os.path.join(datapath, file), "rb") as fileobj:
-                dest_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid, file)
+                # If append is true, add a number to the end of the file name to avoid overwriting.
+                if is_append:
+                    # Deal with base and str parquet files separately. It makes the numbering more consistent.
+                    if "_str" in file:
+                        filenum = len(
+                            [
+                                f
+                                for f in list_files(
+                                    os.path.join(
+                                        settings.DATASET_STORAGE_BASE_URL, uuid
+                                    )
+                                )
+                                if f.startswith(f"{uuid}_str")
+                                and f.endswith(".parquet.gzip")
+                            ]
+                        )
+                        filename_str = f"{uuid}_str_{filenum}.parquet.gzip"
+                        dest_path = os.path.join(
+                            settings.DATASET_STORAGE_BASE_URL, uuid, filename_str
+                        )
+                    else:
+                        filenum = len(
+                            [
+                                f
+                                for f in list_files(
+                                    os.path.join(
+                                        settings.DATASET_STORAGE_BASE_URL, uuid
+                                    )
+                                )
+                                if f.startswith(f"{uuid}")
+                                and f.endswith(".parquet.gzip")
+                            ]
+                        )
+                        filename = f"{uuid}_{filenum}.parquet.gzip"
+                        dest_path = os.path.join(
+                            settings.DATASET_STORAGE_BASE_URL, uuid, filename
+                        )
+                else:
+                    dest_path = os.path.join(
+                        settings.DATASET_STORAGE_BASE_URL, uuid, file
+                    )
                 put_rawfile(path=dest_path, fileobj=fileobj)
 
     # Run the indicator update via post to endpoint
     api_url = os.environ.get("DOJO_HOST")
-    request_response = requests.post(f"{api_url}/indicators/mixmasta_update/{uuid}")
+    if is_append:
+        request_response = requests.post(
+            f"{api_url}/indicators/mixmasta_update/{uuid}/?filename={filename}&append={is_append}"
+        )
+    else:
+        request_response = requests.post(
+            f"{api_url}/indicators/mixmasta_update/{uuid}/"
+        )
     logging.info(f"Response: {request_response}")
 
     # Final cleanup of temp directory

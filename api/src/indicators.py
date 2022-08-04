@@ -294,9 +294,12 @@ def deprecate_indicator(indicator_id: str):
 
 # TODO this function isn't much less gross than the original, needs cleanup.
 @router.post("/indicators/mixmasta_update/{uuid}")
-def update_indicator_with_mixmasta_results(uuid):
+def update_indicator_with_mixmasta_results(uuid, filename=None, append=False):
     # Get the mixmasta results
-    parquet_filename = f"{uuid}.parquet.gzip"
+    if filename is None:
+        parquet_filename = f"{uuid}.parquet.gzip"
+    else:
+        parquet_filename = filename
     parquet_path = os.path.join(
         settings.DATASET_STORAGE_BASE_URL, uuid, parquet_filename
     )
@@ -317,7 +320,10 @@ def update_indicator_with_mixmasta_results(uuid):
     # Data_paths
     dir_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid)
     all_files = list_files(dir_path)
-    indicator.data_paths = []
+    if append:
+        indicator.data_paths = original_indicator["data_paths"]
+    else:
+        indicator.data_paths = []
     for file in all_files:
         if file.endswith(".parquet.gzip"):
             indicator.data_paths.append(file)
@@ -426,9 +432,29 @@ def update_indicator_with_mixmasta_results(uuid):
 
     # Period
     if not parquet_df.timestamp.isnull().all():
-        indicator.period = Period(
-            gte=int(max(parquet_df.timestamp)), lte=int(min(parquet_df.timestamp))
-        )
+        if append:
+            if original_indicator["period"] is not None:
+                original_period = original_indicator["period"]
+                indicator.period = Period(
+                    gte=int(
+                        max(
+                            parquet_df.timestamp.append(
+                                pd.Series(original_period["gte"])
+                            )
+                        )
+                    ),
+                    lte=int(
+                        min(
+                            parquet_df.timestamp.append(
+                                pd.Series(original_period["lte"])
+                            )
+                        )
+                    ),
+                )
+        else:
+            indicator.period = Period(
+                gte=int(max(parquet_df.timestamp)), lte=int(min(parquet_df.timestamp))
+            )
 
     logger.info(f"INDICATOR {indicator}")
 
