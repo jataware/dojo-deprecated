@@ -56,7 +56,7 @@ class MixmastaProcessor(BaseProcessor):
         return ret
 
 
-def run_mixmasta(context, filename=None, is_append=False):
+def run_mixmasta(context, filename=None):
     processor = MixmastaProcessor()
     uuid = context["uuid"]
     # Creating folder for temp file storage on the rq worker since following functions are dependent on file paths
@@ -83,68 +83,69 @@ def run_mixmasta(context, filename=None, is_append=False):
 
     # Takes all parquet files and puts them into the DATASET_STORAGE_BASE_URL which will be S3 in Production
     filename = ""
+    filename_list = []
     for file in os.listdir(datapath):
         if file.endswith(".parquet.gzip"):
             with open(os.path.join(datapath, file), "rb") as fileobj:
-                # If append is true, add a number to the end of the file name to avoid overwriting.
-                if is_append:
-                    # Deal with base and str parquet files separately. It makes the numbering more consistent.
-                    if "_str" in file:
-                        filenum = len(
-                            [
-                                f
-                                for f in list_files(
-                                    os.path.join(
-                                        settings.DATASET_STORAGE_BASE_URL, uuid
-                                    )
-                                )
-                                if f.startswith(f"{uuid}_str")
-                                and f.endswith(".parquet.gzip")
-                            ]
-                        )
-                        filename_str = f"{uuid}_str_{filenum}.parquet.gzip"
-                        dest_path = os.path.join(
-                            settings.DATASET_STORAGE_BASE_URL, uuid, filename_str
-                        )
+                # Deal with base and str parquet files separately. It makes the numbering more consistent.
+                if "_str" in file:
+                    filenum = len(
+                        [
+                            f
+                            for f in list_files(
+                                os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid)
+                            )
+                            if f.startswith(f"{uuid}_str")
+                            and f.endswith(".parquet.gzip")
+                        ]
+                    )
+                    if filenum == 0:
+                        postfix = ""
                     else:
-                        filenum = len(
-                            [
-                                f
-                                for f in list_files(
-                                    os.path.join(
-                                        settings.DATASET_STORAGE_BASE_URL, uuid
-                                    )
-                                )
-                                if f.startswith(f"{uuid}")
-                                and f.endswith(".parquet.gzip")
-                            ]
-                        )
-                        filename = f"{uuid}_{filenum}.parquet.gzip"
-                        dest_path = os.path.join(
-                            settings.DATASET_STORAGE_BASE_URL, uuid, filename
-                        )
-                else:
+                        postfix = f"_str_{filenum}"
+                    filename_str = f"{uuid}{postfix}.parquet.gzip"
+                    filename_list.append(filename_str)
                     dest_path = os.path.join(
-                        settings.DATASET_STORAGE_BASE_URL, uuid, file
+                        settings.DATASET_STORAGE_BASE_URL, uuid, filename_str
+                    )
+                else:
+                    filenum = len(
+                        [
+                            f
+                            for f in list_files(
+                                os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid)
+                            )
+                            if f.startswith(f"{uuid}") and f.endswith(".parquet.gzip")
+                        ]
+                    )
+                    if filenum == 0:
+                        postfix = ""
+                    else:
+                        postfix = f"_{filenum}"
+                    filename = f"{uuid}{postfix}.parquet.gzip"
+                    filename_list.append(filename)
+                    dest_path = os.path.join(
+                        settings.DATASET_STORAGE_BASE_URL, uuid, filename
                     )
                 put_rawfile(path=dest_path, fileobj=fileobj)
 
     # Run the indicator update via post to endpoint
-    api_url = os.environ.get("DOJO_HOST")
-    if is_append:
-        request_response = requests.post(
-            f"{api_url}/indicators/mixmasta_update/{uuid}/?filename={filename}&append={is_append}"
-        )
-    else:
-        request_response = requests.post(
-            f"{api_url}/indicators/mixmasta_update/{uuid}/"
-        )
-    logging.info(f"Response: {request_response}")
+    # api_url = os.environ.get("DOJO_HOST")
+    # if is_append:
+    #     request_response = requests.post(
+    #         f"{api_url}/indicators/mixmasta_update/{uuid}/?filename={filename}&append={is_append}"
+    #     )
+    # else:
+    #     request_response = requests.post(
+    #         f"{api_url}/indicators/mixmasta_update/{uuid}/"
+    #     )
+    # logging.info(f"Response: {request_response}")
+    # CALLED FROM SUBMIT NOW.
 
     # Final cleanup of temp directory
     shutil.rmtree(datapath)
 
-    return generate_post_mix_preview(mixmasta_result_df), request_response
+    return generate_post_mix_preview(mixmasta_result_df), filename_list
 
 
 def generate_post_mix_preview(mixmasta_result):

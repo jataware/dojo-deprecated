@@ -294,12 +294,11 @@ def deprecate_indicator(indicator_id: str):
 
 # TODO this function isn't much less gross than the original, needs cleanup.
 @router.post("/indicators/mixmasta_update/{uuid}")
-def update_indicator_with_mixmasta_results(uuid, filename=None, append=False):
+def update_indicator_with_mixmasta_results(uuid, filename_list=None, append=False):
     # Get the mixmasta results
-    if filename is None:
-        parquet_filename = f"{uuid}.parquet.gzip"
-    else:
-        parquet_filename = filename
+    if filename_list is None:
+        filename_list = [f"{uuid}.parquet.gzip"]
+    parquet_filename = filename_list[0]
     parquet_path = os.path.join(
         settings.DATASET_STORAGE_BASE_URL, uuid, parquet_filename
     )
@@ -320,12 +319,9 @@ def update_indicator_with_mixmasta_results(uuid, filename=None, append=False):
     # Data_paths
     dir_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid)
     all_files = list_files(dir_path)
-    if append:
-        indicator.data_paths = original_indicator["data_paths"]
-    else:
-        indicator.data_paths = []
+    indicator.data_paths = original_indicator["data_paths"]
     for file in all_files:
-        if file.endswith(".parquet.gzip"):
+        if file in filename_list:
             indicator.data_paths.append(file)
 
     # Outputs
@@ -416,12 +412,19 @@ def update_indicator_with_mixmasta_results(uuid, filename=None, append=False):
         geography_dict[x] = [
             x for x in parquet_df[parquet_df[x].notna()][x].unique() if x != "nan"
         ]
+    # Deals with the append case, if we are not appending we can just add None and it doesn't change anything.
+    if append:
+        original_geography = original_indicator["geography"]
+    else:
+        original_geography = dict(
+            Geography(country=[], admin1=[], admin2=[], admin3=[])
+        )
     if len(geography_dict["country"]) < 10:
         geography = Geography(
-            country=geography_dict["country"],
-            admin1=geography_dict["admin1"],
-            admin2=geography_dict["admin2"],
-            admin3=geography_dict["admin3"],
+            country=geography_dict["country"] + original_geography["country"],
+            admin1=geography_dict["admin1"] + original_geography["admin1"],
+            admin2=geography_dict["admin2"] + original_geography["admin2"],
+            admin3=geography_dict["admin3"] + original_geography["admin3"],
         )
         indicator.geography = geography
     else:
@@ -432,25 +435,17 @@ def update_indicator_with_mixmasta_results(uuid, filename=None, append=False):
 
     # Period
     if not parquet_df.timestamp.isnull().all():
-        if append:
-            if original_indicator["period"] is not None:
-                original_period = original_indicator["period"]
-                indicator.period = Period(
-                    gte=int(
-                        max(
-                            parquet_df.timestamp.append(
-                                pd.Series(original_period["gte"])
-                            )
-                        )
-                    ),
-                    lte=int(
-                        min(
-                            parquet_df.timestamp.append(
-                                pd.Series(original_period["lte"])
-                            )
-                        )
-                    ),
-                )
+        # If we are appending, take the last gte and lte and add them to the pandas series to find the new max and min.
+        if original_indicator["period"] is not None:
+            original_period = original_indicator["period"]
+            indicator.period = Period(
+                gte=int(
+                    max(parquet_df.timestamp.append(pd.Series(original_period["gte"])))
+                ),
+                lte=int(
+                    min(parquet_df.timestamp.append(pd.Series(original_period["lte"])))
+                ),
+            )
         else:
             indicator.period = Period(
                 gte=int(max(parquet_df.timestamp)), lte=int(min(parquet_df.timestamp))
