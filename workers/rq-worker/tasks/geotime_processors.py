@@ -6,6 +6,7 @@ import requests
 import shutil
 
 import pandas as pd
+import numpy as np
 from geotime_classify import geotime_classify as gc
 
 from base_annotation import BaseProcessor
@@ -70,6 +71,10 @@ def geotime_classify(context, filename=None):
 
     # Constructs data object for patch that updates the metadata dictionary for the MetadataModel
     json_final = json.loads(json.dumps(final))
+    # Type inferencing
+    inferred_types = infer_types(df)
+    for key in inferred_types:
+        json_final[key]["type_inference"] = inferred_types[key]
     data = {"metadata": {"geotime_classify": json_final}}
     api_url = os.environ.get("DOJO_HOST")
     request_response = requests.patch(
@@ -81,3 +86,26 @@ def geotime_classify(context, filename=None):
     shutil.rmtree(datapath)
 
     return json_final, request_response
+
+
+def infer_types(dataframe):
+    """
+    Infer the types of the columns in the dataframe.
+    """
+    types = dataframe.dtypes.to_dict()
+    logging.warn(f"dtypes:{types}")
+    # Conversion of values to IndicatorSchema compliant values for consistency.
+    for key in types:
+        if types[key] is np.dtype(np.object):
+            types[key] = "str"
+        elif types[key] is np.dtype(np.bool):
+            types[key] = "boolean"
+        elif types[key] is np.dtype(np.int64):
+            types[key] = "int"
+        elif types[key] is np.dtype(np.float64):
+            types[key] = "float"
+        else:
+            types[key] = "unknown"
+
+    logging.warn(f"Processed dtypes:{types}")
+    return types
