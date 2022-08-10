@@ -112,7 +112,7 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
     for result in results:
         run_params = {}  # convert run's params into dict for quick lookups
         for param in result.get("parameters", []):
-            run_params[ param["name"] ] = param["value"]
+            run_params[param["name"]] = param["value"]
 
         for filter_key, filter_value in param_filters.items():
             run_param_value = run_params.get(filter_key)
@@ -146,10 +146,10 @@ def dispatch_run(run):
 
 def replace_along_params(string, new_values, available_parameters):
     # Assuming no overlap
-    for param in sorted(available_parameters, key = lambda param: param['start'], reverse=True):
+    for param in sorted(available_parameters, key=lambda param: param['start'], reverse=True):
         name = param["annotation"]["name"]
         value = new_values[name] if name in new_values else param["annotation"]["default_value"]
-        string = string[:param["start"]] + value + string[param["end"]:]
+        string = string[:param["start"]] + str(value) + string[param["end"]:]
     return string
 
 @router.post("/runs")
@@ -171,7 +171,7 @@ def create_run(run: RunSchema.ModelRunSchema):
     outputfiles = get_outputfiles(run.model_id) # call dojo.py API method directly.
     output_dirs = {}
     mixmasta_inputs = []
-    volumeArray = [ "/var/run/docker.sock:/var/run/docker.sock" ]
+    volumeArray = ["/var/run/docker.sock:/var/run/docker.sock"]
     for output in outputfiles:
         try:
             # rehydrate file path in
@@ -244,7 +244,6 @@ def create_run(run: RunSchema.ModelRunSchema):
         configs = []
         logging.exception(e)
 
-
     model_config_objects = []
 
     # get volumes
@@ -254,7 +253,7 @@ def create_run(run: RunSchema.ModelRunSchema):
         file_name = config_file["path"].split("/")[-1]
         save_path = dmc_local_dir + f"/model_configs/{run.id}/{file_name}"
         file_content = get_rawfile(
-            get_config_path(run.model_id,config_file["path"])
+            get_config_path(run.model_id, config_file["path"])
         ).read().decode()
         model_config_objects.append(
             {

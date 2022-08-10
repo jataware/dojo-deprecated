@@ -1,29 +1,29 @@
 from __future__ import annotations
 
-import copy
 import logging
 import uuid
 import time
 from copy import deepcopy
-from datetime import datetime
 import json
-from typing import Any, Dict, Generator, List, Optional, Union
+from typing import Dict, List, Union
 
 from elasticsearch import Elasticsearch
-from pydantic import BaseModel, Field
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status, Body
+from fastapi import APIRouter, HTTPException, Query, Response, status
 from fastapi.logger import logger
 from validation import ModelSchema, DojoSchema
 
 from src.settings import settings
-from src.dojo import search_and_scroll, copy_configs, copy_outputfiles, copy_directive, copy_accessory_files, get_parameters
+from src.dojo import search_and_scroll, copy_configs, copy_outputfiles, copy_directive, copy_accessory_files
 from src.causemos import notify_causemos, submit_run
 from src.utils import run_model_with_defaults
 
 router = APIRouter()
 
-es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
+es = Elasticsearch(
+    [settings.ELASTICSEARCH_URL],
+    port=settings.ELASTICSEARCH_PORT
+)
 logger = logging.getLogger(__name__)
 
 
@@ -113,10 +113,11 @@ def get_latest_models(size=100, scroll_id=None) -> DojoSchema.ModelSearchResult:
         "results": results,
     }
 
+
 @router.put("/models/{model_id}")
 def update_model(model_id: str, payload: ModelSchema.ModelMetadataSchema):
     payload.created_at = current_milli_time()
-    body = payload.json()
+    model = payload.json()
     es.index(index="models", body=model, id=model_id)
     return Response(
         status_code=status.HTTP_201_CREATED,

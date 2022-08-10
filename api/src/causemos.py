@@ -1,5 +1,4 @@
 import requests
-import json
 import os
 from fastapi.logger import logger
 
@@ -8,9 +7,11 @@ from src.dojo import get_parameters
 from src.ontologies import get_ontologies
 
 
-def convert_to_causemos_format(model: ModelSchema.ModelMetadataSchema) -> ModelSchema.CausemosModelMetadataSchema:
+def convert_to_causemos_format(
+    model: ModelSchema.ModelMetadataSchema
+) -> ModelSchema.CausemosModelMetadataSchema:
     """
-    Transforms model from internal representation to the representation 
+    Transforms model from internal representation to the representation
     accepted by Cauesmos.
     """
     def to_parameter(annot):
@@ -34,12 +35,18 @@ def convert_to_causemos_format(model: ModelSchema.ModelMetadataSchema) -> ModelS
             "min": float(annot["min"]) if annot["min"] != "" else None,
             "max": float(annot["max"]) if annot["max"] != "" else None
         }
-        
-    params = [ to_parameter(parameters["annotation"]) for parameters in get_parameters(model['id']) ]
-    payload = ModelSchema.CausemosModelMetadataSchema(parameters=params,**model)
-    payload = get_ontologies(payload,type='model')
+
+    params = [
+        to_parameter(parameters["annotation"])
+        for parameters in get_parameters(model['id'])
+    ]
+    payload = ModelSchema.CausemosModelMetadataSchema(
+        parameters=params,
+        **model
+    )
+    payload = get_ontologies(payload, type='model')
     return payload
-    
+
 
 def deprecate_dataset(dataset_id):
     """
@@ -73,15 +80,16 @@ def deprecate_dataset(dataset_id):
 
 def notify_causemos(data, type="indicator"):
     """
-    A function to notify Causemos that a new indicator or model has been created.
+    A function to notify Causemos that a new indicator or model has been
+    created.
 
     If type is "indicator":
         POST https://causemos.uncharted.software/api/maas/indicators/post-process
         // Request body: indicator metadata
-    
+
     If type is "model":
         POST https://causemos.uncharted.software/api/maas/datacubes
-        // Request body: model metadata    
+        // Request body: model metadata
     """
     headers = {"accept": "application/json", "Content-Type": "application/json"}
 
@@ -93,7 +101,6 @@ def notify_causemos(data, type="indicator"):
 
     # Notify Causemos that a model was created
     logger.info("Notifying CauseMos of model registration")
-
 
     url = f'{os.getenv("CAUSEMOS_IND_URL")}/{endpoint}'
     causemos_user = os.getenv("CAUSEMOS_USER")
@@ -165,7 +172,4 @@ def submit_run(model):
 
     except Exception as e:
         logger.error(f"Encountered problems communicating with Causemos: {e}")
-        logger.exception(e)    
-
-
-
+        logger.exception(e)

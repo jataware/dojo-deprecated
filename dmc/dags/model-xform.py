@@ -5,14 +5,9 @@ import os
 from airflow import DAG
 # from airflow.providers.docker.operators.docker import DockerOperator
 from operators.dojo_operators import DojoDockerOperator
-from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.utils.dates import days_ago
-from airflow.configuration import conf
-from airflow.models import Variable
-from jinja2 import Template
 
 import glob
 
@@ -71,10 +66,10 @@ def rehydrate(ti, **kwargs):
         # NOTE: Identical function to Dojo API
         def replace_along_params(string, new_values, available_parameters):
             # Assuming no overlap
-            for param in sorted(available_parameters, key = lambda param: param['start'], reverse=True):
+            for param in sorted(available_parameters, key=lambda param: param['start'], reverse=True):
                 name = param["annotation"]["name"]
                 value = new_values[name] if name in new_values else param["annotation"]["default_value"]
-                string = string[:param["start"]] + value + string[param["end"]:]
+                string = string[:param["start"]] + str(value) + string[param["end"]:]
             return string
 
         data_to_save = replace_along_params(
@@ -91,7 +86,7 @@ def rehydrate(ti, **kwargs):
 
         print(f'data_to_save: {data_to_save}')
         # save path needs to be hard coded for ubuntu path with run id and model name or something.
-        save_file_name=os.path.join(save_folder,config_file.get('file_name'))
+        save_file_name = os.path.join(save_folder, config_file.get('file_name'))
         with open(save_file_name, "w+") as fh:
             fh.write(data_to_save)
         os.chmod(save_file_name, mode=0o777)
@@ -138,7 +133,7 @@ def accessoryNodeTask(**kwargs):
         # per the S3 bucket's policy
         # TODO: may need to address this with more fine grained controls in the future
         bucket_dir = os.getenv('BUCKET_DIR')
-        key=f"{bucket_dir}/{kwargs['dag_run'].conf.get('run_id')}/{fn}"
+        key = f"{bucket_dir}/{kwargs['dag_run'].conf.get('run_id')}/{fn}"
 
         logger.info('key:' + key)
 
@@ -148,7 +143,7 @@ def accessoryNodeTask(**kwargs):
             replace=True,
             bucket_name=os.getenv('BUCKET')
         )
-                  
+
 
 def s3copy(**kwargs):
     s3 = S3Hook(aws_conn_id="aws_default")

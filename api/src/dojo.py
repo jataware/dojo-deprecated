@@ -1,5 +1,3 @@
-
-import hashlib
 import os
 import io
 import requests
@@ -11,7 +9,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 
 from fastapi import APIRouter, Response, status
-from validation import DojoSchema, ModelSchema
+from validation import DojoSchema
 from src.settings import settings
 from src.utils import delete_matching_records_from_model, put_rawfile, get_rawfile
 import logging
