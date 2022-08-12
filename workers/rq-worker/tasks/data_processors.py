@@ -27,15 +27,18 @@ def describe_data(context, filename=None):
     )
     file = get_rawfile(rawfile_path)
     df = pd.read_csv(file, delimiter=",")
+    return describe_df(df)
 
+
+def describe_df(df):
     # Get the data description.
-    description = df.describe()
+    description = df.describe().to_json()
 
     # Use Histogram functions
     histogram_data = generate_histogram_data(df)
 
     # Return the description.
-    return description, json.loads(histogram_data)
+    return json.loads(description), json.loads(histogram_data)
 
 
 def generate_histogram_data(dataframe):

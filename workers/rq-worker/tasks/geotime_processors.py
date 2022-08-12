@@ -10,6 +10,7 @@ import numpy as np
 from geotime_classify import geotime_classify as gc
 
 from base_annotation import BaseProcessor
+from data_processors import describe_df
 from utils import get_rawfile, put_rawfile
 from settings import settings
 
@@ -75,7 +76,18 @@ def geotime_classify(context, filename=None):
     inferred_types = infer_types(df)
     for key in inferred_types:
         json_final[key]["type_inference"] = inferred_types[key]
-    data = {"metadata": {"geotime_classify": json_final}}
+
+    # Collect column statistics from dataframe
+    statistics, histograms = describe_df(df)
+
+    data = {
+        "metadata": {
+            "geotime_classify": json_final,
+            "column_statistics": statistics,
+            "histograms": histograms,
+        }
+
+    }
     api_url = os.environ.get("DOJO_HOST")
     request_response = requests.patch(
         f"{api_url}/indicators/{context['uuid']}/annotations",
