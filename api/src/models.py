@@ -120,6 +120,38 @@ def get_latest_models(size=100, scroll_id=None) -> DojoSchema.ModelSearchResult:
         "results": [i["_source"] for i in results["hits"]["hits"]],
     }
 
+
+# BROKEN: CURRENTLY NOT GRABBING MOST RECENT ENTRY
+@router.get("/models/latest/status")
+def get_latest_status(size=100, scroll_id=None):
+    def status(model_id):
+        sort_by = [
+            {"created_at": "desc"}
+        ]
+        query = {
+          "query": {
+            "bool": {
+              "filter": [
+                {"term": {"model_id.keyword":  model_id}},
+                {"match": {"is_default_run": True}}
+              ]
+            }
+          },
+        }
+
+        result = es.search(index='runs', body=query, size=1)
+        if result["hits"]["total"]['value'] == 0:
+            return None
+        else:
+            run = result["hits"]["hits"][0]["_source"]
+            return run.get("attributes", {}).get("status", None)
+
+    model_ids = [
+        model["id"] for model in get_latest_models(size, scroll_id)["results"]
+    ]
+    return {model_id: status(model_id) for model_id in model_ids}
+
+
 @router.put("/models/{model_id}")
 def update_model(model_id: str, payload: ModelSchema.ModelMetadataSchema):
     payload.created_at = current_milli_time()
