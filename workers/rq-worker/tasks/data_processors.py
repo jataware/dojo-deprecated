@@ -47,7 +47,4 @@ def histogram_data(x):
     logging.warn(f"Inside histogram_data: {x}, dtype: {x.dtype}")
     if x.dtype != np.dtype(np.object) and x.dtype != np.dtype(np.bool):
         hist, bins = np.histogram(x)
-        logging.warn(f"Histogram: {hist}, bins: {bins}")
-        bbins = np.char.mod("%.2f", bins)
-        label = map("-".join, zip(bbins[:-1], bbins[1:]))
-        return dict(zip(label, hist))
+        return {"values": hist, "bins": bins}
