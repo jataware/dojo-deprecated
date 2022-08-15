@@ -614,7 +614,7 @@ def validate_date(payload: IndicatorSchema.DateValidationRequestSchema):
 
 @router.post("/indicators/{indicator_id}/preview/{preview_type}")
 async def create_preview(
-    indicator_id: str, preview_type: IndicatorSchema.PreviewType, filename: str = None
+    indicator_id: str, preview_type: IndicatorSchema.PreviewType, filename: str = Query(None)
 ):
     """Get preview for a dataset.
 
@@ -627,11 +627,19 @@ async def create_preview(
     try:
         # TODO - Get all potential string files concatenated together using list file utility
         if preview_type == IndicatorSchema.PreviewType.processed:
-            rawfile_path = os.path.join(
-                settings.DATASET_STORAGE_BASE_URL,
-                indicator_id,
-                f"{indicator_id}.parquet.gzip",
-            )
+            if filename is None:
+                rawfile_path = os.path.join(
+                    settings.DATASET_STORAGE_BASE_URL,
+                    indicator_id,
+                    f"{indicator_id}.parquet.gzip",
+                )
+            else:
+                dest_path, _ = os.path.split(filename)
+                base_name, _ = os.path.splitext(os.path.basename(filename))
+                rawfile_path = os.path.join(
+                    settings.DATASET_STORAGE_BASE_URL, dest_path, f"{base_name}.parquet.gzip"
+                )
+                logger.warn(rawfile_path)
             file = get_rawfile(rawfile_path)
             df = pd.read_parquet(file)
             try:
@@ -647,9 +655,14 @@ async def create_preview(
                 pass
 
         else:
-            rawfile_path = os.path.join(
-                settings.DATASET_STORAGE_BASE_URL, indicator_id, "raw_data.csv"
-            )
+            if filename is None:
+                rawfile_path = os.path.join(
+                    settings.DATASET_STORAGE_BASE_URL, indicator_id, "raw_data.csv"
+                )
+            else:
+                rawfile_path = os.path.join(
+                    settings.DATASET_STORAGE_BASE_URL, filename
+                )
             file = get_rawfile(rawfile_path)
             df = pd.read_csv(file, delimiter=",")
 
@@ -660,10 +673,3 @@ async def create_preview(
         return indexed_rows
     except FileNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-
-    except Exception as e:
-        return Response(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            headers={"msg": f"Error: {e}"},
-            content=f"Queue could not be deleted.",
-        )

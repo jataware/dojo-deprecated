@@ -1,6 +1,7 @@
 import logging
 import json
 import os
+from textwrap import indent
 import requests
 import shutil
 
@@ -49,6 +50,9 @@ class MixmastaProcessor(BaseProcessor):
         # Mixmasta output path (it needs the filename attached to write parquets, and the file name is the uuid)
         mix_output_path = f"{output_path}/{uuid}"
         # Main mixmasta processing call
+        logging.warn(raw_data_fp)
+        logging.warn(mapper_fp)
+        logging.warn(mix_output_path)
         ret, rename = mix.process(raw_data_fp, mapper_fp, admin_level, mix_output_path)
 
         ret.to_csv(f"{output_path}/mixmasta_processed_df.csv", index=False)
@@ -64,11 +68,16 @@ def run_mixmasta(context, filename=None):
     if not os.path.isdir(datapath):
         os.makedirs(datapath)
 
+    logging.warn(context)
+    logging.warn(filename)
+
     # Copy raw data file into rq-worker
-    # Could change mixmasta to accept file-like objects as well as filepaths.
+    # Could change mixmasta to accept file-like objects as well as filepaths.  
     if filename is None:
         filename = "raw_data.csv"
-    rawfile_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid, filename)
+        rawfile_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid, filename)
+    else:
+        rawfile_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, filename)
     raw_file_obj = get_rawfile(rawfile_path)
     with open(f"{datapath}/raw_data.csv", "wb") as f:
         f.write(raw_file_obj.read())
@@ -87,7 +96,7 @@ def run_mixmasta(context, filename=None):
     for file in os.listdir(datapath):
         if file.endswith(".parquet.gzip"):
             with open(os.path.join(datapath, file), "rb") as fileobj:
-                dest_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid, file)
+                dest_path = os.path.join(os.path.dirname(rawfile_path), file)
                 put_rawfile(path=dest_path, fileobj=fileobj)
 
     # Run the indicator update via post to endpoint
@@ -104,3 +113,100 @@ def run_mixmasta(context, filename=None):
 def generate_post_mix_preview(mixmasta_result):
 
     return mixmasta_result.head(100).to_json()
+
+
+def run_dataset_mixmasta(context, filename=None):
+    processor = MixmastaProcessor()
+    uuid = context["uuid"]
+    # Creating folder for temp file storage on the rq worker since following functions are dependent on file paths
+    datapath = f"./{uuid}"
+    if not os.path.isdir(datapath):
+        os.makedirs(datapath)
+
+    # Copy raw data file into rq-worker
+    # Could change mixmasta to accept file-like objects as well as filepaths.
+    if filename is None:
+        filename = "raw_data.csv"
+        rawfile_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid, filename)
+    else:
+        rawfile_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, filename)
+    raw_file_obj = get_rawfile(rawfile_path)
+    with open(f"{datapath}/raw_data.csv", "wb") as f:
+        f.write(raw_file_obj.read())
+
+    # Writing out the annotations because mixmasta needs a filepath to this data.
+    # Should probably change mixmasta down the road to accept filepath AND annotations objects.
+    mm_ready_annotations = context["annotations"]["annotations"]
+    with open(f"{datapath}/mixmasta_ready_annotations.json", "w") as f:
+        f.write(json.dumps(mm_ready_annotations))
+    f.close()
+
+    # Main Call
+    mixmasta_result_df = processor.run(context, datapath)
+
+    # Takes all parquet files and puts them into the DATASET_STORAGE_BASE_URL which will be S3 in Production
+    for file in os.listdir(datapath):
+        if file.endswith(".parquet.gzip"):
+            with open(os.path.join(datapath, file), "rb") as fileobj:
+                dest_path = os.path.join(os.path.dirname(rawfile_path), file)
+                put_rawfile(path=dest_path, fileobj=fileobj)
+
+    # Run the indicator update via post to endpoint
+    api_url = os.environ.get("DOJO_HOST")
+    request_response = requests.post(f"{api_url}/indicators/mixmasta_update/{uuid}")
+    logging.info(f"Response: {request_response}")
+
+    # Final cleanup of temp directory
+    shutil.rmtree(datapath)
+
+    return generate_post_mix_preview(mixmasta_result_df), request_response
+
+
+def run_model_mixmasta(context, *args, **kwargs):
+    logging.warn("BBBBBBB")
+    logging.warn(args)
+    logging.warn(kwargs)
+    import pprint
+    logging.warn(pprint.pformat(context))
+    metadata = context['annotations']['metadata']
+    processor = MixmastaProcessor()
+    datapath = os.path.join(settings.DATASET_STORAGE_BASE_URL, 'model-output-samples', context['uuid'])
+    sample_path = os.path.join(datapath, f"{metadata['file_uuid']}.csv")
+    # Creating folder for temp file storage on the rq worker since following functions are dependent on file paths
+    localpath = f"/datasets/processing/{context['uuid']}"
+    if not os.path.isdir(localpath):
+        os.makedirs(localpath)
+
+    # filename = context.get('')
+    # Copy raw data file into rq-worker
+    # Could change mixmasta to accept file-like objects as well as filepaths.
+    # rawfile_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, filename)
+    raw_file_obj = get_rawfile(sample_path)
+    with open(f"{localpath}/raw_data.csv", "wb") as f:
+        f.write(raw_file_obj.read())
+
+    # Writing out the annotations because mixmasta needs a filepath to this data.
+    # Should probably change mixmasta down the road to accept filepath AND annotations objects.
+    # mm_ready_annotations = context["annotations"]["annotations"]
+    mm_ready_annotations = generate_mixmasta_files(context)
+    # annotation_file = get_rawfile(os.path.join(datapath), )
+    with open(f"{localpath}/mixmasta_ready_annotations.json", "w") as f:
+        f.write(json.dumps(mm_ready_annotations))
+    f.close()
+
+    # Main Call
+    logging.warn(localpath)
+    mixmasta_result_df = processor.run(context, localpath)
+
+    # Takes all parquet files and puts them into the DATASET_STORAGE_BASE_URL which will be S3 in Production
+    for file in os.listdir(localpath):
+        if file.endswith(".parquet.gzip"):
+            with open(os.path.join(localpath, file), "rb") as fileobj:
+                dest_path, parquet_filename = os.path.split(sample_path)
+                dest = os.path.join(dest_path, f"{metadata['file_uuid']}_sample_output.parquet.gzip")
+                put_rawfile(path=dest, fileobj=fileobj)
+
+    # Final cleanup of temp directory
+    shutil.rmtree(localpath)
+
+    return generate_post_mix_preview(mixmasta_result_df)

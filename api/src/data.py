@@ -49,21 +49,13 @@ def get_context(uuid):
     except:
         annotations = {}
     try:
-        datasets = get_indicators(uuid)
+        dataset = get_indicators(uuid)
     except:
-        datasets = {}
+        dataset = {}
 
-    context = {"uuid": uuid, "datasets": datasets, "annotations": annotations}
+    context = {"uuid": uuid, "dataset": dataset, "annotations": annotations}
 
     return context
-
-
-def get_datapath_from_indicator(uuid):
-    indicator = get_indicators(uuid)
-
-    datapath = indicator["_source"]["datapath"]
-
-    return datapath
 
 
 # RQ ENDPOINTS
@@ -134,20 +126,26 @@ def cancel_job(job_id):
 
 # Last to not interfere with other routes
 @router.post("/job/{uuid}/{job_string}")
-def job(uuid: str, job_string: str, options: Optional[Dict[Any, Any]] = None):
+def job(uuid: str, job_string: str, options: Optional[Dict[Any, Any]] = None, context: Optional[Dict[Any, Any]] = None, filename: Optional[str] = None):
+    logging.warn(context)
+    logging.warn(options)
+    logging.warn(uuid)
+    logging.warn(job_string)
+    logging.warn(filename)
 
     if options is None:
         options = {}
 
     synchronous = options.pop("synchronous", False)
     timeout = options.pop("timeout", 60)
-    recheck_delay = 0.5
+    recheck_delay = 0.3
 
     job_id = f"{uuid}_{job_string}"
     job = q.fetch_job(job_id)
     if not job:
         try:
-            context = get_context(uuid=uuid)
+            if context is None:
+                context = get_context(uuid=uuid)
         except Exception as e:
             logging.error(e)
         job = q.enqueue_call(
