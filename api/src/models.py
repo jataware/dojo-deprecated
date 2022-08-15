@@ -121,8 +121,12 @@ def get_latest_models(size=100, scroll_id=None) -> DojoSchema.ModelSearchResult:
     }
 
 
-@router.get("/models/latest/status")
-def get_latest_status(size=100, scroll_id=None):
+@router.post("/models/status")
+def generate_model_status(payload: DojoSchema.TestBatch):
+    """
+    Generates the model status for each model ID given using the results of the
+    last default run.
+    """
     def status(model_id):
         sort_by = [
             {"created_at": "desc"}
@@ -144,16 +148,14 @@ def get_latest_status(size=100, scroll_id=None):
         if result["hits"]["total"]['value'] == 0:
             return None
         else:
+            # Grab run with highest unix epoch timestamp
             run = max(
               result["hits"]["hits"],
               key=lambda hit: hit["_source"]["created_at"]
             )
             return run["_source"].get("attributes", {}).get("status", None)
 
-    model_ids = [
-        model["id"] for model in get_latest_models(size, scroll_id)["results"]
-    ]
-    return {model_id: status(model_id) for model_id in model_ids}
+    return {model_id: status(model_id) for model_id in payload.model_ids}
 
 
 @router.put("/models/{model_id}")

@@ -3,6 +3,7 @@
 ################################################################
 
 
+from enum import Enum
 from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 from validation import RunSchema, ModelSchema, IndicatorSchema
@@ -171,3 +172,35 @@ class ParameterFormatter(BaseModel):
     )
 
 
+class StatusAction(Enum):
+    """
+    The status actions are options that decide how to handle the status of
+    each model given.
+    """
+
+    # Do not trigger any test if no default run exists
+    ignore = "ignore"
+
+    # Trigger any test if no default run exists
+    fill = "fill"
+
+    # Trigger test for each entry
+    force = "force"
+
+
+class TestBatch(BaseModel):
+    """
+    The test batch takes a list of models and returns the statuses while
+    using the status action provided.
+    """
+
+    model_ids: List[str] = Field(
+        [],
+        title="Model IDs",
+        description="The models that need their statuses checked",
+    )
+    action: StatusAction = Field(
+        StatusAction.ignore,
+        title="Model IDs",
+        description="Which action to use for each entry",
+    )
