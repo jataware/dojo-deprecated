@@ -121,7 +121,6 @@ def get_latest_models(size=100, scroll_id=None) -> DojoSchema.ModelSearchResult:
     }
 
 
-# BROKEN: CURRENTLY NOT GRABBING MOST RECENT ENTRY
 @router.get("/models/latest/status")
 def get_latest_status(size=100, scroll_id=None):
     def status(model_id):
@@ -139,12 +138,17 @@ def get_latest_status(size=100, scroll_id=None):
           },
         }
 
-        result = es.search(index='runs', body=query, size=1)
+        result = es.search(
+          index='runs', body=query, params={"sort": sort_by}
+        )
         if result["hits"]["total"]['value'] == 0:
             return None
         else:
-            run = result["hits"]["hits"][0]["_source"]
-            return run.get("attributes", {}).get("status", None)
+            run = max(
+              result["hits"]["hits"],
+              key=lambda hit: hit["_source"]["created_at"]
+            )
+            return run["_source"].get("attributes", {}).get("status", None)
 
     model_ids = [
         model["id"] for model in get_latest_models(size, scroll_id)["results"]
