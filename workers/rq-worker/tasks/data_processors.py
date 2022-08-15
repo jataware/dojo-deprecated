@@ -32,13 +32,23 @@ def describe_data(context, filename=None):
 
 def describe_df(df):
     # Get the data description.
-    description = df.describe().to_json()
+    base_description = json.loads(df.describe(include="all").to_json())
+    description = {
+        col: {
+            stat: val
+            for stat, val
+            in stats.items()
+            if not pd.isna(val)
+        }
+        for col, stats
+        in base_description.items()
+    }
 
     # Use Histogram functions
     histogram_data = generate_histogram_data(df)
 
     # Return the description.
-    return json.loads(description), json.loads(histogram_data)
+    return description, json.loads(histogram_data)
 
 
 def generate_histogram_data(dataframe):
