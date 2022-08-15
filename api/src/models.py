@@ -341,6 +341,7 @@ def publish_model(model_id: str, publish_data: ModelSchema.PublishSchema):
         content="Model published",
     )
 
+
 @router.get("/models/{model_id}/test")
 def test_model(model_id: str):
     """
@@ -360,9 +361,6 @@ def generate_model_status(payload: DojoSchema.TestBatch):
     last default run.
     """
     def status(model_id):
-        sort_by = [
-            {"created_at": "desc"}
-        ]
         query = {
           "query": {
             "bool": {
@@ -374,9 +372,7 @@ def generate_model_status(payload: DojoSchema.TestBatch):
           },
         }
 
-        result = es.search(
-          index='runs', body=query, params={"sort": sort_by}
-        )
+        result = es.search(index='runs', body=query)
         untested = result["hits"]["total"]['value'] == 0
 
         if (DojoSchema.StatusAction.force == payload.action or
@@ -393,9 +389,9 @@ def generate_model_status(payload: DojoSchema.TestBatch):
               result["hits"]["hits"],
               key=lambda hit: hit["_source"]["created_at"]
             )["_source"]
-            run_status = run.get("attributes", {}).get("status", 'none')
+            run_status = run.get("attributes", {}).get("status", "absent")
             return run_status.lower()
         else:
-            return "none"
+            return "absent"
 
     return {model_id: status(model_id) for model_id in payload.model_ids}
