@@ -176,15 +176,13 @@ class StatusAction(Enum):
     """
     The status actions are options that decide how to handle the status of
     each model given.
+
+    - ignore: Do not trigger any tests
+    - fill: Trigger test if no default run exists
+    - force: Trigger test for each given model
     """
-
-    # Do not trigger any test if no default run exists
     ignore = "ignore"
-
-    # Trigger any test if no default run exists
     fill = "fill"
-
-    # Trigger test for each entry
     force = "force"
 
 
