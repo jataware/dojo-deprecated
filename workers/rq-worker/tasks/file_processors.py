@@ -93,7 +93,7 @@ class GeotiffLoadProcessor(BaseProcessor):
                 context_annotations_meta["geotiff_feature_name"],
                 context_annotations_meta.get("band", 1),
                 context_annotations_meta["geotiff_date"],
-                context_annotations_meta["geotiff_null_value"],
+                context_annotations_meta.get("geotiff_null_value", None),
             )
 
             df = mix.raster2df(
