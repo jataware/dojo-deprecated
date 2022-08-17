@@ -152,7 +152,7 @@ def get_indicators(indicator_id: str) -> IndicatorSchema.IndicatorMetadataSchema
 
 
 @router.get("/indicators/{indicator_id}/download/csv")
-def get_csv(indicator_id: str, request: Request):
+def get_indicator_csv(indicator_id: str, request: Request):
     try:
         indicator = es.get(index="indicators", id=indicator_id)["_source"]
     except:
@@ -160,14 +160,14 @@ def get_csv(indicator_id: str, request: Request):
 
     if "deflate" in request.headers.get("accept-encoding", ""):
         return StreamingResponse(
-            download_csv_from_data_paths(indicator["data_paths"]), #compress(iter_csv()), 
-            media_type="text/csv", 
+            download_csv_from_data_paths(indicator["data_paths"]),
+            media_type="text/csv",
             headers={'Content-Encoding': 'deflate'}
         )
     else:
         return StreamingResponse(
-            download_csv_from_data_paths(indicator["data_paths"], False),#iter_csv(), 
-            media_type="text/csv", 
+            download_csv_from_data_paths(indicator["data_paths"], False),
+            media_type="text/csv",
         )
 
 

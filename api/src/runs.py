@@ -22,6 +22,7 @@ from pydantic.json import pydantic_encoder
 from typing_extensions import final
 
 from validation import RunSchema, DojoSchema
+from src.utils import download_csv_from_data_paths
 
 from src.models import get_model
 from src.dojo import get_directive, get_outputfiles, get_configs, get_accessory_files
@@ -137,6 +138,30 @@ def get_run(run_id: str) -> RunSchema.ModelRunSchema:
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return run
+
+
+@router.get("/runs/{run_id}/download/csv")
+def get_run_csv(run_id: str, request: Request):
+    try:
+        run = es.get(index="runs", id=run_id)["_source"]
+    except:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    run_status = run.get("attributes", {}).get("status", None)
+    if run_status != "success":
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT)
+
+    if "deflate" in request.headers.get("accept-encoding", ""):
+        return StreamingResponse(
+            download_csv_from_data_paths(run["data_paths"]),
+            media_type="text/csv",
+            headers={'Content-Encoding': 'deflate'}
+        )
+    else:
+        return StreamingResponse(
+            download_csv_from_data_paths(run["data_paths"], False),
+            media_type="text/csv",
+        )
 
 
 def dispatch_run(run):
