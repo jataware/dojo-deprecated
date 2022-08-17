@@ -11,7 +11,7 @@ from operator import itemgetter
 from threading import Thread, current_thread
 from typing import Any, Dict, Generator, List, Optional
 
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, NotFoundError
 from jinja2 import Template
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status, Request
@@ -144,7 +144,7 @@ def get_run(run_id: str) -> RunSchema.ModelRunSchema:
 def get_run_csv(run_id: str, request: Request):
     try:
         run = es.get(index="runs", id=run_id)["_source"]
-    except:
+    except NotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     run_status = run.get("attributes", {}).get("status", None)
