@@ -145,6 +145,7 @@ def run_mixmasta(context, filename=None):
     outputs = []
     feature_names = []
     for feature in context["annotations"]["annotations"]["feature"]:
+
         feature_names.append(feature["name"])  # Used for the primary qualifier outputs.
         output = dict(
             name=feature["name"],
@@ -164,9 +165,11 @@ def run_mixmasta(context, filename=None):
             alias=feature["aliases"],
         )
         # Append
-        outputs.append(output)
+        # TODO: Hackish way to determine that the feature is not a qualifier
+        if len(feature["qualifies"]) == 0:
+            outputs.append(output)
         # Qualifier output for qualifying features
-        if len(feature["qualifies"]) > 0:
+        elif len(feature["qualifies"]) > 0:
             qualifier_output = dict(
                 name=feature["name"],
                 display_name=feature["display_name"],
