@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import io
+import re
 import time
 import zlib
 import uuid
@@ -482,12 +483,20 @@ async def create_preview(
         JSON: Returns a json object containing the preview for the dataset.
     """
     try:
+        if filename:
+            file_suffix_match = re.search(r'raw_data(_\d+)?\.', filename)
+            if file_suffix_match:
+                file_suffix = file_suffix_match.group(1) or ''
+            else:
+                file_suffix = ''
+        else:
+            file_suffix = ''
         # TODO - Get all potential string files concatenated together using list file utility
         if preview_type == IndicatorSchema.PreviewType.processed:
             rawfile_path = os.path.join(
                 settings.DATASET_STORAGE_BASE_URL,
                 indicator_id,
-                f"{indicator_id}.parquet.gzip",
+                f"{indicator_id}{file_suffix}.parquet.gzip",
             )
             file = get_rawfile(rawfile_path)
             df = pd.read_parquet(file)
@@ -495,7 +504,7 @@ async def create_preview(
                 strparquet_path = os.path.join(
                     settings.DATASET_STORAGE_BASE_URL,
                     indicator_id,
-                    f"{indicator_id}_str.parquet.gzip",
+                    f"{indicator_id}_str{file_suffix}.parquet.gzip",
                 )
                 file = get_rawfile(strparquet_path)
                 df_str = pd.read_parquet(file)
@@ -519,6 +528,7 @@ async def create_preview(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     except Exception as e:
+        raise
         return Response(
             status_code=status.HTTP_400_BAD_REQUEST,
             headers={"msg": f"Error: {e}"},
