@@ -35,12 +35,122 @@ def setup_elasticsearch_indexes():
         "accessories": {},
         "annotations": {
             "mappings": {
-                "date_detection": False
+                "date_detection": False,
+                "properties": {
+                    "annotations": {"type": "object", "enabled": False},
+                    "metadata": {"type": "object", "enabled": False},
+                },
             }
         },
         "configs": {},
         "directives": {},
-        "indicators": {},
+        "indicators": {
+            "mappings": {
+                "properties": {
+                    "created_at": {"type": "long"},
+                    "data_quality": {
+                        "type": "text",
+                        "fields": {"keyword": {"type": "keyword", "ignore_above": 256}},
+                    },
+                    "data_sensitivity": {
+                        "type": "text",
+                        "fields": {"keyword": {"type": "keyword", "ignore_above": 256}},
+                    },
+                    "deprecated": {"type": "boolean"},
+                    "description": {
+                        "type": "text",
+                        "fields": {"keyword": {"type": "keyword", "ignore_above": 256}},
+                    },
+                    "domains": {
+                        "type": "text",
+                        "fields": {"keyword": {"type": "keyword", "ignore_above": 256}},
+                    },
+                    "fileData": {
+                        "properties": {
+                            "raw": {"properties": {"uploaded": {"type": "boolean"}}}
+                        }
+                    },
+                    "geography": {
+                        "properties": {
+                            "admin1": {
+                                "type": "text",
+                                "fields": {
+                                    "keyword": {"type": "keyword", "ignore_above": 256}
+                                },
+                            },
+                            "admin2": {
+                                "type": "text",
+                                "fields": {
+                                    "keyword": {"type": "keyword", "ignore_above": 256}
+                                },
+                            },
+                            "admin3": {
+                                "type": "text",
+                                "fields": {
+                                    "keyword": {"type": "keyword", "ignore_above": 256}
+                                },
+                            },
+                            "country": {
+                                "type": "text",
+                                "fields": {
+                                    "keyword": {"type": "keyword", "ignore_above": 256}
+                                },
+                            },
+                        }
+                    },
+                    "id": {
+                        "type": "text",
+                        "fields": {"keyword": {"type": "keyword", "ignore_above": 256}},
+                    },
+                    "maintainer": {
+                        "properties": {
+                            "email": {
+                                "type": "text",
+                                "fields": {
+                                    "keyword": {"type": "keyword", "ignore_above": 256}
+                                },
+                            },
+                            "name": {
+                                "type": "text",
+                                "fields": {
+                                    "keyword": {"type": "keyword", "ignore_above": 256}
+                                },
+                            },
+                            "organization": {
+                                "type": "text",
+                                "fields": {
+                                    "keyword": {"type": "keyword", "ignore_above": 256}
+                                },
+                            },
+                            "website": {
+                                "type": "text",
+                                "fields": {
+                                    "keyword": {"type": "keyword", "ignore_above": 256}
+                                },
+                            },
+                        }
+                    },
+                    "name": {
+                        "type": "text",
+                        "fields": {"keyword": {"type": "keyword", "ignore_above": 256}},
+                    },
+                    "outputs": {"type": "object", "enabled": False},
+                    "period": {
+                        "properties": {"gte": {"type": "long"}, "lte": {"type": "long"}}
+                    },
+                    "published": {"type": "boolean"},
+                    "qualifier_outputs": {"type": "object", "enabled": False},
+                    "spatial_resolution": {
+                        "type": "text",
+                        "fields": {"keyword": {"type": "keyword", "ignore_above": 256}},
+                    },
+                    "temporal_resolution": {
+                        "type": "text",
+                        "fields": {"keyword": {"type": "keyword", "ignore_above": 256}},
+                    },
+                }
+            }
+        },
         "models": {},
         "outputfiles": {},
         "runs": {},

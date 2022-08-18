@@ -139,11 +139,96 @@ def run_mixmasta(context, filename=None):
             if value == "nan" or value in geography_dict[geog_type]:
                 continue
             geography_dict[geog_type].append(value)
+    
+    # Outputs
+    qualifier_outputs = []
+    outputs = []
+    feature_names = []
+    for feature in context["annotations"]["annotations"]["feature"]:
+        feature_names.append(feature["name"])  # Used for the primary qualifier outputs.
+        output = dict(
+            name=feature["name"],
+            display_name=feature["display_name"],
+            description=feature["description"],
+            type=feature["feature_type"],
+            unit=feature["units"],
+            unit_description=feature["units_description"],
+            ontologies={},
+            is_primary=True,
+            data_resolution={
+                "data_resolution": {
+                    "temporal_resolution": "annual",
+                    "spatial_resolution": None,
+                }
+            },  # TODO will be something like meta_annotations["metadata"]["data_resolution"] instead of hardcoded values.
+            alias=feature["aliases"],
+        )
+        # Append
+        outputs.append(output)
+        # Qualifier output for qualifying features
+        if len(feature["qualifies"]) > 0:
+            qualifier_output = dict(
+                name=feature["name"],
+                display_name=feature["display_name"],
+                description=feature["description"],
+                # Gross conversion between the two output types.
+                type=(
+                    "str"
+                    if feature["feature_type"] == "string"
+                    else "binary"
+                    if feature["feature_type"] == "boolean"
+                    else feature["feature_type"]
+                ),
+                unit=feature["units"],
+                unit_description=feature["units_description"],
+                ontologies={},
+                related_features=feature["qualifies"],
+            )
+            # Append to qualifier outputs
+            qualifier_outputs.append(qualifier_output)
+
+    # Qualifier_outputs
+    for date in context["annotations"]["annotations"]["date"]:
+        if date["primary_date"]:
+            qualifier_output = dict(
+                name=date["name"],
+                display_name=date["display_name"],
+                description=date["description"],
+                type="datetime",
+                unit=date.get("units", None),
+                unit_description=date.get("units_description", None),
+                ontologies={},
+                related_features=feature_names,
+                # Extra field (Schema allows extras)
+                qualifier_role="breakdown",
+            )
+            # Append
+            qualifier_outputs.append(qualifier_output)
+
+    # TODO potentially update description dynamically if present in annotations
+    for geo_str in ["country", "admin1", "admin2", "admin3", "lat", "lng"]:
+        qualifier_output = dict(
+            name=geo_str,
+            display_name=geo_str,
+            description="location",
+            type=geo_str,
+            unit=None,
+            unit_description=None,
+            ontologies={},
+            related_features=feature_names,
+            # Extra field (Schema allows extras)
+            qualifier_role="breakdown",
+        )
+        # Append
+        qualifier_outputs.append(qualifier_output)
 
     response = {
         "preview": mixmasta_result_df.head(100).to_json(),
         "data_files": data_files,
         "period": period,
         "geography": geography_dict,
+        "outputs": outputs,
+        "qualifier_outputs": qualifier_outputs,
+        "feature_names": feature_names,
     }
     return response
