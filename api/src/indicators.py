@@ -21,6 +21,7 @@ from fastapi.responses import StreamingResponse
 
 from validation import IndicatorSchema, DojoSchema
 from src.settings import settings
+from src.utils import download_csv_from_data_paths
 
 from src.dojo import search_and_scroll
 from src.ontologies import get_ontologies
@@ -151,60 +152,22 @@ def get_indicators(indicator_id: str) -> IndicatorSchema.IndicatorMetadataSchema
 
 
 @router.get("/indicators/{indicator_id}/download/csv")
-def get_csv(indicator_id: str, request: Request):
+def get_indicator_csv(indicator_id: str, request: Request):
     try:
         indicator = es.get(index="indicators", id=indicator_id)["_source"]
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-
-    async def iter_csv():
-        # Build single dataframe
-        df = pd.concat(pd.read_parquet(file) for file in indicator["data_paths"])
-
-        # Ensure pandas floats are used because vanilla python ones are problematic
-        df = df.fillna('').astype( 
-            { col : 'str' for col in df.select_dtypes(include=['float32','float64']).columns }, 
-            # Note: This links it to the previous `df` so not a full copy
-            copy=False 
-        )
-
-        # Prepare for writing CSV to a temporary buffer
-        buffer = io.StringIO()
-        writer = csv.writer(buffer)
-
-        # Write out the header row
-        writer.writerow(df.columns)
-
-        yield buffer.getvalue()
-        buffer.seek(0)  # To clear the buffer we need to seek back to the start and truncate
-        buffer.truncate()
-
-        # Iterate over dataframe tuples, writing each one out as a CSV line one at a time
-        for record in df.itertuples(index=False, name=None):
-            writer.writerow(str(i) for i in record)
-            yield buffer.getvalue()
-            buffer.seek(0)
-            buffer.truncate()
-
-
-    async def compress(content):
-        compressor = zlib.compressobj()
-        async for buff in content:
-            yield compressor.compress(buff.encode())
-        yield compressor.flush()
- 
-
     if "deflate" in request.headers.get("accept-encoding", ""):
         return StreamingResponse(
-            compress(iter_csv()), 
-            media_type="text/csv", 
+            download_csv_from_data_paths(indicator["data_paths"]),
+            media_type="text/csv",
             headers={'Content-Encoding': 'deflate'}
         )
     else:
         return StreamingResponse(
-            iter_csv(), 
-            media_type="text/csv", 
+            download_csv_from_data_paths(indicator["data_paths"], False),
+            media_type="text/csv",
         )
 
 
