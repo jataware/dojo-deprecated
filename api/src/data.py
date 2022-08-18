@@ -139,15 +139,22 @@ def job(uuid: str, job_string: str, options: Optional[Dict[Any, Any]] = None):
     if options is None:
         options = {}
 
+    force_restart = options.pop("force_restart", False)
     synchronous = options.pop("synchronous", False)
     timeout = options.pop("timeout", 60)
     recheck_delay = 0.5
 
     job_id = f"{uuid}_{job_string}"
     job = q.fetch_job(job_id)
-    if not job:
+
+    context = options.pop("context", None)
+    if job and force_restart:
+        job.cleanup(ttl=0)  # Cleanup/remove data immediately
+
+    if not job or force_restart:
         try:
-            context = get_context(uuid=uuid)
+            if not context:
+                context = get_context(uuid=uuid)
         except Exception as e:
             logging.error(e)
         job = q.enqueue_call(

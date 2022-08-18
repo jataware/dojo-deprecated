@@ -1,6 +1,7 @@
 import logging
 
 import uvicorn
+from elasticsearch import Elasticsearch
 from fastapi import FastAPI
 
 from src import (
@@ -28,6 +29,30 @@ api.include_router(phantom.router, prefix="/phantom", tags=["Phantom"])
 api.include_router(data.router, tags=["Data"])
 
 
+def setup_elasticsearch_indexes():
+    # Config should match keyword args on https://elasticsearch-py.readthedocs.io/en/v8.3.2/api.html#elasticsearch.client.IndicesClient.create
+    indices = {
+        "accessories": {},
+        "annotations": {
+            "mappings": {
+                "date_detection": False
+            }
+        },
+        "configs": {},
+        "directives": {},
+        "indicators": {},
+        "models": {},
+        "outputfiles": {},
+        "runs": {},
+    }
+    es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
+
+    for idx, config in indices.items():
+        if not es.indices.exists(index=idx):
+            logger.info(f"Creating index {idx}")
+            es.indices.create(index=idx, body=config)
+
+
 def print_debug_routes() -> None:
     max_len = max(len(route.path) for route in api.routes)
     routes = sorted(
@@ -46,10 +71,12 @@ def print_debug_routes() -> None:
 
 @api.on_event("startup")
 async def startup_event() -> None:
+    setup_elasticsearch_indexes()
     print_debug_routes()
 
 
 if __name__ == "__main__":
+    setup_elasticsearch_indexes()
     print_debug_routes()
     if settings.UVICORN_RELOAD:
         uvicorn.run(

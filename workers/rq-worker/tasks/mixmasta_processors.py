@@ -1,12 +1,14 @@
 import logging
 import json
 import os
+import re
 import requests
 import shutil
+from urllib.parse import urlparse
 
 import pandas as pd
 
-from utils import get_rawfile, put_rawfile
+from utils import get_rawfile, put_rawfile, list_files
 from mixmasta import mixmasta as mix
 from tasks import (
     generate_mixmasta_files,
@@ -68,6 +70,10 @@ def run_mixmasta(context, filename=None):
     # Could change mixmasta to accept file-like objects as well as filepaths.
     if filename is None:
         filename = "raw_data.csv"
+
+    if not filename.endswith(".csv"):
+        filename = filename.split(".")[0] + ".csv"
+
     rawfile_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid, filename)
     raw_file_obj = get_rawfile(rawfile_path)
     with open(f"{datapath}/raw_data.csv", "wb") as f:
@@ -83,24 +89,61 @@ def run_mixmasta(context, filename=None):
     # Main Call
     mixmasta_result_df = processor.run(context, datapath)
 
-    # Takes all parquet files and puts them into the DATASET_STORAGE_BASE_URL which will be S3 in Production
-    for file in os.listdir(datapath):
-        if file.endswith(".parquet.gzip"):
-            with open(os.path.join(datapath, file), "rb") as fileobj:
-                dest_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid, file)
-                put_rawfile(path=dest_path, fileobj=fileobj)
+    file_suffix_match = re.search(r'raw_data(_\d+)?\.', filename)
+    if file_suffix_match:
+        file_suffix = file_suffix_match.group(1) or ''
+    else:
+        file_suffix = ''
 
-    # Run the indicator update via post to endpoint
-    api_url = os.environ.get("DOJO_HOST")
-    request_response = requests.post(f"{api_url}/indicators/mixmasta_update/{uuid}")
-    logging.info(f"Response: {request_response}")
+    data_files = []
+    # Takes all parquet files and puts them into the DATASET_STORAGE_BASE_URL which will be S3 in Production
+    dest_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid)
+    for local_file in os.listdir(datapath):
+        if local_file.endswith(".parquet.gzip"):
+            local_file_match = re.search(rf'({uuid}(_str)?).parquet.gzip', local_file)
+            if local_file_match:
+                file_root = local_file_match.group(1)
+            dest_file_path = os.path.join(dest_path, f"{file_root}{file_suffix}.parquet.gzip")
+            with open(os.path.join(datapath, local_file), "rb") as fileobj:
+                put_rawfile(path=dest_file_path, fileobj=fileobj)
+            if dest_file_path.startswith("s3:"):
+                # "https://jataware-world-modelers.s3.amazonaws.com/dev/indicators/6c9c996b-a175-4fa6-803c-e39b24e38b6e/6c9c996b-a175-4fa6-803c-e39b24e38b6e.parquet.gzip"
+                location_info = urlparse(dest_file_path)
+                data_files.append(f"https://{location_info.netloc}/{location_info.path}")
+            else:
+                data_files.append(dest_file_path)
 
     # Final cleanup of temp directory
     shutil.rmtree(datapath)
 
-    return generate_post_mix_preview(mixmasta_result_df), request_response
+    dataset = context.get("datasets")
+    if dataset.get("period", None):
+        period = {
+            "gte": max(int(mixmasta_result_df['timestamp'].max()), dataset.get("period", {}).get("gte", None)),
+            "lte": min(int(mixmasta_result_df['timestamp'].min()), dataset.get("period", {}).get("lte", None)),
+        }
+    else:
+        period = {
+            "gte": int(mixmasta_result_df['timestamp'].max()),
+            "lte": int(mixmasta_result_df['timestamp'].min()),
+        }
 
+    if dataset.get("geography", None):
+        geography_dict = dataset.get("geography", {})
+    else:
+        geography_dict = {}
+    for geog_type in ["admin1", "admin2", "admin3", "country"]:
+        if geog_type not in geography_dict:
+            geography_dict[geog_type] = []
+        for value in mixmasta_result_df[mixmasta_result_df[geog_type].notna()][geog_type].unique():
+            if value == "nan" or value in geography_dict[geog_type]:
+                continue
+            geography_dict[geog_type].append(value)
 
-def generate_post_mix_preview(mixmasta_result):
-
-    return mixmasta_result.head(100).to_json()
+    response = {
+        "preview": mixmasta_result_df.head(100).to_json(),
+        "data_files": data_files,
+        "period": period,
+        "geography": geography_dict,
+    }
+    return response
