@@ -109,7 +109,7 @@ def run_mixmasta(context, filename=None):
             if dest_file_path.startswith("s3:"):
                 # "https://jataware-world-modelers.s3.amazonaws.com/dev/indicators/6c9c996b-a175-4fa6-803c-e39b24e38b6e/6c9c996b-a175-4fa6-803c-e39b24e38b6e.parquet.gzip"
                 location_info = urlparse(dest_file_path)
-                data_files.append(f"https://{location_info.netloc}{location_info.path}")
+                data_files.append(f"https://{location_info.netloc}.s3.amazonaws.com{location_info.path}")
             else:
                 data_files.append(dest_file_path)
 
