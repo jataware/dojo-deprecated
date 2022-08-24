@@ -63,16 +63,17 @@ def run_model_with_defaults(model_id):
     """
 
     from src.models import get_model
+    from src.dojo import get_parameters
     from src.runs import create_run, current_milli_time
     from validation.RunSchema import ModelRunSchema
 
     model = get_model(model_id)
 
     params = []
-    for param in model.get("parameters", []):
+    for param in get_parameters(model_id):
         param_obj = {}
-        param_obj["name"] = param["name"]
-        param_obj["value"] = param["default"]
+        param_obj["name"] = param["annotation"]["name"]
+        param_obj["value"] = param["annotation"]["default_value"]
         params.append(param_obj)
 
     model_name_clean = "".join(filter(str.isalnum, model["name"]))

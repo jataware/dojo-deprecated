@@ -24,7 +24,8 @@ from typing_extensions import final
 from validation import RunSchema, DojoSchema
 
 from src.models import get_model
-from src.dojo import get_directive, get_outputfiles, get_configs, get_accessory_files
+from src.dojo import get_directive, get_outputfiles, get_configs, get_accessory_files, get_config_path
+from src.utils import get_rawfile
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +112,7 @@ def search_runs(request: Request, model_name: str = Query(None), model_id: str =
     for result in results:
         run_params = {}  # convert run's params into dict for quick lookups
         for param in result.get("parameters", []):
-            run_params[ param["name"] ] = param["value"]
+            run_params[param["name"]] = param["value"]
 
         for filter_key, filter_value in param_filters.items():
             run_param_value = run_params.get(filter_key)
@@ -143,22 +144,26 @@ def dispatch_run(run):
     return
 
 
+def replace_along_params(string, new_values, available_parameters):
+    # Assuming no overlap
+    for param in sorted(available_parameters, key=lambda param: param['start'], reverse=True):
+        name = param["annotation"]["name"]
+        value = new_values[name] if name in new_values else param["annotation"]["default_value"]
+        string = string[:param["start"]] + str(value) + string[param["end"]:]
+    return string
+
 @router.post("/runs")
 def create_run(run: RunSchema.ModelRunSchema):
     model = get_model(run.model_id)
 
-    # handle model run command
-    directive = get_directive(run.model_id)
-    model_command = Template(directive.get("command"))
-
     # get parameters
-    params = run.parameters
-    param_dict = {}
-    for p in params:
-        param_dict[p.name] = p.value
+    params = {p.name: p.value for p in run.parameters}
 
     # generate command based on directive template
-    model_command = model_command.render(param_dict)
+    directive = get_directive(run.model_id)
+
+    model_command = replace_along_params(directive.get("command"), params, directive.get("parameters"))
+
     logging.info(f"Model Command is: {model_command}")
 
     ### Handle output files and append to volumeArray.
@@ -166,11 +171,11 @@ def create_run(run: RunSchema.ModelRunSchema):
     outputfiles = get_outputfiles(run.model_id) # call dojo.py API method directly.
     output_dirs = {}
     mixmasta_inputs = []
-    volumeArray = [ "/var/run/docker.sock:/var/run/docker.sock" ]
+    volumeArray = ["/var/run/docker.sock:/var/run/docker.sock"]
     for output in outputfiles:
         try:
             # rehydrate file path in
-            mixmasta_input_file = Template(output["path"]).render(param_dict)
+            mixmasta_input_file = Template(output["path"]).render(params)
 
             # get name of the mapper (will be based on output ID)
             mapper_name = f"mapper_{output['id']}.json"
@@ -220,7 +225,7 @@ def create_run(run: RunSchema.ModelRunSchema):
 
             # use the lookup to build the path
             try:
-                # Ussing the accessory_file id (uuid) is breaking the docker mount:
+                # Using the accessory_file id (uuid) is breaking the docker mount:
                 #accessory_dir_volume = dmc_local_dir + f"/results/{run.id}/accessories/{accessory_dirs[accessory_dir]}:{accessory_dir}"
                 accessory_dir_volume = dmc_local_dir + f"/results/{run.id}/accessories:{accessory_dir}"
                 logger.info('accessory_dir_volume: ' + accessory_dir_volume)
@@ -235,34 +240,31 @@ def create_run(run: RunSchema.ModelRunSchema):
     # get config in s3
     try:
         configs = get_configs(run.model_id)
-        configsData = configs
     except Exception as e:
-        configsData = []
+        configs = []
         logging.exception(e)
 
-
-    model_config_s3_path_objects = []
+    model_config_objects = []
 
     # get volumes
-    for configFile in configsData:
-        if 'fileName' in configFile:
-            mountPath = configFile["path"]
-            fileName = configFile["fileName"]
+    for config_file in configs:
 
-        # This is the typical case currently with Phantom/Shorthand
-        else:
-            mountPath = '/'.join(configFile["path"].split("/")[:-1])
-            fileName = configFile["path"].split("/")[-1]
-        savePath = dmc_local_dir + f"/model_configs/{run.id}/{fileName}"
-        model_config_s3_path_objects.append(
+        mount_path = '/'.join(config_file["path"].split("/")[:-1])
+        file_name = config_file["path"].split("/")[-1]
+        save_path = dmc_local_dir + f"/model_configs/{run.id}/{file_name}"
+        file_content = get_rawfile(
+            get_config_path(run.model_id, config_file["path"])
+        ).read().decode()
+        model_config_objects.append(
             {
-                "s3_url": configFile["s3_url"],
-                "savePath": savePath,
-                "path": mountPath,
-                "fileName": fileName,
+                "file_content": file_content,
+                "save_path": save_path,
+                "path": mount_path,
+                "file_name": file_name,
+                "parameters": config_file["parameters"]
             }
         )
-        volumeArray.append(dmc_local_dir + f"/model_configs/{run.id}/{fileName}:{mountPath}/{fileName}")
+        volumeArray.append(dmc_local_dir + f"/model_configs/{run.id}/{file_name}:{mount_path}/{file_name}")
 
     # remove redundant volume mounts
     volumeArray = list(set(volumeArray))
@@ -276,8 +278,8 @@ def create_run(run: RunSchema.ModelRunSchema):
         "model_command": model_command,
         # "model_output_directory": model_output_directory,
         "dojo_url": dojo_url,
-        "params": param_dict,
-        "s3_config_files": model_config_s3_path_objects,
+        "params": params,
+        "config_files": model_config_objects,
         "volumes": json.dumps(volumeArray),
         "mixmasta_cmd": f"causemosify-multi --inputs='{json.dumps(mixmasta_inputs)}' --output-file=/tmp/{run.id}_{run.model_id}",
     }
