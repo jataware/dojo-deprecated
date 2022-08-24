@@ -484,13 +484,13 @@ async def create_preview(
     """
     try:
         if filename:
-            file_suffix_match = re.search(r'raw_data(_\d+)?\.', filename)
+            file_suffix_match = re.search(r"raw_data(_\d+)?\.", filename)
             if file_suffix_match:
-                file_suffix = file_suffix_match.group(1) or ''
+                file_suffix = file_suffix_match.group(1) or ""
             else:
-                file_suffix = ''
+                file_suffix = ""
         else:
-            file_suffix = ''
+            file_suffix = ""
         # TODO - Get all potential string files concatenated together using list file utility
         if preview_type == IndicatorSchema.PreviewType.processed:
             rawfile_path = os.path.join(
@@ -520,6 +520,7 @@ async def create_preview(
             df = pd.read_csv(file, delimiter=",")
 
         # preview = df.head(100).to_json(orient="records")
+        df.reset_index(inplace=True)
         obj = json.loads(df.head(100).to_json(orient="index"))
         indexed_rows = [{"__id": key, **value} for key, value in obj.items()]
 
