@@ -1,3 +1,4 @@
+import json
 import requests
 import os
 from copy import deepcopy
@@ -44,7 +45,7 @@ def convert_to_causemos_format(model):
     payload = ModelSchema.CausemosModelMetadataSchema(
         **causemos_model
     )
-    return payload.dict()
+    return json.loads(payload.json())
 
 
 def deprecate_dataset(dataset_id):
