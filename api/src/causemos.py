@@ -8,9 +8,7 @@ from src.dojo import get_parameters
 from src.ontologies import get_ontologies
 
 
-def convert_to_causemos_format(
-    model: ModelSchema.ModelMetadataSchema
-) -> ModelSchema.CausemosModelMetadataSchema:
+def convert_to_causemos_format(model):
     """
     Transforms model from internal representation to the representation
     accepted by Cauesmos.
@@ -46,7 +44,7 @@ def convert_to_causemos_format(
     payload = ModelSchema.CausemosModelMetadataSchema(
         **causemos_model
     )
-    return payload
+    return payload.dict()
 
 
 def deprecate_dataset(dataset_id):
