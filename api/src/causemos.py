@@ -1,5 +1,6 @@
 import requests
 import os
+from copy import deepcopy
 from fastapi.logger import logger
 
 from validation import ModelSchema
@@ -36,15 +37,15 @@ def convert_to_causemos_format(
             "max": float(annot["max"]) if annot["max"] != "" else None
         }
 
-    params = [
+    causemos_model = deepcopy(model)
+    causemos_model["parameters"] = [
         to_parameter(parameters["annotation"])
         for parameters in get_parameters(model['id'])
     ]
+    causemos_model = get_ontologies(causemos_model, type='model')
     payload = ModelSchema.CausemosModelMetadataSchema(
-        parameters=params,
-        **model
+        **causemos_model
     )
-    payload = get_ontologies(payload, type='model')
     return payload
 
 
