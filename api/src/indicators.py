@@ -520,7 +520,7 @@ async def create_preview(
             df = pd.read_csv(file, delimiter=",")
 
         # preview = df.head(100).to_json(orient="records")
-        df.reset_index(inplace=True)
+        df = df.sort_index().reset_index(drop=True)
         obj = json.loads(df.head(100).to_json(orient="index"))
         indexed_rows = [{"__id": key, **value} for key, value in obj.items()]
 
