@@ -51,6 +51,9 @@ class MixmastaProcessor(BaseProcessor):
         # Mixmasta output path (it needs the filename attached to write parquets, and the file name is the uuid)
         mix_output_path = f"{output_path}/{uuid}"
         # Main mixmasta processing call
+        logging.warn(raw_data_fp)
+        logging.warn(mapper_fp)
+        logging.warn(mix_output_path)
         ret, rename = mix.process(raw_data_fp, mapper_fp, admin_level, mix_output_path)
 
         ret.to_csv(f"{output_path}/mixmasta_processed_df.csv", index=False)
@@ -65,6 +68,9 @@ def run_mixmasta(context, filename=None):
     datapath = f"./{uuid}"
     if not os.path.isdir(datapath):
         os.makedirs(datapath)
+
+    logging.warn(context)
+    logging.warn(filename)
 
     # Copy raw data file into rq-worker
     # Could change mixmasta to accept file-like objects as well as filepaths.

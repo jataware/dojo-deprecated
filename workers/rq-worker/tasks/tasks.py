@@ -1,15 +1,21 @@
 import base64
 import copy
+import hashlib
 import json
 import logging
 from operator import sub
 import os
 import time
 from urllib.parse import urlparse
+import uuid
 
 from rename import rename as rename_function
 from anomaly_detection import AnomalyDetector, sheet_tensor_to_img
 from utils import get_rawfile, put_rawfile
+import pandas as pd
+import mixmasta as mx
+import rasterio
+import requests
 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
@@ -63,6 +69,11 @@ def build_mapper(uuid, annotations):
             admin_level if set during annotation: country, admin1, admin2, admin3
 
     """
+
+    import pprint
+    logging.warn("+++" * 30)
+    logging.warn(pprint.pformat(annotations))
+    logging.warn("+++" * 30)
 
     # Set default return value (None) for geo_select.
     geo_select = None
@@ -198,9 +209,35 @@ def clear_invalid_qualifiers(uuid, annotations):
     #     json.dump(annotations, f)
     return annotations
 
+def build_mixmasta_meta_from_context(context, filename=None):
+    import pprint
+    logging.warn(pprint.pformat(context))
+    metadata = context["annotations"]["metadata"]
+    mapping  = {
+        'band': 'geotiff_band_count',
+        'band_name': 'geotiff_value',
+        'bands': 'geotiff_bands',
+        'band_type': 'geotiff_band_type',
+        'date': 'geotiff_date',
+        'feature_name': 'geotiff_band',
+        'null_val': 'geotiff_null_value',
+        'sheet': 'excel_sheet_name',
+    }
+    mixmasta_meta = {
+        "ftype": metadata.get("ftype", "csv"),
+    }
+    for key, value in mapping.items():
+        if value in metadata:
+            mixmasta_meta[key] = metadata[value]
+    logging.warn(context)
+    return mixmasta_meta
 
 def build_meta(uuid, d, geo_select, context):
-    fnames = [x.split(".")[0] for x in os.listdir(d)]
+    logging.warn('------------------------')
+    logging.warn(uuid)
+    logging.warn(d)
+    logging.warn(geo_select)
+    logging.warn(context)
     annotations = context["annotations"]["annotations"]
 
     ft = annotations["meta"].get("ftype", "csv")
@@ -252,7 +289,7 @@ def build_meta(uuid, d, geo_select, context):
     return meta, fp.split("/")[-1], fp
 
 
-def generate_mixmasta_files(context):
+def generate_mixmasta_files(context, filename=None):
     uuid = context["uuid"]
     annotations = context["annotations"]["annotations"]
     annotations = clear_invalid_qualifiers(uuid, annotations)
@@ -267,9 +304,10 @@ def generate_mixmasta_files(context):
     meta = {}
     fn = None
 
-    mixmasta_ready_annotations["meta"], fn, fp = build_meta(
-        uuid, d, geo_select, context
-    )
+    mixmasta_ready_annotations["meta"] = build_mixmasta_meta_from_context(context, filename=filename)
+    # mixmasta_ready_annotations["meta"], fn, fp = build_meta(
+    #     uuid, d, geo_select, context
+    # )
 
     logging.info(f"{logging_preface} - Began mixmasta process")
 
@@ -397,3 +435,35 @@ def test_job(context, fail=False, sleep=10, *args, **kwargs):
         raise RuntimeError("Forced failure of test job")
 
     logging.info("test_job task completed successfully")
+
+
+def model_output_analysis(context, model_id, fileurl, filepath):
+
+    file_key = f"{model_id}:{filepath}"
+    file_uuid = str(uuid.UUID(bytes=hashlib.md5(file_key.encode()).digest(), version=4))
+    url = f"{os.environ['CLOUSEAU_ENDPOINT']}{fileurl}"
+    req = requests.get(url, stream=True)
+    stream = req.raw
+    if filepath.endswith('.xlsx') or filepath.endswith('.xls'):
+        excel_file = pd.ExcelFile(stream.read())
+        return {
+            'file_uuid': file_uuid,
+            'filetype': 'excel', 
+            'excel_sheets': excel_file.sheet_names, 
+            'excel_sheet': excel_file.sheet_names[0]
+        }
+    elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
+        raster = rasterio.open(rasterio.io.MemoryFile(stream))
+        return {
+            'file_uuid': file_uuid,
+            'filetype': 'geotiff', 
+            'geotiff_band_count': raster.profile['count'], 
+            'geotiff_band_type': "category", 
+            'geotiff_bands': {}
+        }
+    else: 
+        return {
+            'file_uuid': file_uuid
+        }
+
+
