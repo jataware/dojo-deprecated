@@ -5,6 +5,7 @@ import tempfile
 from urllib.parse import urlparse
 import logging
 
+import botocore
 import boto3
 from settings import settings
 
@@ -19,12 +20,16 @@ def get_rawfile(path):
     if location_info.scheme.lower() == "file":
         raw_file = open(location_info.path, "rb")
     elif location_info.scheme.lower() == "s3":
-        file_path = location_info.path.lstrip("/")
-        raw_file = tempfile.TemporaryFile()
-        s3.download_fileobj(
-            Bucket=location_info.netloc, Key=file_path, Fileobj=raw_file
-        )
-        raw_file.seek(0)
+        try:
+            file_path = location_info.path.lstrip("/")
+            raw_file = tempfile.TemporaryFile()
+            s3.download_fileobj(
+                Bucket=location_info.netloc, Key=file_path, Fileobj=raw_file
+            )
+            raw_file.seek(0)
+        except botocore.exceptions.ClientError as e:
+            logging.warn(e)
+            raise FileNotFoundError()
     else:
         raise RuntimeError("File storage format is unknown")
 
@@ -52,7 +57,7 @@ def list_files(path):
         return os.listdir(location_info.path)
     elif location_info.scheme.lower() == "s3":
         s3_list = s3.list_objects(
-            Bucket=location_info.netloc, Marker=location_info.path
+            Bucket=location_info.netloc, Prefix=location_info.path
         )
         s3_contents = s3_list["Contents"]
         final_file_list = []
