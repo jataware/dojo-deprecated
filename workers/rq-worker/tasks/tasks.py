@@ -71,9 +71,6 @@ def build_mapper(uuid, annotations):
     """
 
     import pprint
-    logging.warn("+++" * 30)
-    logging.warn(pprint.pformat(annotations))
-    logging.warn("+++" * 30)
 
     # Set default return value (None) for geo_select.
     geo_select = None
@@ -211,7 +208,6 @@ def clear_invalid_qualifiers(uuid, annotations):
 
 def build_mixmasta_meta_from_context(context, filename=None):
     import pprint
-    logging.warn(pprint.pformat(context))
     metadata = context["annotations"]["metadata"]
     mapping  = {
         'band': 'geotiff_band_count',
@@ -223,21 +219,15 @@ def build_mixmasta_meta_from_context(context, filename=None):
         'null_val': 'geotiff_null_value',
         'sheet': 'excel_sheet_name',
     }
-    mixmasta_meta = {
-        "ftype": metadata.get("ftype", "csv"),
-    }
+    mixmasta_meta = {}
+    mixmasta_meta["ftype"] = metadata.get("ftype", "csv")
+
     for key, value in mapping.items():
         if value in metadata:
             mixmasta_meta[key] = metadata[value]
-    logging.warn(context)
     return mixmasta_meta
 
 def build_meta(uuid, d, geo_select, context):
-    logging.warn('------------------------')
-    logging.warn(uuid)
-    logging.warn(d)
-    logging.warn(geo_select)
-    logging.warn(context)
     annotations = context["annotations"]["annotations"]
 
     ft = annotations["meta"].get("ftype", "csv")

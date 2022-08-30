@@ -472,7 +472,8 @@ def validate_date(payload: IndicatorSchema.DateValidationRequestSchema):
 
 @router.post("/indicators/{indicator_id}/preview/{preview_type}")
 async def create_preview(
-    indicator_id: str, preview_type: IndicatorSchema.PreviewType, filename: str = Query(None)
+    indicator_id: str, preview_type: IndicatorSchema.PreviewType, filename: Optional[str] = Query(None),
+    filepath: Optional[str] = Query(None),
 ):
     """Get preview for a dataset.
 
@@ -493,11 +494,24 @@ async def create_preview(
             file_suffix = ''
         # TODO - Get all potential string files concatenated together using list file utility
         if preview_type == IndicatorSchema.PreviewType.processed:
-            rawfile_path = os.path.join(
-                settings.DATASET_STORAGE_BASE_URL,
-                indicator_id,
-                f"{indicator_id}{file_suffix}.parquet.gzip",
-            )
+            if filepath:
+                logger.warn(filepath)
+                rawfile_path = os.path.join(
+                    settings.DATASET_STORAGE_BASE_URL, filepath
+                )
+                logger.warn(rawfile_path)
+            else:
+                rawfile_path = os.path.join(
+                    settings.DATASET_STORAGE_BASE_URL,
+                    indicator_id,
+                    ""
+                )
+            
+            rawfile_dirpath = os.path.dirname(rawfile_path)
+            logger.warn(rawfile_dirpath)
+            rawfile_path = os.path.join(rawfile_dirpath, f"{indicator_id}{file_suffix}.parquet.gzip")
+            logger.warn(rawfile_path)
+            
             file = get_rawfile(rawfile_path)
             df = pd.read_parquet(file)
             try:
@@ -513,13 +527,13 @@ async def create_preview(
                 pass
 
         else:
-            if filename is None:
+            if filepath:
                 rawfile_path = os.path.join(
-                    settings.DATASET_STORAGE_BASE_URL, indicator_id, "raw_data.csv"
+                    settings.DATASET_STORAGE_BASE_URL, filepath
                 )
             else:
                 rawfile_path = os.path.join(
-                    settings.DATASET_STORAGE_BASE_URL, filename
+                    settings.DATASET_STORAGE_BASE_URL, indicator_id, "raw_data.csv"
                 )
             file = get_rawfile(rawfile_path)
             df = pd.read_csv(file, delimiter=",")
@@ -531,6 +545,7 @@ async def create_preview(
         return indexed_rows
     except FileNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
     except Exception as e:
         raise
         return Response(

@@ -127,30 +127,19 @@ def cancel_job(job_id):
 # Last to not interfere with other routes
 @router.post("/job/{uuid}/{job_string}")
 def job(uuid: str, job_string: str, options: Optional[Dict[Any, Any]] = None, context: Optional[Dict[Any, Any]] = None, filename: Optional[str] = None):
-    logging.warn(context)
-    logging.warn(options)
-    logging.warn(uuid)
-    logging.warn(job_string)
-    logging.warn(filename)
 
     if options is None:
         options = {}
 
-    force_restart = options.pop("force_restart", False)
     synchronous = options.pop("synchronous", False)
     timeout = options.pop("timeout", 60)
     recheck_delay = 0.5
 
     job_id = f"{uuid}_{job_string}"
     job = q.fetch_job(job_id)
-
-    context = options.pop("context", None)
-    if job and force_restart:
-        job.cleanup(ttl=0)  # Cleanup/remove data immediately
-
-    if not job or force_restart:
+    if not job:
         try:
-            if not context:
+            if context is None:
                 context = get_context(uuid=uuid)
         except Exception as e:
             logging.error(e)
@@ -158,17 +147,14 @@ def job(uuid: str, job_string: str, options: Optional[Dict[Any, Any]] = None, co
             func=job_string, args=[context], kwargs=options, job_id=job_id
         )
         if synchronous:
+            recheck_delay = 0.2
             logging.warning("Synch")
             timer = 0.0
             while (
                 job.get_status(refresh=True) not in ("finished", "failed")
                 and timer < timeout
             ):
-                logging.warning(f"{job.get_status(refresh=True)} {timer} {timeout}")
-                logging.warning(f"{timer} timer {recheck_delay}")
-                logging.warning("sleeping")
                 time.sleep(recheck_delay)
-                logging.warning("awoke")
                 timer += recheck_delay
 
     status = job.get_status()

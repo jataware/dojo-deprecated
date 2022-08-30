@@ -68,15 +68,13 @@ def classify(filepath, context):
     shutil.rmtree(datapath)
     return json_final
 
+
 def geotime_classify(context, filename=None):
 
     # If no filename is passed in, default to the converted raw_data file.
     if filename is None:
         filename = "raw_data.csv"
-    
-    if not filename.endswith(".csv"):
-        filename = filename.split(".")[0] + ".csv"
-    
+
     rawfile_path = os.path.join(
         settings.DATASET_STORAGE_BASE_URL, context["uuid"], filename
     )

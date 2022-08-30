@@ -89,6 +89,7 @@ class GeotiffLoadProcessor(BaseProcessor):
         ft = "geotiff"
         file_context = context["annotations"]["metadata"]["files"][context["current_filename"]]
         context["annotations"]["metadata"]["ft"] = ft
+        context_annotations_meta = context["annotations"]["metadata"]
 
         def single_band_run():
             feature_name, band, date, nodataval = (
@@ -141,18 +142,19 @@ def file_conversion(context, filename=None):
     # Get raw file
     uuid = context["uuid"]
     processor = FileLoadProcessor()
-    logging.warn(uuid)
-    logging.warn(context)
-
-    # fileurl = context['annotations']['metadata']['fileurl']
-    # filepath = context['annotations']['metadata']['filepath']
-    # file_uuid = context['annotations']['metadata']['file_uuid']
-
 
     # Grabbing filename from context if it isn't passed in.
     if filename is None:
         filename = list(context["annotations"]["metadata"]["files"].keys())[0]
-    file_metadata = context["annotations"]["metadata"]["files"][filename]
+    # TODO: Determine if we still need this
+    # else:
+    #     # Replacing the file metadata in the case where we pass them into the metadata context for an append action.
+    #     context["annotations"]["metadata"] = context["annotations"]["metadata"][
+    #         "files"
+    #     ][
+    #         filename
+    #     ]  # This change to context is not persisted.
+
     raw_path = os.path.join(DATASET_STORAGE_BASE_URL, uuid, filename)
     raw_file = get_rawfile(raw_path)
 
@@ -210,7 +212,7 @@ def file_conversion(context, filename=None):
 
     return csv_file_path
 
-def netCDF_to_CSV(uuid, fileobj, filename, dest_path):
+def netCDF_to_CSV(uuid, fileobj, filename):
     """Convert NETCDF to CSV"""
     original_file = fileobj
 
@@ -218,15 +220,17 @@ def netCDF_to_CSV(uuid, fileobj, filename, dest_path):
     df = open_netcdf.to_dataframe()
     df.reset_index().to_csv("./convertedCSV.csv", index=False)
     with open("./convertedCSV.csv", "rb") as f:
+        output_filename = filename.split(".")[0] + ".csv"
+        dest_path = os.path.join(DATASET_STORAGE_BASE_URL, uuid, output_filename)
         put_rawfile(dest_path, f)
 
     os.remove("./convertedCSV.csv")
 
 
-def geotif_to_CSV(context, fileobj, filename, dest_path):
+def geotif_to_CSV(context, fileobj, filename):
     original_file = fileobj
     uuid = context["uuid"]
-    file_metadata = context["annotations"]["metadata"]["files"][filename]
+    context_metadata = context["annotations"]["metadata"]["files"][filename]
 
     with open("./tempGeoTif.tif", "wb") as f:
         f.write(original_file.read())
@@ -235,28 +239,28 @@ def geotif_to_CSV(context, fileobj, filename, dest_path):
     context["annotations"]["metadata"]["uploaded_file_fp"] = "./tempGeoTif.tif"
     context["annotations"]["metadata"]["geotiff_feature_name"] = "feature"
     # Makes the band/bands dictionary. Band is set for single band runs, bands is set for multiband runs.
-    context["geotiff_null_value"] = file_metadata.get("geotiff_null_value", 0)
-    if len(file_metadata.get("geotiff_bands", [])) > 1:
-        context["geotiff_bands"] = file_metadata["geotiff_bands"]
-        band_type = file_metadata["geotiff_band_type"]
+    context["geotiff_null_value"] = context_metadata.get("geotiff_null_value", 0)
+    if len(context_metadata.get("geotiff_bands", [])) > 1:
+        context["geotiff_bands"] = context_metadata["geotiff_bands"]
+        band_type = context_metadata["geotiff_band_type"]
         if band_type == "temporal":
             band_type = "datetime"
             context["annotations"]["metadata"][
                 "geotiff_feature_name"
-            ] = file_metadata["geotiff_value"]
+            ] = context_metadata["geotiff_value"]
         elif band_type == "category":
             context["annotations"]["metadata"]["geotiff_date"] = (
-                file_metadata["geotiff_value"]
-                if file_metadata["geotiff_band_type"] == "category"
+                context_metadata["geotiff_value"]
+                if context_metadata["geotiff_band_type"] == "category"
                 else "01/01/2001"
             )
 
         context["annotations"]["metadata"]["geotiff_band_type"] = band_type
     else:
-        context["annotations"]["metadata"]["geotiff_feature_name"] = file_metadata[
+        context["annotations"]["metadata"]["geotiff_feature_name"] = context_metadata[
             "geotiff_value"
         ]
-        context["annotations"]["metadata"]["geotiff_date"] = file_metadata[
+        context["annotations"]["metadata"]["geotiff_date"] = context_metadata[
             "geotiff_date_value"
         ]
 
@@ -264,6 +268,8 @@ def geotif_to_CSV(context, fileobj, filename, dest_path):
     df.to_csv("./convertedCSV.csv", index=None, header=True)
 
     with open("./convertedCSV.csv", "rb") as f:
+        output_filename = filename.split(".")[0] + ".csv"
+        dest_path = os.path.join(DATASET_STORAGE_BASE_URL, uuid, output_filename)
         put_rawfile(dest_path, f)
 
     os.remove("./tempGeoTif.tif")
@@ -291,7 +297,7 @@ def model_output_preview(context, *args, **kwargs):
 
         context["uploaded_file_fp"] = local_file_fp  # Unpersisted update
         df = processor.run(context=context)
-
+        
         sample = df.head(100)
         sample_fp = os.path.join(tmpdirname, "sample.csv")
         sample.to_csv(sample_fp, index=False)
@@ -302,5 +308,5 @@ def model_output_preview(context, *args, **kwargs):
             put_rawfile(sample_output_path, sample_file)
 
     return file_path
-
+        
 
