@@ -1,7 +1,6 @@
 import logging
 import json
 import os
-from textwrap import indent
 import requests
 import shutil
 
@@ -9,23 +8,30 @@ import pandas as pd
 
 from utils import get_rawfile, put_rawfile
 from mixmasta import mixmasta as mix
-from tasks import (
-    generate_mixmasta_files,
-    build_mixmasta_meta_from_context,
-)
 from base_annotation import BaseProcessor
 from settings import settings
 
 
-class MixmastaFileGenerator(BaseProcessor):
-    @staticmethod
-    def run(context):
-        """generate the files to run mixmasta"""
-        logging.info(
-            f"{context.get('logging_preface', '')} - Generating mixmasta files"
-        )
-        mm_ready_annotations = generate_mixmasta_files(context)
-        return mm_ready_annotations
+def build_mixmasta_meta_from_context(context, filename=None):
+    import pprint
+    metadata = context["annotations"]["metadata"]
+    mapping  = {
+        'band': 'geotiff_band_count',
+        'band_name': 'geotiff_value',
+        'bands': 'geotiff_bands',
+        'band_type': 'geotiff_band_type',
+        'date': 'geotiff_date',
+        'feature_name': 'geotiff_band',
+        'null_val': 'geotiff_null_value',
+        'sheet': 'excel_sheet_name',
+    }
+    mixmasta_meta = {}
+    mixmasta_meta["ftype"] = metadata.get("ftype", "csv")
+
+    for key, value in mapping.items():
+        if value in metadata:
+            mixmasta_meta[key] = metadata[value]
+    return mixmasta_meta
 
 
 class MixmastaProcessor(BaseProcessor):

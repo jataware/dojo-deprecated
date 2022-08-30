@@ -136,7 +136,6 @@ def infer_types(dataframe):
 
 
 def model_output_geotime_classify(context, *args, **kwargs):
-    fileurl = context['annotations']['metadata']['fileurl']
     file_uuid = context['annotations']['metadata']['file_uuid']
     sample_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, 'model-output-samples', context['uuid'], f'{file_uuid}.csv')
     filepath = get_rawfile(sample_path)
