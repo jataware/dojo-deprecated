@@ -124,12 +124,24 @@ def cancel_job(job_id):
     return job.get_status()
 
 
+from fastapi import Request
 # Last to not interfere with other routes
 @router.post("/job/{uuid}/{job_string}")
-def job(uuid: str, job_string: str, options: Optional[Dict[Any, Any]] = None, context: Optional[Dict[Any, Any]] = None, filename: Optional[str] = None):
+async def job(request: Request, uuid: str, job_string: str, options: Optional[Dict[Any, Any]] = None, context: Optional[Dict[Any, Any]] = None, filename: Optional[str] = None):
 
+    logging.warn(request.query_params)
+    logging.warn(request.path_params)
+    body = await request.json()
+    logging.warn(body)
     if options is None:
         options = {}
+    logging.warn(f"API JOB FILENAME: {filename}")
+    logging.warn(uuid)
+    logging.warn(job_string)
+    logging.warn(options)
+    logging.warn(context)
+    logging.warn(filename)
+    options['filename'] = filename
 
     synchronous = options.pop("synchronous", False)
     timeout = options.pop("timeout", 60)

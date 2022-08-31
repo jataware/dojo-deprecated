@@ -1,6 +1,7 @@
 import logging
 import json
 import os
+import re
 import requests
 import shutil
 
@@ -71,14 +72,26 @@ def run_mixmasta(context, filename=None):
     datapath = f"./{uuid}"
     if not os.path.isdir(datapath):
         os.makedirs(datapath)
+    
+    logging.warn(f"FILENAME: {filename}")
 
     # Copy raw data file into rq-worker
     # Could change mixmasta to accept file-like objects as well as filepaths.  
     if filename is None:
         filename = "raw_data.csv"
         rawfile_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid, filename)
+
+        file_suffix = ''
     else:
         rawfile_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, filename)
+
+        file_suffix_match = re.search(r'raw_data(_\d+)?\.', filename)
+        logging.warn(file_suffix_match)
+        if file_suffix_match:
+            file_suffix = file_suffix_match.group(1) or ''
+        else:
+            file_suffix = ''
+
     raw_file_obj = get_rawfile(rawfile_path)
     with open(f"{datapath}/raw_data.csv", "wb") as f:
         f.write(raw_file_obj.read())
@@ -86,6 +99,7 @@ def run_mixmasta(context, filename=None):
     # Writing out the annotations because mixmasta needs a filepath to this data.
     # Should probably change mixmasta down the road to accept filepath AND annotations objects.
     mm_ready_annotations = context["annotations"]["annotations"]
+    mm_ready_annotations['meta'] = build_mixmasta_meta_from_context(context)
     with open(f"{datapath}/mixmasta_ready_annotations.json", "w") as f:
         f.write(json.dumps(mm_ready_annotations))
     f.close()
@@ -96,8 +110,12 @@ def run_mixmasta(context, filename=None):
     # Takes all parquet files and puts them into the DATASET_STORAGE_BASE_URL which will be S3 in Production
     for file in os.listdir(datapath):
         if file.endswith(".parquet.gzip"):
+            logging.warn(file)
+            logging.warn(file_suffix)
+            output_file_name = f'{file.split(".")[0]}{file_suffix}.parquet.gzip'
+            logging.warn(output_file_name)
             with open(os.path.join(datapath, file), "rb") as fileobj:
-                dest_path = os.path.join(os.path.dirname(rawfile_path), file)
+                dest_path = os.path.join(os.path.dirname(rawfile_path), output_file_name)
                 put_rawfile(path=dest_path, fileobj=fileobj)
 
     # Run the indicator update via post to endpoint
@@ -137,6 +155,7 @@ def run_dataset_mixmasta(context, filename=None):
     # Writing out the annotations because mixmasta needs a filepath to this data.
     # Should probably change mixmasta down the road to accept filepath AND annotations objects.
     mm_ready_annotations = context["annotations"]["annotations"]
+    mm_ready_annotations['meta'] = build_mixmasta_meta_from_context(context)
     with open(f"{datapath}/mixmasta_ready_annotations.json", "w") as f:
         f.write(json.dumps(mm_ready_annotations))
     f.close()

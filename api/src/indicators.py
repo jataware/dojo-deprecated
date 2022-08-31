@@ -398,6 +398,7 @@ def patch_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
             content=f"Updated annotation with id = {indicator_id}",
         )
     except:
+        raise
 
         return Response(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -415,6 +416,7 @@ def upload_file(
     original_filename = file.filename
     _, ext = os.path.splitext(original_filename)
     dir_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, indicator_id)
+    logger.warn(f'{filename} :::: {append}')
     if filename is None:
         if append:
             filenum = len(
@@ -428,8 +430,10 @@ def upload_file(
         else:
             filename = f"raw_data{ext}"
 
+    logger.warn(f'{filename} :::: {append}')
     # Upload file
     dest_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, indicator_id, filename)
+    logger.warn(dest_path)
     put_rawfile(path=dest_path, fileobj=file.file)
 
     return Response(
