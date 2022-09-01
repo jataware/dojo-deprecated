@@ -285,7 +285,6 @@ def run_model_mixmasta(context, *args, **kwargs):
     if not os.path.isdir(localpath):
         os.makedirs(localpath)
 
-    # filename = context.get('')
     # Copy raw data file into rq-worker
     # Could change mixmasta to accept file-like objects as well as filepaths.
     # rawfile_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, filename)
@@ -296,7 +295,11 @@ def run_model_mixmasta(context, *args, **kwargs):
     # Writing out the annotations because mixmasta needs a filepath to this data.
     # Should probably change mixmasta down the road to accept filepath AND annotations objects.
     mm_ready_annotations = context["annotations"]["annotations"]
-    mm_ready_annotations['meta'] = build_mixmasta_meta_from_context(context, filename=filename)
+    mm_ready_annotations['meta'] = {
+        "ftype": "csv"
+    }
+    import pprint
+    logging.warn(pprint.pformat(mm_ready_annotations))
 
     # annotation_file = get_rawfile(os.path.join(datapath), )
     with open(f"{localpath}/mixmasta_ready_annotations.json", "w") as f:
@@ -317,4 +320,7 @@ def run_model_mixmasta(context, *args, **kwargs):
     # Final cleanup of temp directory
     shutil.rmtree(localpath)
 
-    return mixmasta_result_df.head(100).to_json()
+    response = {
+        "mixmaster_annotations": mm_ready_annotations
+    }
+    return response

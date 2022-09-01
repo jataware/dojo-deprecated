@@ -165,8 +165,8 @@ def model_output_preview(context, *args, **kwargs):
             for chunk in stream:
                 local_file.write(chunk)
 
-        context["uploaded_file_fp"] = local_file_fp  # Unpersisted update
-        df = processor.run(context=context, fp=local_file_fp)
+        file_metadata = context["annotations"]["metadata"]
+        df = processor.run(context=file_metadata, fp=local_file_fp)
         
         sample = df.head(100)
         sample_fp = os.path.join(tmpdirname, "sample.csv")
