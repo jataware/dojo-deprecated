@@ -398,8 +398,6 @@ def patch_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
             content=f"Updated annotation with id = {indicator_id}",
         )
     except:
-        raise
-
         return Response(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=f"Could not update annotation with id = {indicator_id}",
@@ -416,7 +414,6 @@ def upload_file(
     original_filename = file.filename
     _, ext = os.path.splitext(original_filename)
     dir_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, indicator_id)
-    logger.warn(f'{filename} :::: {append}')
     if filename is None:
         if append:
             filenum = len(
@@ -430,10 +427,8 @@ def upload_file(
         else:
             filename = f"raw_data{ext}"
 
-    logger.warn(f'{filename} :::: {append}')
     # Upload file
     dest_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, indicator_id, filename)
-    logger.warn(dest_path)
     put_rawfile(path=dest_path, fileobj=file.file)
 
     return Response(
@@ -499,22 +494,16 @@ async def create_preview(
         # TODO - Get all potential string files concatenated together using list file utility
         if preview_type == IndicatorSchema.PreviewType.processed:
             if filepath:
-                logger.warn(filepath)
                 rawfile_path = os.path.join(
-                    settings.DATASET_STORAGE_BASE_URL, filepath
+                    settings.DATASET_STORAGE_BASE_URL, 
+                    filepath.replace(".csv", ".parquet.gzip")
                 )
-                logger.warn(rawfile_path)
             else:
                 rawfile_path = os.path.join(
                     settings.DATASET_STORAGE_BASE_URL,
                     indicator_id,
-                    ""
+                    f"{indicator_id}{file_suffix}.parquet.gzip",
                 )
-            
-            rawfile_dirpath = os.path.dirname(rawfile_path)
-            logger.warn(rawfile_dirpath)
-            rawfile_path = os.path.join(rawfile_dirpath, f"{indicator_id}{file_suffix}.parquet.gzip")
-            logger.warn(rawfile_path)
             
             file = get_rawfile(rawfile_path)
             df = pd.read_parquet(file)
@@ -551,7 +540,6 @@ async def create_preview(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     except Exception as e:
-        raise
         return Response(
             status_code=status.HTTP_400_BAD_REQUEST,
             headers={"msg": f"Error: {e}"},

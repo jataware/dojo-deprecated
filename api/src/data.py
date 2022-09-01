@@ -124,34 +124,28 @@ def cancel_job(job_id):
     return job.get_status()
 
 
-from fastapi import Request
 # Last to not interfere with other routes
 @router.post("/job/{uuid}/{job_string}")
-async def job(request: Request, uuid: str, job_string: str, options: Optional[Dict[Any, Any]] = None, context: Optional[Dict[Any, Any]] = None, filename: Optional[str] = None):
+def job(uuid: str, job_string: str, options: Optional[Dict[Any, Any]] = None):
 
-    logging.warn(request.query_params)
-    logging.warn(request.path_params)
-    body = await request.json()
-    logging.warn(body)
     if options is None:
         options = {}
-    logging.warn(f"API JOB FILENAME: {filename}")
-    logging.warn(uuid)
-    logging.warn(job_string)
-    logging.warn(options)
-    logging.warn(context)
-    logging.warn(filename)
-    options['filename'] = filename
 
+    force_restart = options.pop("force_restart", False)
     synchronous = options.pop("synchronous", False)
     timeout = options.pop("timeout", 60)
     recheck_delay = 0.5
 
     job_id = f"{uuid}_{job_string}"
     job = q.fetch_job(job_id)
-    if not job:
+
+    context = options.pop("context", None)
+    if job and force_restart:
+        job.cleanup(ttl=0)  # Cleanup/remove data immediately
+
+    if not job or force_restart:
         try:
-            if context is None:
+            if not context:
                 context = get_context(uuid=uuid)
         except Exception as e:
             logging.error(e)
@@ -159,8 +153,6 @@ async def job(request: Request, uuid: str, job_string: str, options: Optional[Di
             func=job_string, args=[context], kwargs=options, job_id=job_id
         )
         if synchronous:
-            recheck_delay = 0.2
-            logging.warning("Synch")
             timer = 0.0
             while (
                 job.get_status(refresh=True) not in ("finished", "failed")
@@ -188,6 +180,7 @@ async def job(request: Request, uuid: str, job_string: str, options: Optional[Di
         "result": job_result,
     }
     return response
+
 
 
 # TEST ENDPOINTS

@@ -20,8 +20,6 @@ class FileLoadProcessor(BaseProcessor):
     @staticmethod
     def run(context, fp):
         """loads the file into a dataframe"""
-        logging.warn("CONTEXT")
-        logging.warn(context)
 
         extension_mapping = {
             "xlsx": ExcelLoadProcessor,

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from os import mkdir
 import json
 import os
@@ -74,6 +75,10 @@ def geotime_classify(context, filename=None):
     # If no filename is passed in, default to the converted raw_data file.
     if filename is None:
         filename = "raw_data.csv"
+
+    # Always analyze the csv version of the file
+    if not filename.endswith(".csv"):
+        filename = filename.split(".")[0] + ".csv"
 
     rawfile_path = os.path.join(
         settings.DATASET_STORAGE_BASE_URL, context["uuid"], filename
