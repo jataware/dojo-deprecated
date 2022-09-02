@@ -39,10 +39,10 @@ class MixmastaProcessor(BaseProcessor):
         mapper_fp = f"{output_path}/mixmasta_ready_annotations.json"  # Filename for json info, will eventually be in Elasticsearch, needs to be written to disk until mixmasta is updated
         raw_data_fp = f"{output_path}/raw_data.csv"  # Raw data
         # Getting admin level to resolve to from annotations
-        admin_level = "admin1"  # Default to admin1
+        admin_level = None  # Default to admin1
         geo_annotations = context["annotations"]["annotations"]["geo"]
         for annotation in geo_annotations:
-            if annotation["primary_geo"]:
+            if annotation["primary_geo"] and "gadm_level" in annotation:
                 admin_level = annotation["gadm_level"]
                 break
         uuid = context["uuid"]
