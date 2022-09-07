@@ -205,7 +205,10 @@ def publish_indicator(indicator_id: str):
         es.index(index="indicators", body=data, id=indicator_id)
 
         # Notify Causemos that an indicator was created
-        notify_causemos(data, type="indicator")
+        if settings.ENABLE_CAUSEMOS:
+            notify_causemos(data, type="indicator")
+        else:
+            logger.info("Skipping causemos, not enabled in envfile.")
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return Response(
@@ -283,7 +286,10 @@ def deprecate_indicator(indicator_id: str):
         es.index(index="indicators", id=indicator_id, body=indicator)
 
         # Tell Causemos to deprecate the dataset on their end
-        deprecate_dataset(indicator_id)
+        if settings.ENABLE_CAUSEMOS:
+            deprecate_dataset(indicator_id)
+        else:
+            logger.info("Skipping causemos, not enabled in envfile.")
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return Response(
@@ -484,13 +490,13 @@ async def create_preview(
     """
     try:
         if filename:
-            file_suffix_match = re.search(r'raw_data(_\d+)?\.', filename)
+            file_suffix_match = re.search(r"raw_data(_\d+)?\.", filename)
             if file_suffix_match:
-                file_suffix = file_suffix_match.group(1) or ''
+                file_suffix = file_suffix_match.group(1) or ""
             else:
-                file_suffix = ''
+                file_suffix = ""
         else:
-            file_suffix = ''
+            file_suffix = ""
         # TODO - Get all potential string files concatenated together using list file utility
         if preview_type == IndicatorSchema.PreviewType.processed:
             rawfile_path = os.path.join(

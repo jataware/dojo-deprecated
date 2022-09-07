@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     BIND_PORT: int = 8000
     ELASTICSEARCH_URL: str
     ELASTICSEARCH_PORT: int = 9200
+    ENABLE_CAUSEMOS: bool
     DMC_URL: str
     DMC_PORT: int = 8080
     DMC_USER: str

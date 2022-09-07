@@ -15,6 +15,9 @@ def get_ontologies(data, type="indicator"):
     """
     headers = {"accept": "application/json", "Content-Type": "application/json"}
     url = settings.UAZ_URL
+    # Check if variable comes in null from source, if so skip ontologies.
+    if url == "" or url == None:
+        return data
     uaz_threshold = settings.UAZ_THRESHOLD
     uaz_hits = settings.UAZ_HITS
     params = f"?maxHits={uaz_hits}&threshold={uaz_threshold}&compositional=true"
