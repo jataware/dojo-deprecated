@@ -5,14 +5,9 @@ import os
 from airflow import DAG
 # from airflow.providers.docker.operators.docker import DockerOperator
 from operators.dojo_operators import DojoDockerOperator
-from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.utils.dates import days_ago
-from airflow.configuration import conf
-from airflow.models import Variable
-from jinja2 import Template
 
 import glob
 
@@ -61,80 +56,40 @@ dag = DAG(
 #########################
 
 def rehydrate(ti, **kwargs):
-    # get default dict
-    defaultDict = {}
     dojo_url = kwargs['dag_run'].conf.get('dojo_url')
     model_id = kwargs['dag_run'].conf.get('model_id')
     run_id = kwargs['dag_run'].conf.get('run_id')
-    saveFolder =  f"/model_configs/{run_id}/"
-    output_dir =kwargs['dag_run'].conf.get('model_output_directory')
+    save_folder =  f"/model_configs/{run_id}/"
 
-    # get the model
-    req = requests.get(f"{dojo_url}/models/{model_id}")
-    respData = json.loads(req.content)
-    params = respData["parameters"]
-    print(f'params: {params}')
+    for config_file in kwargs['dag_run'].conf.get('config_files'):
 
-    print(f'kwargs: {kwargs}')
+        # NOTE: Identical function to Dojo API
+        def replace_along_params(string, new_values, available_parameters):
+            # Assuming no overlap
+            for param in sorted(available_parameters, key=lambda param: param['start'], reverse=True):
+                name = param["annotation"]["name"]
+                value = new_values[name] if name in new_values else param["annotation"]["default_value"]
+                string = string[:param["start"]] + str(value) + string[param["end"]:]
+            return string
 
-    #build "type" dict:
-    type_dict = {}
-    for param in params:
-        
-        type_dict[param["name"]] = param["type"]
+        data_to_save = replace_along_params(
+            config_file.get("file_content"), # Original Config Text
+            kwargs['dag_run'].conf.get('params'), # User Parameters
+            config_file.get('parameters') # Available Parameters
+        )
 
-    print(f'type_dict: {type_dict}')  
-        
-    try:
+        # Hydrate the config
+        try:
+            os.mkdir(save_folder, mode=0o777)
+        except FileExistsError:
+            os.chmod(save_folder, mode=0o777)
 
-        for configFile in kwargs['dag_run'].conf.get('s3_config_files'):
-
-            fileName = configFile.get('fileName')
-            model_config_s3 = configFile.get('s3_url')
-            mountPath = configFile.get('path')
-
-            respTemplate = requests.get(model_config_s3)
-            dehydrated_config = respTemplate.content.decode('utf-8')
-            for p in params:
-                defaultDict[p['name']] = p['default']
-
-            # parameters the user sent in
-            hydrateData = kwargs['dag_run'].conf.get('params')
-
-            # need to loop over defaultDict and update with hydrateData values
-            for key in hydrateData:
-                if key in defaultDict.keys():
-                    defaultDict[key] = hydrateData[key]
-
-            finalDict = {}
-            for key in defaultDict:
-                 print(f'DEFAULT: key: {key} value: {defaultDict[key]}   type: {type(defaultDict[key])}')
-            for key in hydrateData:
-                 print(f'hydrateData: key: {key} value: {hydrateData[key]}   type: {type(hydrateData[key])}')
-            
-            # Hydrate the config
-            if os.path.exists(saveFolder):
-                print('here')
-                pass
-
-            else:
-                os.mkdir(saveFolder, mode=0o777)
-
-            os.chmod(saveFolder, mode=0o777)
-
-            # Template(dehydrated_config).stream(finalDict).dump(savePath)
-            dataToSave = Template(dehydrated_config).render(defaultDict)
-
-            print(f'dataToSave: {dataToSave}')
-            # savePath needs to be hard coded for ubuntu path with run id and model name or something.
-            saveFileName=saveFolder+fileName
-            with open(saveFileName, "w+") as fh:
-                fh.write(dataToSave)
-            os.chmod(saveFileName, mode=0o777)
-
-    except Exception as e:
-        print(e)
-    print('done')
+        print(f'data_to_save: {data_to_save}')
+        # save path needs to be hard coded for ubuntu path with run id and model name or something.
+        save_file_name = os.path.join(save_folder, config_file.get('file_name'))
+        with open(save_file_name, "w+") as fh:
+            fh.write(data_to_save)
+        os.chmod(save_file_name, mode=0o777)
 
 
 def accessoryNodeTask(**kwargs):
@@ -178,7 +133,7 @@ def accessoryNodeTask(**kwargs):
         # per the S3 bucket's policy
         # TODO: may need to address this with more fine grained controls in the future
         bucket_dir = os.getenv('BUCKET_DIR')
-        key=f"{bucket_dir}/{kwargs['dag_run'].conf.get('run_id')}/{fn}"
+        key = f"{bucket_dir}/{kwargs['dag_run'].conf.get('run_id')}/{fn}"
 
         logger.info('key:' + key)
 
@@ -188,7 +143,7 @@ def accessoryNodeTask(**kwargs):
             replace=True,
             bucket_name=os.getenv('BUCKET')
         )
-                  
+
 
 def s3copy(**kwargs):
     s3 = S3Hook(aws_conn_id="aws_default")
