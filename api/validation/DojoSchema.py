@@ -3,6 +3,7 @@
 ################################################################
 
 
+from enum import Enum
 from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 from validation import RunSchema, ModelSchema, IndicatorSchema
@@ -37,31 +38,87 @@ class ModelAccessory(BaseModel):
         example="This is an image of a flooding forecast",
     )
 
+class Annotation(BaseModel):
+    name: str = Field(
+        ...,
+        description="The name of the parameter that the user references to access the annotation",
+        text="Name"
+    )
+    description: str = Field(
+        ...,
+        description="The description of the parameter",
+        text="Description"
+    )
+    type: ModelSchema.Type = Field(
+        ...,
+        description="The basic type",
+        text="Type"
+    )
+    default_value: str = Field(
+        ...,
+        description="The value to use for replacement if the user does not pass in one",
+        text="Default Value"
+    )
+    unit: str = Field(
+        ...,
+        description="The unit of the object being annotated",
+        text="Unit"
+    )
+    unit_description: str = Field(
+        ...,
+        description="Some information about the unit",
+        text="Unit Description"
+    )
+    data_type: ModelSchema.DataType = Field(
+        ...,
+        description="Some additional type information used by Causemos",
+        text="Data Value Type"
+    )
+    predefined: bool = Field(
+        False,
+        description="Whether to use a list of options",
+        text="Predefined"
+    )
+    options: List[str] = Field(
+        ...,
+        description="The only options if predefined",
+        text="Options"
+    )
+    # NOTE: DO we want to store these as floats instead?
+    # Currently, Causemos wants them as a float, but what if they are ints?
+    min: str = Field(
+        ...,
+        description="If the parameter is a numeric type, state the inclusive min of parameter values",
+        text="Parameter Minimum"
+    )
+    max: str = Field(
+        ...,
+        description="If the parameter is a numeric type, state the inclusive max of parameter values",
+        text="Parameter Minimum"
+    )
 
-class ModelConfig(BaseModel):
-    model_id: str = Field(
-        title="Model ID",
-        description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
-        example="abcd-efg-1233",
-    )
-    s3_url: str = Field(
-        title="S3 URL",
-        description="The S3 URL where the config file is located",
-        example="https://jataware-world-modelers.s3.amazonaws.com/dummy-model/config.json",
-    )
-    s3_url_raw: str = Field(
-        title="S3 URL (raw)",
-        description="The S3 URL where the raw config file is located",
-        example="https://jataware-world-modelers.s3.amazonaws.com/dummy-model/raw-config.json",
-    )
-    path: str = Field(
-        title="File Path",
-        description="The file path where the conf file must be mounted.",
-        example="/model/settings/config.json",
-    )
 
-    class Config:
-        extra = "allow"
+class Parameter(BaseModel):
+    start: int = Field(
+        ...,
+        description="The index that indicates where to start replacement",
+        text="Start Index"
+    )
+    end: int = Field(
+        ...,
+        description="The index that indicates where to end replacement",
+        text="Ending Index"
+    )
+    text: str = Field(
+        ...,
+        description="The text in-between start and end",
+        text="Original Text"
+    )
+    annotation: Annotation = Field(
+        ...,
+        description="The corresponding annotation",
+        text="Annotation"
+    )
 
 
 class ModelDirective(BaseModel):
@@ -72,23 +129,54 @@ class ModelDirective(BaseModel):
     )
     command: str = Field(
         title="Model Container command",
-        description="The model container command, templated using Jinja. Templated fields must correspond with the name of the model parameters.",
-        example="python3 dssat.py --management_practice = {{ management_practice }}",
-    )
-    command_raw: str = Field(
-        title="Model Container command",
-        description="The raw model container command",
-        example="python3 dssat.py --rainfall = .5 ",
+        description="The model container command",
+        example="python3 main.py --temp 1.3 ",
     )
     cwd: str = Field(
         title="Current Working Directory",
         description="Current Working Directory for Model Container command",
         example="/home/clouseau/model",
     )
+    parameters: List[Parameter] = Field(
+        ...,
+        description="The parameters that apply to this directive",
+        title="Directive Parameters",
+    )
 
     class Config:
         extra = "allow"
 
+
+class ModelConfig(BaseModel):
+    model_id: str = Field(
+        title="Model ID",
+        description="The ID (`ModelSchema.ModelMetadata.id`) of the related model",
+        example="abcd-efg-1233",
+    )
+    path: str = Field(
+        title="File Path",
+        description="The file path where the conf file must be mounted.",
+        example="/model/settings/config.json",
+    )
+    parameters: List[Parameter] = Field(
+        ...,
+        description="The parameters that apply to the configuration file given by path",
+        title="Config Parameters",
+    )
+
+    class Config:
+        extra = "allow"
+
+class ModelConfigCreate(BaseModel):
+    model_config: ModelConfig = Field(
+        title="Model Config",
+        description="A config that needs to be registered"
+    )
+    file_content: str = Field(
+        title="File Contents",
+        description="The contents of the config file that need to be written"
+    )
+    
 
 class ModelOutputFile(BaseModel):
     id: str

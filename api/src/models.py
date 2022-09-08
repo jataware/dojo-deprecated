@@ -1,30 +1,29 @@
 from __future__ import annotations
 
-import copy
 import logging
 import uuid
 import time
 from copy import deepcopy
-from datetime import datetime
 import json
-from typing import Any, Dict, Generator, List, Optional, Union
+from typing import Dict, List, Union
 
 from elasticsearch import Elasticsearch
-from pydantic import BaseModel, Field
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status, Body
+from fastapi import APIRouter, HTTPException, Query, Response, status
 from fastapi.logger import logger
 from validation import ModelSchema, DojoSchema
 
 from src.settings import settings
 from src.dojo import search_and_scroll, copy_configs, copy_outputfiles, copy_directive, copy_accessory_files
-from src.ontologies import get_ontologies
 from src.causemos import notify_causemos, submit_run
 from src.utils import run_model_with_defaults
 
 router = APIRouter()
 
-es = Elasticsearch([settings.ELASTICSEARCH_URL], port=settings.ELASTICSEARCH_PORT)
+es = Elasticsearch(
+    [settings.ELASTICSEARCH_URL],
+    port=settings.ELASTICSEARCH_PORT
+)
 logger = logging.getLogger(__name__)
 
 
@@ -57,17 +56,10 @@ def create_model_family(family: ModelSchema.ModelFamilySchema):
 
 
 @router.post("/models")
-def create_model(payload: ModelSchema.ModelMetadataSchema, fetch_ontologies=True):
+def create_model(payload: ModelSchema.ModelMetadataSchema):
     model_id = payload.id
     payload.created_at = current_milli_time()
     body = payload.json()
-
-    if fetch_ontologies:
-        logger.info(f"Sent model to UAZ")
-        model = get_ontologies(json.loads(body), type="model")
-    else:
-        model = json.loads(body)
-        logger.info(f"Cloning model; not re-sending to UAZ")
 
     # Create a new model family if it doesn't already exist
     if not es.exists(index="model_families", id=payload.family_name):
@@ -81,7 +73,7 @@ def create_model(payload: ModelSchema.ModelMetadataSchema, fetch_ontologies=True
             id=payload.family_name
         )
 
-    es.index(index="models", body=model, id=model_id)
+    es.index(index="models", body=json.loads(body), id=model_id)
 
     return Response(
         status_code=status.HTTP_201_CREATED,
@@ -114,17 +106,18 @@ def get_latest_models(size=100, scroll_id=None) -> DojoSchema.ModelSearchResult:
         scroll_id = None
     else:
         scroll_id = results.get("_scroll_id", None)
+    results = [i["_source"] for i in results["hits"]["hits"]]
     return {
         "hits": count["count"],
         "scroll_id": scroll_id,
-        "results": [i["_source"] for i in results["hits"]["hits"]],
+        "results": results,
     }
+
 
 @router.put("/models/{model_id}")
 def update_model(model_id: str, payload: ModelSchema.ModelMetadataSchema):
     payload.created_at = current_milli_time()
-    body = payload.json()
-    model = get_ontologies(json.loads(body))
+    model = payload.json()
     es.index(index="models", body=model, id=model_id)
     return Response(
         status_code=status.HTTP_201_CREATED,
@@ -177,21 +170,14 @@ def register_model(model_id: str):
     """
     logger.info("Updating model with latest ontologies.")
     model = es.get(index="models", id=model_id)["_source"]
-    model = get_ontologies(model)
     model_obj = ModelSchema.ModelMetadataSchema.parse_obj(model)
     update_model(model_id=model_id, payload=model_obj)
-    notify_data = copy.deepcopy(model)
 
     # On the notification step only, we want to include any previous versions so that they can be deprecated
     previous_versions = model_versions(model_id)['prev_versions']
-    notify_data["deprecatesIDs"] = previous_versions
+    model["deprecatesIDs"] = previous_versions
 
-    # Notify Causemos that a model was created
-    logger.info("Notifying CauseMos of model registration")
-    notify_causemos(notify_data, type="model")
-
-    # Send CauseMos a default run
-    logger.info("Submitting defualt run to CauseMos")
+    notify_causemos(model, type="model")
     submit_run(model)
 
     return Response(
@@ -264,7 +250,7 @@ def version_model(model_id : str, exclude_files: bool = False):
                 new_model.qualifier_outputs = get_updated_outputs(new_model.qualifier_outputs, outputfile_uuid_mapping)
 
         # Save model
-        create_model(new_model, fetch_ontologies=False)
+        create_model(new_model)
 
         # Assign next_version id to original model after save
         modify_model(model_id=model_id, payload=ModelSchema.ModelMetadataPatchSchema(next_version=new_id))
