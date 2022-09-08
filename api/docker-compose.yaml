@@ -8,7 +8,7 @@ services:
     expose:
       - "8000"
     env_file:
-      - .env  
+      - .env
     networks:
       - dojo
 
@@ -30,16 +30,6 @@ services:
     networks:
       - dojo
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:7.11.2
-    container_name: kibana
-    ports:
-      - 5601:5601
-    environment:
-      ELASTICSEARCH_URL: http://elasticsearch:9200
-    networks:
-      - dojo
-
   redis:
     container_name: redis1
     image: redis
@@ -48,11 +38,9 @@ services:
     networks:
       - dojo
 
-
 volumes:
   dojo_esdata:
     driver: local
-
 
 networks:
   dojo:

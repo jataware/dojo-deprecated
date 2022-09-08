@@ -205,10 +205,7 @@ def publish_indicator(indicator_id: str):
         es.index(index="indicators", body=data, id=indicator_id)
 
         # Notify Causemos that an indicator was created
-        if settings.ENABLE_CAUSEMOS:
-            notify_causemos(data, type="indicator")
-        else:
-            logger.info("Skipping causemos, not enabled in envfile.")
+        notify_causemos(data, type="indicator")
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return Response(
@@ -286,10 +283,7 @@ def deprecate_indicator(indicator_id: str):
         es.index(index="indicators", id=indicator_id, body=indicator)
 
         # Tell Causemos to deprecate the dataset on their end
-        if settings.ENABLE_CAUSEMOS:
-            deprecate_dataset(indicator_id)
-        else:
-            logger.info("Skipping causemos, not enabled in envfile.")
+        deprecate_dataset(indicator_id)
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return Response(
