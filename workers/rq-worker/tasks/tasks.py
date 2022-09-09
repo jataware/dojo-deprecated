@@ -1,15 +1,21 @@
 import base64
 import copy
+import hashlib
 import json
 import logging
 from operator import sub
 import os
 import time
 from urllib.parse import urlparse
+import uuid
 
 from rename import rename as rename_function
 from anomaly_detection import AnomalyDetector, sheet_tensor_to_img
 from utils import get_rawfile, put_rawfile
+import pandas as pd
+import mixmasta as mx
+import rasterio
+import requests
 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
@@ -63,6 +69,8 @@ def build_mapper(uuid, annotations):
             admin_level if set during annotation: country, admin1, admin2, admin3
 
     """
+
+    import pprint
 
     # Set default return value (None) for geo_select.
     geo_select = None
@@ -199,164 +207,6 @@ def clear_invalid_qualifiers(uuid, annotations):
     return annotations
 
 
-def build_meta(uuid, d, geo_select, context):
-    fnames = [x.split(".")[0] for x in os.listdir(d)]
-    annotations = context["annotations"]["annotations"]
-
-    ft = annotations["meta"].get("ftype", "csv")
-    fp = context.get("uploaded_file_fp", f"/datasets/{uuid}/raw_data.csv")
-    meta = {}
-    meta["ftype"] = ft
-
-    if ft == "geotiff":
-        with open(f"data/{uuid}/geotiff_info.json", "r") as f:
-            tif = json.load(f)
-        {
-            "geotiff_Feature_Name": "feat",
-            "geotiff_Band": "1",
-            "geotiff_Null_Val": "-9999",
-            "geotiff_Date": "",
-        }
-        if "bands" in context:
-            meta["ftype"] = context.get("ft", "csv")
-            meta["bands"] = context.get("bands", "1")
-            meta["null_val"] = context.get("null_val", "-9999")
-            meta["date"] = context.get("date", "")
-            meta["date"] = context.get("date", "01/01/2001")
-            meta["feature_name"] = context.get(
-                "Feature_name", tif.get("geotiff_Feature_Name", "feature")
-            )
-            meta["band_name"] = context.get(
-                "Feature_name", tif.get("geotiff_Feature_Name", "feature")
-            )
-            meta["band"] = 0
-            meta["null_val"] = -9999
-            meta["bands"] = context.get("bands", {})
-            meta["band_type"] = context.get("band_type", "category")
-
-        else:
-            meta["feature_name"] = tif["geotiff_Feature_Name"]
-            meta["band_name"] = tif["geotiff_Feature_Name"]
-            meta["null_val"] = tif["geotiff_Null_Val"]
-            meta["date"] = tif["geotiff_Date"]
-
-    if ft == "excel":
-        xl = json.load(open(f"/datasets/{uuid}/excel_info.json", "r"))
-        meta["sheet"] = xl["excel_Sheet"]
-
-    # Update meta with geocode_level if set as geo_select above.
-    # If present Mimaxta will override admin param with this value.
-    # Meant for use with DMC model runs.
-    if geo_select != None:
-        meta["geocode_level"] = geo_select
-    return meta, fp.split("/")[-1], fp
-
-
-def generate_mixmasta_files(context):
-    uuid = context["uuid"]
-    annotations = context["annotations"]["annotations"]
-    annotations = clear_invalid_qualifiers(uuid, annotations)
-
-    # Build the mapper.json annotations, and get geo_select for geo_coding
-    # admin level if set annotating lat/lng pairs.
-    mixmasta_ready_annotations, geo_select = build_mapper(uuid, annotations)
-
-    logging_preface = "Mixmasta  log start: "
-    d = f"/datasets/{uuid}"
-    fp = ""
-    meta = {}
-    fn = None
-
-    mixmasta_ready_annotations["meta"], fn, fp = build_meta(
-        uuid, d, geo_select, context
-    )
-
-    logging.info(f"{logging_preface} - Began mixmasta process")
-
-    # BYOM handling
-    if context.get("mode") == "byom":
-        # Default to admin2 if geo_select is not set or too precise.
-        if geo_select in (None, "admin3"):
-            admin_level = "admin2"
-        else:
-            admin_level = geo_select
-            logging.info(f"{logging_preface} - set admin_level to {admin_level}")
-
-        byom_annotations = copy.deepcopy(mixmasta_ready_annotations)
-        fn = f"{d}/raw_data.csv"
-        fp = fn
-        byom_annotations["meta"] = {"ftype": "csv"}
-
-        with open(f"data/{uuid}/byom_annotations.json", "w") as f:
-            json.dump(
-                byom_annotations,
-                f,
-            )
-        mapper = "byom_annotations"
-
-    # BYOD handling
-    else:
-        # Default to admin3 if geo_select is not set.
-        if geo_select == None:
-            admin_level = "admin3"
-        else:
-            admin_level = geo_select
-            logging.info(f"{logging_preface} - set admin_level to {admin_level}")
-
-        mapper = "mixmasta_ready_annotations"
-
-    # Set gadm level based on geocoding level; still using gadm2 for gadm0/1.
-    gadm_level = None
-
-    context["gadm_level"] = gadm_level
-    context["output_directory"] = d
-    context["mapper_fp"] = f"data/{uuid}/{mapper}.json"
-    context["raw_data_fp"] = fp
-    context["admin_level"] = admin_level
-
-    return mixmasta_ready_annotations
-
-
-def post_mixmasta_annotation_processing(rename, context):
-    """change annotations to reflect mixmasta's output"""
-    uuid = context["uuid"]
-    # with open(context["mapper_fp"], "r") as f:
-    #     mixmasta_ready_annotations = json.load(f)
-    mixmasta_ready_annotations = context["annotations"]["annotations"]
-    to_rename = {}
-    for k, x in rename.items():
-        for y in x:
-            to_rename[y] = k
-
-    mixmasta_ready_annotations = rename_function(mixmasta_ready_annotations, to_rename)
-
-    primary_date_renames = [
-        x["name"]
-        for x in mixmasta_ready_annotations["date"]
-        if x.get("primary_geo", False)
-    ]
-    primary_geo_renames = [
-        x["name"]
-        for x in mixmasta_ready_annotations["geo"]
-        if x.get("primary_geo", False)
-    ]
-
-    primary_geo_rename_count = 0  # RTK
-    mixmasta_ready_annotations["geo"] = dupe(
-        mixmasta_ready_annotations["geo"],
-        primary_geo_renames,
-        ["admin1", "admin2", "admin3", "country", "lat", "lng"],
-    )
-    mixmasta_ready_annotations["date"] = dupe(
-        mixmasta_ready_annotations["date"], primary_date_renames, ["timestamp"]
-    )
-
-    json.dump(
-        mixmasta_ready_annotations,
-        open(f"/datasets/{uuid}/mixmasta_ready_annotations.json", "w"),
-    )
-
-
 def anomaly_detection(context):
     from matplotlib import pyplot as plt
     from io import BytesIO
@@ -397,3 +247,35 @@ def test_job(context, fail=False, sleep=10, *args, **kwargs):
         raise RuntimeError("Forced failure of test job")
 
     logging.info("test_job task completed successfully")
+
+
+def model_output_analysis(context, model_id, fileurl, filepath):
+
+    file_key = f"{model_id}:{filepath}"
+    file_uuid = str(uuid.UUID(bytes=hashlib.md5(file_key.encode()).digest(), version=4))
+    url = f"{os.environ['CLOUSEAU_ENDPOINT']}{fileurl}"
+    req = requests.get(url, stream=True)
+    stream = req.raw
+    if filepath.endswith('.xlsx') or filepath.endswith('.xls'):
+        excel_file = pd.ExcelFile(stream.read())
+        return {
+            'file_uuid': file_uuid,
+            'filetype': 'excel', 
+            'excel_sheets': excel_file.sheet_names, 
+            'excel_sheet': excel_file.sheet_names[0]
+        }
+    elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
+        raster = rasterio.open(rasterio.io.MemoryFile(stream))
+        return {
+            'file_uuid': file_uuid,
+            'filetype': 'geotiff', 
+            'geotiff_band_count': raster.profile['count'], 
+            'geotiff_band_type': "category", 
+            'geotiff_bands': {}
+        }
+    else: 
+        return {
+            'file_uuid': file_uuid
+        }
+
+

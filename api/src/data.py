@@ -49,21 +49,13 @@ def get_context(uuid):
     except:
         annotations = {}
     try:
-        datasets = get_indicators(uuid)
+        dataset = get_indicators(uuid)
     except:
-        datasets = {}
+        dataset = {}
 
-    context = {"uuid": uuid, "datasets": datasets, "annotations": annotations}
+    context = {"uuid": uuid, "dataset": dataset, "annotations": annotations}
 
     return context
-
-
-def get_datapath_from_indicator(uuid):
-    indicator = get_indicators(uuid)
-
-    datapath = indicator["_source"]["datapath"]
-
-    return datapath
 
 
 # RQ ENDPOINTS
@@ -161,17 +153,12 @@ def job(uuid: str, job_string: str, options: Optional[Dict[Any, Any]] = None):
             func=job_string, args=[context], kwargs=options, job_id=job_id
         )
         if synchronous:
-            logging.warning("Synch")
             timer = 0.0
             while (
                 job.get_status(refresh=True) not in ("finished", "failed")
                 and timer < timeout
             ):
-                logging.warning(f"{job.get_status(refresh=True)} {timer} {timeout}")
-                logging.warning(f"{timer} timer {recheck_delay}")
-                logging.warning("sleeping")
                 time.sleep(recheck_delay)
-                logging.warning("awoke")
                 timer += recheck_delay
 
     status = job.get_status()
@@ -193,6 +180,7 @@ def job(uuid: str, job_string: str, options: Optional[Dict[Any, Any]] = None):
         "result": job_result,
     }
     return response
+
 
 
 # TEST ENDPOINTS

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from os import mkdir
 import json
 import os
@@ -35,11 +36,12 @@ class GeotimeProcessor(BaseProcessor):
                 del ret[col_name]["column"]
             return ret
 
-        GeoTimeClass = gc.GeoTimeClassify(50)
+        GeoTimeClass = gc.GeoTimeClassify(100)
         if not os.path.exists(output_path):
             os.makedirs(output_path)
 
-        df.head(50).to_csv(f"{output_path}/raw_data_geotime.csv", index=False)
+        sample_size = min(len(df), 100)
+        df.sample(sample_size).to_csv(f"{output_path}/raw_data_geotime.csv", index=False)
         c_classified = GeoTimeClass.columns_classified(
             f"{output_path}/raw_data_geotime.csv"
         )
@@ -54,15 +56,31 @@ class GeotimeProcessor(BaseProcessor):
         return c_classifiedConverted
 
 
+def classify(filepath, context):
+    df = pd.read_csv(filepath, delimiter=",")
+    gc = GeotimeProcessor()
+    datapath = f"./data/{context['uuid']}"
+
+    final = gc.run(df=df, context=context, output_path=datapath)
+
+    # Constructs data object for patch that updates the metadata dictionary for the MetadataModel
+    json_final = json.loads(json.dumps(final))
+
+    # Final cleanup of temp directory
+    shutil.rmtree(datapath)
+    return json_final
+
+
 def geotime_classify(context, filename=None):
 
     # If no filename is passed in, default to the converted raw_data file.
     if filename is None:
         filename = "raw_data.csv"
-    
+
+    # Always analyze the csv version of the file
     if not filename.endswith(".csv"):
         filename = filename.split(".")[0] + ".csv"
-    
+
     rawfile_path = os.path.join(
         settings.DATASET_STORAGE_BASE_URL, context["uuid"], filename
     )
@@ -97,9 +115,6 @@ def geotime_classify(context, filename=None):
         json=data,
     )
 
-    # Final cleanup of temp directory
-    shutil.rmtree(datapath)
-
     return json_final, request_response
 
 
@@ -124,3 +139,10 @@ def infer_types(dataframe):
 
     logging.warn(f"Processed dtypes:{types}")
     return types
+
+
+def model_output_geotime_classify(context, *args, **kwargs):
+    file_uuid = context['annotations']['metadata']['file_uuid']
+    sample_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, 'model-output-samples', context['uuid'], f'{file_uuid}.csv')
+    filepath = get_rawfile(sample_path)
+    return classify(filepath, context)

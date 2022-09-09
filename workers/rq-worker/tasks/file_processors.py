@@ -1,6 +1,8 @@
 from fileinput import filename
 import logging
 import os
+import requests
+import tempfile
 
 import pandas as pd
 import xarray as xr
@@ -16,10 +18,8 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 class FileLoadProcessor(BaseProcessor):
     @staticmethod
-    def run(context, rawfile):
+    def run(context, fp):
         """loads the file into a dataframe"""
-        fp = context["uploaded_file_fp"]
-        logging.info(f"{context.get('logging_preface', '')} - Loading file {fp}")
 
         extension_mapping = {
             "xlsx": ExcelLoadProcessor,
@@ -33,8 +33,7 @@ class FileLoadProcessor(BaseProcessor):
         if isinstance(fp, str):
             for extension, processor in extension_mapping.items():
                 if fp.lower().endswith(extension):
-                    df = processor().run(df, context)
-                    # df.columns = [str(x).strip() for x in df.columns]
+                    df = processor().run(context, fp)
                     return df
         t = type(fp)
         raise ValueError(f"Unable to map '{fp} to a processor, type: {t}")
@@ -42,36 +41,25 @@ class FileLoadProcessor(BaseProcessor):
 
 class CsvLoadProcessor(BaseProcessor):
     @staticmethod
-    def run(df, context):
+    def run(context, fp):
         """load csv"""
-        ft = "csv"
-        context["ft"] = ft
-        fp = context["uploaded_file_fp"]
         df = pd.read_csv(fp)
         return df
 
 
 class NetcdfLoadProcessor(BaseProcessor):
     @staticmethod
-    def run(df, context):
+    def run(context, fp):
         """load netcdf"""
-        ft = "netcdf"
-        context["ft"] = ft
-
-        fp = context["uploaded_file_fp"]
         df = mix.netcdf2df(fp)
         return df
 
 
 class ExcelLoadProcessor(BaseProcessor):
     @staticmethod
-    def run(df, context):
+    def run(context, fp):
         """load excel"""
-        ft = "excel"
-        context["ft"] = ft
-
-        fp = context["uploaded_file_fp"]
-        sheet = context.get("excel_Sheet", None)
+        sheet = context.get("excel_sheet", None)
         if sheet == None:
             df = pd.read_excel(fp)
         else:
@@ -81,19 +69,15 @@ class ExcelLoadProcessor(BaseProcessor):
 
 class GeotiffLoadProcessor(BaseProcessor):
     @staticmethod
-    def run(context):
+    def run(context, fp):
         """load geotiff"""
-        fp = context["annotations"]["metadata"]["uploaded_file_fp"]
-        ft = "geotiff"
-        context["annotations"]["metadata"]["ft"] = ft
-        context_annotations_meta = context["annotations"]["metadata"]
 
         def single_band_run():
             feature_name, band, date, nodataval = (
-                context_annotations_meta["geotiff_feature_name"],
-                context_annotations_meta.get("band", 1),
-                context_annotations_meta["geotiff_date"],
-                context_annotations_meta.get("geotiff_null_value", None),
+                context["geotiff_value"],
+                context.get("band", 1),
+                context["geotiff_date_value"],
+                context.get("geotiff_null_value", None),
             )
 
             df = mix.raster2df(
@@ -102,21 +86,26 @@ class GeotiffLoadProcessor(BaseProcessor):
             return df
 
         def multiband_run():
-            fp = context_annotations_meta["uploaded_file_fp"]
-
             # time
-            logging.info(f"context is: {context}")
+            band_type = context.get("geotiff_band_type", "category")
+            if band_type == 'temporal':
+                band_type = 'datetime'
+                date_value = None
+            else:
+                date_value = context.get("geotiff_value", "01/01/2001")
+            
             df = mix.raster2df(
                 fp,
-                feature_name=context_annotations_meta.get(
-                    "geotiff_feature_name", "feature"
+                feature_name=context.get(
+                    "geotiff_value", "feature"
                 ),
-                band_name=context_annotations_meta.get(
-                    "geotiff_feature_name", "feature"
+                band_name=context.get(
+                    "geotiff_value", "feature"
                 ),
-                date=context_annotations_meta.get("geotiff_date", "01/01/2001"),
-                bands=context_annotations_meta.get("geotiff_bands", {}),
-                band_type=context_annotations_meta.get("geotiff_band_type", "category"),
+                date=date_value,
+                bands=context.get("geotiff_bands", {}),
+                band_type=band_type,
+                nodataval=context.get("geotiff_null_value", None),
             )
             return df.sort_values(by="date")
 
@@ -126,110 +115,66 @@ class GeotiffLoadProcessor(BaseProcessor):
             return single_band_run()
 
 
-class SaveProcessorCsv(BaseProcessor):
-    @staticmethod
-    def run(df, context):
-        """save df to output_path"""
-        output_path = context.get("output_path")
-        df.to_csv(output_path, index=False)
-        return df
-
-
 def file_conversion(context, filename=None):
     # Get raw file
     uuid = context["uuid"]
+    processor = FileLoadProcessor()
+
     # Grabbing filename from context if it isn't passed in.
     if filename is None:
         filename = list(context["annotations"]["metadata"]["files"].keys())[0]
     file_metadata = context["annotations"]["metadata"]["files"][filename]
+
     raw_path = os.path.join(DATASET_STORAGE_BASE_URL, uuid, filename)
     raw_file = get_rawfile(raw_path)
-    excel_tuple = ("xlsx", "xls")
-    tif_tuple = ("tif", "tiff")
 
-    output_filename = filename.split(".")[0] + ".csv"
-    dest_path = os.path.join(DATASET_STORAGE_BASE_URL, uuid, output_filename)
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        local_file_fp = os.path.join(tmpdirname, filename)
+        with open(local_file_fp, 'wb') as local_file:
+            for chunk in raw_file:
+                local_file.write(chunk)
 
-    if filename.endswith(excel_tuple):
-        sheet = file_metadata.get(
-            "excel_sheet", 0
-        )  # 0 is the first sheet if none is provided.
+        df = processor.run(context=file_metadata, fp=local_file_fp)
 
-        read_file = pd.read_excel(raw_file, sheet_name=sheet)
+        basename, _ = os.path.splitext(filename)
+        temp_output_file = os.path.join(tmpdirname, "output.csv")
+        csv_file_path = os.path.join(DATASET_STORAGE_BASE_URL, uuid, f'{basename}.csv')
+        df.to_csv(temp_output_file, index=False)
+        with open(temp_output_file, 'rb') as csv_file:
+            put_rawfile(csv_file_path, csv_file)
 
-        read_file.to_csv("./xlsx_to.csv", index=None, header=True)
-
-        with open("./xlsx_to.csv", "rb") as fileobj:
-            put_rawfile(dest_path, fileobj)
-
-        os.remove("./xlsx_to.csv")
-
-    elif filename.endswith(tif_tuple):
-        response = geotif_to_CSV(context, raw_file, filename, dest_path)
-
-    elif filename.endswith(".nc"):
-        response = netCDF_to_CSV(uuid, raw_file, filename, dest_path)
-
-    return {
-        "csv_filename": output_filename,
-    }
+    return csv_file_path
 
 
-def netCDF_to_CSV(uuid, fileobj, filename, dest_path):
-    """Convert NETCDF to CSV"""
-    original_file = fileobj
+def model_output_preview(context, *args, **kwargs):
+    fileurl = context['annotations']['metadata']['fileurl']
+    filepath = context['annotations']['metadata']['filepath']
+    file_uuid = context['annotations']['metadata']['file_uuid']
 
-    open_netcdf = xr.open_dataset(original_file)
-    df = open_netcdf.to_dataframe()
-    df.reset_index().to_csv("./convertedCSV.csv", index=False)
-    with open("./convertedCSV.csv", "rb") as f:
-        put_rawfile(dest_path, f)
+    url = f"{os.environ['CLOUSEAU_ENDPOINT']}{fileurl}"
 
-    os.remove("./convertedCSV.csv")
+    req = requests.get(url, stream=True)
+    stream = req.raw
 
+    filename = os.path.basename(filepath)
+    processor = FileLoadProcessor()
 
-def geotif_to_CSV(context, fileobj, filename, dest_path):
-    original_file = fileobj
-    uuid = context["uuid"]
-    file_metadata = context["annotations"]["metadata"]["files"][filename]
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        local_file_fp = os.path.join(tmpdirname, filename)
+        with open(local_file_fp, 'wb') as local_file:
+            for chunk in stream:
+                local_file.write(chunk)
 
-    with open("./tempGeoTif.tif", "wb") as f:
-        f.write(original_file.read())
+        file_metadata = context["annotations"]["metadata"]
+        df = processor.run(context=file_metadata, fp=local_file_fp)
+        
+        sample = df.head(100)
+        sample_fp = os.path.join(tmpdirname, "sample.csv")
+        sample.to_csv(sample_fp, index=False)
 
-    glp = GeotiffLoadProcessor()
-    context["annotations"]["metadata"]["uploaded_file_fp"] = "./tempGeoTif.tif"
-    context["annotations"]["metadata"]["geotiff_feature_name"] = "feature"
-    # Makes the band/bands dictionary. Band is set for single band runs, bands is set for multiband runs.
-    context["geotiff_null_value"] = file_metadata.get("geotiff_null_value", 0)
-    if len(file_metadata.get("geotiff_bands", [])) > 1:
-        context["geotiff_bands"] = file_metadata["geotiff_bands"]
-        band_type = file_metadata["geotiff_band_type"]
-        if band_type == "temporal":
-            band_type = "datetime"
-            context["annotations"]["metadata"][
-                "geotiff_feature_name"
-            ] = file_metadata["geotiff_value"]
-        elif band_type == "category":
-            context["annotations"]["metadata"]["geotiff_date"] = (
-                file_metadata["geotiff_value"]
-                if file_metadata["geotiff_band_type"] == "category"
-                else "01/01/2001"
-            )
+        file_path = os.path.join('model-output-samples', context['uuid'], f'{file_uuid}.csv')
+        sample_output_path = os.path.join(DATASET_STORAGE_BASE_URL, file_path)
+        with open(sample_fp, 'rb') as sample_file:
+            put_rawfile(sample_output_path, sample_file)
 
-        context["annotations"]["metadata"]["geotiff_band_type"] = band_type
-    else:
-        context["annotations"]["metadata"]["geotiff_feature_name"] = file_metadata[
-            "geotiff_value"
-        ]
-        context["annotations"]["metadata"]["geotiff_date"] = file_metadata[
-            "geotiff_date_value"
-        ]
-
-    df = glp.run(context)
-    df.to_csv("./convertedCSV.csv", index=None, header=True)
-
-    with open("./convertedCSV.csv", "rb") as f:
-        put_rawfile(dest_path, f)
-
-    os.remove("./tempGeoTif.tif")
-    os.remove("./convertedCSV.csv")
+    return file_path

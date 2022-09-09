@@ -13,8 +13,6 @@ RUN mkdir ~/mixmasta_data && \
 ENV CPLUS_INCLUDE_PATH=/usr/include/gdal
 ENV C_INCLUDE_PATH=/usr/include/gdal
 
-RUN pip3 install numpy==1.20.1
-
 RUN pip install --upgrade pip
 
 COPY ./tasks/requirements.txt /tasks/requirements.txt
