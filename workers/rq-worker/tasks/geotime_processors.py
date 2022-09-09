@@ -40,7 +40,8 @@ class GeotimeProcessor(BaseProcessor):
         if not os.path.exists(output_path):
             os.makedirs(output_path)
 
-        df.sample(100).to_csv(f"{output_path}/raw_data_geotime.csv", index=False)
+        sample_size = min(len(df), 100)
+        df.sample(sample_size).to_csv(f"{output_path}/raw_data_geotime.csv", index=False)
         c_classified = GeoTimeClass.columns_classified(
             f"{output_path}/raw_data_geotime.csv"
         )
