@@ -165,6 +165,7 @@ def search_indicators(
                         }
                     except Exception as e:
                         print(e)
+                        logger.exception(e)
                 for outputs in indicator["outputs"]:
                     try:
                         outputs["ontologies"] = {
@@ -174,6 +175,7 @@ def search_indicators(
                         }
                     except Exception as e:
                         print(e)
+                        logger.exception(e)
             if not include_geo:
                 indicator["geography"]["country"] = []
                 indicator["geography"]["admin1"] = []
@@ -189,7 +191,8 @@ def search_indicators(
 def get_indicators(indicator_id: str) -> IndicatorSchema.IndicatorMetadataSchema:
     try:
         indicator = es.get(index="indicators", id=indicator_id)["_source"]
-    except:
+    except Exception as e:
+        logger.exception(e)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return indicator
 
@@ -206,7 +209,8 @@ def publish_indicator(indicator_id: str):
 
         # Notify Causemos that an indicator was created
         notify_causemos(data, type="indicator")
-    except:
+    except Exception as e:
+        logger.exception(e)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return Response(
         status_code=status.HTTP_200_OK,
@@ -219,7 +223,8 @@ def publish_indicator(indicator_id: str):
 def get_csv(indicator_id: str, request: Request):
     try:
         indicator = es.get(index="indicators", id=indicator_id)["_source"]
-    except:
+    except Exception as e:
+        logger.exception(e)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     async def iter_csv():
@@ -284,7 +289,8 @@ def deprecate_indicator(indicator_id: str):
 
         # Tell Causemos to deprecate the dataset on their end
         deprecate_dataset(indicator_id)
-    except:
+    except Exception as e:
+        logger.exception(e)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return Response(
         status_code=status.HTTP_200_OK,
@@ -311,7 +317,8 @@ def get_annotations(indicator_id: str) -> MetadataSchema.MetaModel:
     try:
         annotation = es.get(index="annotations", id=indicator_id)["_source"]
         return annotation
-    except:
+    except Exception as e:
+        logger.exception(e)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
         return None
 
@@ -338,7 +345,8 @@ def post_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
             headers={"location": f"/api/annotations/{indicator_id}"},
             content=f"Updated annotation with id = {indicator_id}",
         )
-    except:
+    except Exception as e:
+        logger.exception(e)
         return Response(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=f"Could not update annotation with id = {indicator_id}",
@@ -367,7 +375,8 @@ def put_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
             headers={"location": f"/api/annotations/{indicator_id}"},
             content=f"Created annotation with id = {indicator_id}",
         )
-    except:
+    except Exception as e:
+        logger.exception(e)
 
         return Response(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -397,7 +406,8 @@ def patch_annotation(payload: MetadataSchema.MetaModel, indicator_id: str):
             headers={"location": f"/api/annotations/{indicator_id}"},
             content=f"Updated annotation with id = {indicator_id}",
         )
-    except:
+    except Exception as e:
+        logger.exception(e)
         return Response(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=f"Could not update annotation with id = {indicator_id}",
@@ -460,7 +470,8 @@ def validate_date(payload: IndicatorSchema.DateValidationRequestSchema):
     try:
         for value in payload.values:
             datetime.strptime(value, payload.format)
-    except ValueError:
+    except ValueError as e:
+        logger.exception(e)
         valid = False
 
     return {
@@ -531,15 +542,16 @@ async def create_preview(
             file = get_rawfile(rawfile_path)
             df = pd.read_csv(file, delimiter=",")
 
-        # preview = df.head(100).to_json(orient="records")
-        obj = json.loads(df.head(100).to_json(orient="index"))
+        obj = json.loads(df.sort_index().reset_index(drop=True).head(100).to_json(orient="index"))
         indexed_rows = [{"__id": key, **value} for key, value in obj.items()]
 
         return indexed_rows
     except FileNotFoundError as e:
+        logger.exception(e)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     except Exception as e:
+        logger.exception(e)
         return Response(
             status_code=status.HTTP_400_BAD_REQUEST,
             headers={"msg": f"Error: {e}"},
