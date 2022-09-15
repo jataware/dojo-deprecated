@@ -419,4 +419,3 @@ def test_models(payload: DojoSchema.TestBatch):
             return "absent"
 
     return {model_id: status(model_id) for model_id in payload.model_ids}
-    ) 
