@@ -259,3 +259,33 @@ class ParameterFormatter(BaseModel):
     )
 
 
+class StatusAction(Enum):
+    """
+    The status actions are options that decide how to handle the status of
+    each model given.
+
+    - ignore: Do not trigger any tests
+    - fill: Trigger test if no default run exists
+    - force: Trigger test for each given model
+    """
+    ignore = "ignore"
+    fill = "fill"
+    force = "force"
+
+
+class TestBatch(BaseModel):
+    """
+    The test batch takes a list of models and returns the statuses while
+    using the status action provided.
+    """
+
+    model_ids: List[str] = Field(
+        [],
+        title="Model IDs",
+        description="The models that need their statuses checked",
+    )
+    action: StatusAction = Field(
+        StatusAction.ignore,
+        title="Model IDs",
+        description="Which action to use for each entry",
+    )

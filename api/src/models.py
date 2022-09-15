@@ -81,6 +81,7 @@ def create_model(payload: ModelSchema.ModelMetadataSchema):
         content=f"Created model with id = {model_id}",
     )
 
+
 @router.get("/models/latest", response_model=DojoSchema.ModelSearchResult)
 def get_latest_models(size=100, scroll_id=None) -> DojoSchema.ModelSearchResult:
     q = {
@@ -324,6 +325,7 @@ def publish_model(model_id: str, publish_data: ModelSchema.PublishSchema):
         content="Model published",
     )
 
+
 @router.get("/models/{model_id}/test")
 def test_model(model_id: str):
     """
@@ -333,4 +335,88 @@ def test_model(model_id: str):
     return Response(
         status_code=status.HTTP_200_OK,
         content=run_id,
+    )
+
+
+@router.post("/models/status")
+def generate_model_status(model_ids: List[str]):
+    """
+    Searches the current model status for the given models.
+    """
+    def status(model_id):
+        query = {
+          "query": {
+            "bool": {
+              "filter": [
+                {"term": {"model_id.keyword":  model_id}},
+                {"match": {"is_default_run": True}}
+              ]
+            }
+          },
+        }
+
+        result = es.search(index='runs', body=query)
+        no_default_run = result["hits"]["total"]['value'] == 0
+
+        if not no_default_run:
+            # Grab fields of run with highest unix epoch timestamp
+            run = max(
+              result["hits"]["hits"],
+              key=lambda hit: hit["_source"]["created_at"]
+            )["_source"]
+            run_status = run.get("attributes", {}).get("status", "absent")
+            return run_status.lower()
+        else:
+            return "absent"
+
+    return {model_id: status(model_id) for model_id in model_ids}
+
+
+@router.post("/models/test")
+def test_models(payload: DojoSchema.TestBatch):
+    """
+    Generates the model status for each model ID given using the results of the
+    last default run.
+    """
+    def status(model_id):
+        query = {
+          "query": {
+            "bool": {
+              "filter": [
+                {"term": {"model_id.keyword":  model_id}},
+                {"match": {"is_default_run": True}}
+              ]
+            }
+          },
+        }
+
+        result = es.search(index='runs', body=query)
+        no_default_run = result["hits"]["total"]['value'] == 0
+        should_create_new_run = (
+          payload.action == DojoSchema.StatusAction.force or
+          (
+             payload.action == DojoSchema.StatusAction.fill and
+             no_default_run
+          )
+        )
+
+        if should_create_new_run:
+            try:
+                test_model(model_id)
+                return "running"
+            except Exception as e:
+                logger.info(f'Failed to test {model_id} with error: {e}')
+                return "failed"
+        elif not no_default_run:
+            # Grab fields of run with highest unix epoch timestamp
+            run = max(
+              result["hits"]["hits"],
+              key=lambda hit: hit["_source"]["created_at"]
+            )["_source"]
+            run_status = run.get("attributes", {}).get("status", "absent")
+            return run_status.lower()
+        else:
+            return "absent"
+
+    return {model_id: status(model_id) for model_id in payload.model_ids}
     ) 
