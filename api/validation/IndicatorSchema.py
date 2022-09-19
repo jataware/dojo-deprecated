@@ -3,9 +3,11 @@
 #   timestamp: 2021-06-25T21:09:05+00:00
 
 from __future__ import annotations
+from doctest import Example
 
 from enum import Enum
 from typing import List, Optional, Any, Dict
+from xmlrpc.client import Boolean
 from pydantic import BaseModel, Extra, Field
 
 
@@ -35,6 +37,12 @@ class Type1(Enum):
     admin1 = "admin1"
     admin2 = "admin2"
     admin3 = "admin3"
+
+
+class PreviewType(Enum):
+    raw = "raw"
+    processed = "processed"
+
 
 # class Alias(BaseModel):
 #     name: Optional[str] = Field(
@@ -307,8 +315,8 @@ class IndicatorMetadataSchema(BaseModel):
     class Config:
         extra = Extra.allow
 
-    id: str = Field(
-        ...,
+    id: Optional[str] = Field(
+        None,
         description="A unique dataset id",
         examples=["123e4567-e89b-12d3-a456-426614174000"],
         title="Dataset ID",
@@ -353,14 +361,14 @@ class IndicatorMetadataSchema(BaseModel):
         description="Information about the dataset maintainer.",
         title="Dataset Maintainer",
     )
-    data_paths: List[str] = Field(
-        ...,
+    data_paths: Optional[List[str]] = Field(
+        [],
         description="URL paths to data",
         examples=[["https://jataware-world-modelers.s3.amazonaws.com/WDI/data.csv"]],
         title="Data Path URLs",
     )
-    outputs: List[Output] = Field(
-        ...,
+    outputs: Optional[List[Output]] = Field(
+        [],
         description="An array of dataset variables",
         title="Dataset Outputs"
     )
@@ -383,7 +391,7 @@ class IndicatorMetadataSchema(BaseModel):
     period: Optional[Period] = Field(
         None, description="Data ranges covered by the dataset", title="Run time period"
     )
-    deprecated: bool = Field(
+    deprecated: Optional[bool] = Field(
         False,
         description="Deprecated datasets should not be used for new models.",
     )
@@ -403,6 +411,13 @@ class IndicatorMetadataSchema(BaseModel):
         ],
         title="Dataset Quality",
     )
+    published: Boolean = Field(
+        False,
+        description="Specifies if the dataset has been published or is still being registered or processed.",
+        examples=[False],
+        title="Is Published",
+    )
+
 
 class IndicatorsSearchSchema(BaseModel):
     class Config:
@@ -437,3 +452,32 @@ class IndicatorsSearchSchema(BaseModel):
         title="Dataset Maintainer",
     )
    
+
+class DateValidationRequestSchema(BaseModel):
+    format: str = Field(
+        ...,
+        description="Format of date in Python strptime format",
+        examples=["%Y-%m-%d", "%Y", "%b %d, %Y"],
+    )
+    values: List[str] = Field(
+        ...,
+        description="List of values to validate the provided format against",
+        examples=[
+            ["2001-01-01", "2022-07-11", "2011-03-27"],
+            ["2002", "2005", "1998"],
+            ["Nov 11, 1911", "Dec 25, 2020", "Feb 9, 1999"],
+        ]
+    )
+
+
+class DateValidationResponseSchema(BaseModel):
+    format: str = Field(
+        ...,
+        description="Format of date in Python strptime format",
+        examples=["%Y-%m-%d", "%Y", "%b %d, %Y"],
+    )
+    valid: bool = Field(
+        ...,
+        description="Indicates if format provided (and returned) matches the values sent in",
+        examples=[True, False],
+    )

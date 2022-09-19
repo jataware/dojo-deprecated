@@ -6,6 +6,7 @@ from io import BytesIO
 
 from elasticsearch import Elasticsearch
 import boto3
+import botocore
 
 from src.settings import settings
 from validation import ModelSchema
@@ -110,12 +111,15 @@ def get_rawfile(path):
     if location_info.scheme.lower() == "file":
         raw_file = open(location_info.path, "rb")
     elif location_info.scheme.lower() == "s3":
-        file_path = location_info.path.lstrip("/")
-        raw_file = tempfile.TemporaryFile()
-        s3.download_fileobj(
-            Bucket=location_info.netloc, Key=file_path, Fileobj=raw_file
-        )
-        raw_file.seek(0)
+        try:
+            file_path = location_info.path.lstrip("/")
+            raw_file = tempfile.TemporaryFile()
+            s3.download_fileobj(
+                Bucket=location_info.netloc, Key=file_path, Fileobj=raw_file
+            )
+            raw_file.seek(0)
+        except botocore.exceptions.ClientError as e:
+            raise FileNotFoundError()
     else:
         raise RuntimeError("File storage format is unknown")
 

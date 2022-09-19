@@ -112,3 +112,4 @@ ENV/
 **/results/*
 
 api/es-mappings/import/*.json
+tasks/venv_tasks/
