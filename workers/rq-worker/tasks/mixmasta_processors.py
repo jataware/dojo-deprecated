@@ -17,7 +17,7 @@ def build_mixmasta_meta_from_context(context, filename=None):
     metadata = context["annotations"]["metadata"]
     if 'files' in metadata:
         metadata = metadata['files'][filename]
-    
+
     ftype = metadata.get("filetype", "csv")
     mapping  = {
         # Geotiff
@@ -91,9 +91,9 @@ def run_mixmasta(context, filename=None):
     datapath = f"./{uuid}"
     if not os.path.isdir(datapath):
         os.makedirs(datapath)
-    
+
     # Copy raw data file into rq-worker
-    # Could change mixmasta to accept file-like objects as well as filepaths.  
+    # Could change mixmasta to accept file-like objects as well as filepaths.
     # To save processing time, always re-use the converted CSV file
     if filename is None:
         filename = "raw_data.csv"
@@ -106,7 +106,7 @@ def run_mixmasta(context, filename=None):
             file_suffix = ''
         filename = f"raw_data{file_suffix}.csv"
 
-    
+
     rawfile_path = os.path.join(settings.DATASET_STORAGE_BASE_URL, uuid, filename)
 
     raw_file_obj = get_rawfile(rawfile_path)
@@ -194,11 +194,9 @@ def run_mixmasta(context, filename=None):
             ontologies={},
             is_primary=True,
             data_resolution={
-                "data_resolution": {
-                    "temporal_resolution": "annual",
-                    "spatial_resolution": None,
-                }
-            },  # TODO will be something like meta_annotations["metadata"]["data_resolution"] instead of hardcoded values.
+                "temporal_resolution": context.get("dataset", {}).get("temporal_resolution", None),
+                "spatial_resolution": context.get("dataset", {}).get("spatial_resolution", None),
+            },
             alias=feature["aliases"],
         )
         # Append

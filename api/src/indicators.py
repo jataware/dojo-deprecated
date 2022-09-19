@@ -67,12 +67,6 @@ def create_indicator(payload: IndicatorSchema.IndicatorMetadataSchema):
     es.index(index="indicators", body=body, id=indicator_id)
     empty_annotations_payload = MetadataSchema.MetaModel(metadata={}).json()
     es.index(index="annotations", body=empty_annotations_payload, id=indicator_id)
-    # TODO: Move this to publish
-    # data = get_ontologies(json.loads(body), type="indicator")
-    # logger.info(f"Sent indicator to UAZ")
-
-    # Notify Causemos that an indicator was created
-    # notify_causemos(data, type="indicator")
 
     return Response(
         status_code=status.HTTP_201_CREATED,
@@ -506,7 +500,7 @@ async def create_preview(
         if preview_type == IndicatorSchema.PreviewType.processed:
             if filepath:
                 rawfile_path = os.path.join(
-                    settings.DATASET_STORAGE_BASE_URL, 
+                    settings.DATASET_STORAGE_BASE_URL,
                     filepath.replace(".csv", ".parquet.gzip")
                 )
             else:
@@ -515,7 +509,7 @@ async def create_preview(
                     indicator_id,
                     f"{indicator_id}{file_suffix}.parquet.gzip",
                 )
-            
+
             file = get_rawfile(rawfile_path)
             df = pd.read_parquet(file)
             try:
