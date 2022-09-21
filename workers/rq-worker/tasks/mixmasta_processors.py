@@ -4,6 +4,7 @@ import os
 import re
 import requests
 import shutil
+from urllib.parse import urlparse
 
 import pandas as pd
 

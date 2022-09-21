@@ -6,7 +6,6 @@ import logging
 from operator import sub
 import os
 import time
-from urllib.parse import urlparse
 import uuid
 
 from rename import rename as rename_function
@@ -260,20 +259,20 @@ def model_output_analysis(context, model_id, fileurl, filepath):
         excel_file = pd.ExcelFile(stream.read())
         return {
             'file_uuid': file_uuid,
-            'filetype': 'excel', 
-            'excel_sheets': excel_file.sheet_names, 
+            'filetype': 'excel',
+            'excel_sheets': excel_file.sheet_names,
             'excel_sheet': excel_file.sheet_names[0]
         }
     elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
         raster = rasterio.open(rasterio.io.MemoryFile(stream))
         return {
             'file_uuid': file_uuid,
-            'filetype': 'geotiff', 
-            'geotiff_band_count': raster.profile['count'], 
-            'geotiff_band_type': "category", 
+            'filetype': 'geotiff',
+            'geotiff_band_count': raster.profile['count'],
+            'geotiff_band_type': "category",
             'geotiff_bands': {}
         }
-    else: 
+    else:
         return {
             'file_uuid': file_uuid
         }
